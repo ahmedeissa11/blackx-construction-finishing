@@ -359,7 +359,7 @@ textarea {
 /* ============ App shells (dashboard & portal) ============ */
 .shell {
   display: grid;
-  grid-template-columns: 272px minmax(0, 1fr);
+  grid-template-columns: var(--admin-sidebar-width) minmax(0, 1fr);
   min-height: 100vh;
   background: #efe9df;
 }
@@ -851,7 +851,7 @@ html[dir="rtl"] .shell-nav a.active {
   background: #fbf8f2;
 }
 @media (max-width: 900px) {
-  .priority-list {
+  .list-rows.priority-list {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -2523,8 +2523,9 @@ table.data .btn-ghost {
 }
 
 /* ============ BLACK X enterprise operations system ============ */
+/* Shell grid tracks stay on the base .shell rule so the <=960px one-column
+   layout later in the cascade is not overridden on mobile. */
 .shell {
-  grid-template-columns: var(--admin-sidebar-width) minmax(0, 1fr);
   background:
     radial-gradient(circle at 85% -10%, rgba(140, 154, 134, 0.16), transparent 30rem),
     linear-gradient(180deg, var(--admin-canvas-soft), var(--admin-canvas));
@@ -3513,6 +3514,18 @@ html[dir="rtl"] .executive-kpi-band .stat-card::before {
   }
 }
 @media (max-width: 960px) {
+  .shell-topbar {
+    padding-inline: 20px;
+  }
+  .shell-heading {
+    flex: 1 1 auto;
+  }
+  .shell-title {
+    flex: 0 1 auto;
+  }
+  .shell-content {
+    padding-inline: 20px;
+  }
   .shell-account-copy small {
     max-width: 130px;
   }
@@ -3561,8 +3574,45 @@ html[dir="rtl"] .executive-kpi-band .stat-card::before {
   }
 }
 @media (max-width: 640px) {
+  html:has(.shell) {
+    scroll-padding-top: 72px;
+  }
   .shell-topbar {
-    min-height: 0;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 8px;
+    min-height: 60px;
+    padding: 8px 12px;
+  }
+  .shell-heading {
+    gap: 0;
+  }
+  .shell-context {
+    display: none;
+  }
+  .shell-breadcrumbs {
+    font-size: 0.68rem;
+    line-height: 1.25;
+  }
+  .shell-title {
+    font-size: 1.03rem;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+  }
+  .shell-topbar-actions {
+    order: initial;
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-inline-start: 0;
+  }
+  .shell-topbar .locale-switch a {
+    min-height: 44px;
+    padding: 8px 9px;
+  }
+  .shell-topbar .shell-signout {
+    min-height: 44px;
+    padding-inline: 6px;
   }
   .shell-account {
     padding: 4px;
@@ -3575,10 +3625,86 @@ html[dir="rtl"] .executive-kpi-band .stat-card::before {
     height: 36px;
   }
   .shell-content {
-    padding-block-start: 18px;
+    padding: 16px 14px calc(44px + env(safe-area-inset-bottom));
+    gap: 18px;
+  }
+  .shell-content > *,
+  .executive-dashboard > * {
+    scroll-margin-top: 72px;
+  }
+  .executive-dashboard {
+    gap: 16px;
+  }
+  .executive-dashboard .dashboard-intro {
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+  .executive-dashboard .dashboard-intro-copy h2 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+  }
+  .executive-dashboard .dashboard-intro-copy p {
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+  .executive-dashboard .dashboard-intro-actions {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
   .executive-dashboard .dashboard-intro-actions .btn {
-    flex: 1 1 140px;
+    flex: none;
+    min-width: 0;
+    min-height: 44px;
+    padding: 9px;
+    text-align: center;
+  }
+  .executive-dashboard .dashboard-intro-actions .btn:first-child {
+    grid-column: 1 / -1;
+  }
+  .executive-kpi-band {
+    grid-auto-rows: 1fr;
+  }
+  .executive-kpi-band .stat-card {
+    display: flex;
+    min-height: 138px;
+    flex-direction: column;
+    padding: 14px;
+  }
+  .executive-kpi-band .stat-label {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+  .executive-kpi-band .stat-label > span:first-child,
+  .executive-kpi-band .stat-note {
+    overflow-wrap: break-word;
+  }
+  .executive-kpi-band .stat-value {
+    margin-block-start: auto;
+    padding-block-start: 10px;
+    font-size: 1.75rem;
+    line-height: 1.1;
+  }
+  .executive-kpi-band .stat-note {
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+  .executive-dashboard .priority-list {
+    padding: 12px;
+  }
+  .executive-dashboard .priority-item {
+    padding: 12px;
+  }
+  .executive-dashboard .priority-item .lr-title {
+    font-size: 0.92rem;
+    line-height: 1.45;
+    overflow-wrap: break-word;
+  }
+  .executive-dashboard .priority-item .lr-sub {
+    font-size: 0.8rem;
+    line-height: 1.55;
+    overflow-wrap: break-word;
   }
   .executive-project-summary {
     grid-template-columns: minmax(0, 1fr);
@@ -3609,12 +3735,46 @@ html[dir="rtl"] .executive-kpi-band .stat-card::before {
   }
 }
 @media (max-width: 359px) {
+  .shell-topbar {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+  .shell-title {
+    font-size: 0.98rem;
+  }
+  .shell-topbar-actions {
+    gap: 4px;
+  }
+  .shell-topbar .locale-switch a {
+    padding-inline: 7px;
+    font-size: 0.8rem;
+  }
+  .shell-topbar .shell-signout {
+    padding-inline: 4px;
+    font-size: 0.8rem;
+  }
+  .executive-kpi-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .executive-kpi-band .stat-card {
-    border-inline-end: 0 !important;
+    border-inline-end: 1px solid var(--admin-border-soft);
+    border-block-end: 0;
+    padding: 12px;
+  }
+  .executive-kpi-band .stat-card:nth-child(even) {
+    border-inline-end: 0;
+  }
+  .executive-kpi-band .stat-card:nth-child(-n + 2) {
     border-block-end: 1px solid var(--admin-border-soft);
   }
-  .executive-kpi-band .stat-card:last-child {
-    border-block-end: 0;
+  .executive-kpi-band .stat-label {
+    font-size: 0.78rem;
+  }
+  .executive-kpi-band .stat-value {
+    font-size: 1.55rem;
+  }
+  .executive-kpi-band .stat-note {
+    font-size: 0.74rem;
   }
   .domain-board .domain-stats {
     grid-template-columns: minmax(0, 1fr);
@@ -3713,6 +3873,24 @@ html[dir="rtl"] .executive-kpi-band .stat-card::before {
   grid-area: action;
   justify-self: end;
   align-self: end;
+}
+@media (max-width: 640px) {
+  .executive-dashboard .priority-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "main main"
+      "badge action";
+    row-gap: 10px;
+  }
+  .executive-dashboard .priority-item > .badge {
+    justify-self: start;
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
+  .executive-dashboard .priority-item > .btn {
+    align-self: center;
+  }
 }
 .domain-board .domain-card-grid {
   align-items: start;
