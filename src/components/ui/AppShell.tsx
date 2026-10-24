@@ -9,6 +9,7 @@ import { buildLocaleSwitchHref } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
 import { statusBadgeClass } from "@/content/app-dictionary";
 import { Arrow } from "@/components/ui/Pieces";
+import { GlyphIcon } from "@/components/ui/GlyphIcon";
 
 export type ShellNavItem = {
   href: string;
@@ -19,6 +20,39 @@ export type ShellNavItem = {
 };
 
 export type ShellBreadcrumbItem = { label: string; href?: string };
+
+function SearchIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+
+function MenuIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {open ? <path d="M18 6 6 18M6 6l12 12" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+    </svg>
+  );
+}
 
 export function AppShell({
   locale,
@@ -45,6 +79,7 @@ export function AppShell({
   const [open, setOpen] = useState(false);
   const [urlSuffix, setUrlSuffix] = useState("");
   const [compactNav, setCompactNav] = useState(false);
+  const [navQuery, setNavQuery] = useState("");
   const [groupOverrides, setGroupOverrides] = useState<Record<string, boolean>>({});
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -118,7 +153,14 @@ export function AppShell({
     return pathname.startsWith(href);
   }
 
-  const navGroups = navItems.reduce<Array<{ label?: string; items: ShellNavItem[] }>>(
+  const normalizedNavQuery = navQuery.trim().toLocaleLowerCase(locale);
+  const filteredNavItems = normalizedNavQuery
+    ? navItems.filter((item) =>
+        `${item.label} ${item.group ?? ""}`.toLocaleLowerCase(locale).includes(normalizedNavQuery),
+      )
+    : navItems;
+
+  const navGroups = filteredNavItems.reduce<Array<{ label?: string; items: ShellNavItem[] }>>(
     (groups, item) => {
       const current = groups.at(-1);
       if (current && current.label === item.group) {
@@ -168,11 +210,39 @@ export function AppShell({
             <span aria-hidden="true">×</span>
           </button>
         </div>
+        <div className="shell-nav-search">
+          <span className="shell-nav-search-icon" aria-hidden="true">
+            <SearchIcon />
+          </span>
+          <label className="sr-only" htmlFor="shell-navigation-search">
+            {appDict.searchShort}
+          </label>
+          <input
+            id="shell-navigation-search"
+            type="search"
+            value={navQuery}
+            onChange={(event) => setNavQuery(event.target.value)}
+            placeholder={appDict.searchShort}
+            autoComplete="off"
+          />
+          {navQuery ? (
+            <button
+              type="button"
+              className="shell-nav-search-clear"
+              aria-label={appDict.clearFilters}
+              onClick={() => setNavQuery("")}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
         <nav className="shell-nav" aria-label={roleLabel}>
           {navGroups.map((group, groupIndex) => {
             const hasActiveItem = group.items.some((item) => isActive(item.href));
             const expanded = group.label
-              ? (groupOverrides[group.label] ?? (!compactNav || hasActiveItem))
+              ? normalizedNavQuery
+                ? true
+                : (groupOverrides[group.label] ?? (!compactNav || hasActiveItem))
               : true;
             const visibleItems = expanded
               ? group.items
@@ -212,7 +282,7 @@ export function AppShell({
                       onClick={() => setOpen(false)}
                     >
                       <span className="nav-icon" aria-hidden="true">
-                        {item.icon}
+                        <GlyphIcon icon={item.icon} />
                       </span>
                       <span className="nav-label">{item.label}</span>
                       {typeof item.count === "number" && item.count > 0 ? (
@@ -224,6 +294,9 @@ export function AppShell({
               </div>
             );
           })}
+          {normalizedNavQuery && navGroups.length === 0 ? (
+            <p className="shell-nav-empty">{appDict.noResults}</p>
+          ) : null}
         </nav>
         <div className="shell-foot">
           <p style={{ marginBlockEnd: 10 }}>{appDict.authNote}</p>
@@ -233,12 +306,6 @@ export function AppShell({
         </div>
       </aside>
       <div className="shell-main">
-        <div className="preview-banner" role="note">
-          <div className="container">
-            <strong>{locale === "ar" ? "تنبيه: " : "Note: "}</strong>
-            {appDict.previewBanner}
-          </div>
-        </div>
         <header className="shell-topbar">
           <button
             ref={menuButtonRef}
@@ -249,13 +316,44 @@ export function AppShell({
             aria-label={open ? appDict.close : appDict.menu}
             onClick={() => (open ? closeDrawer(true) : setOpen(true))}
           >
-            {open ? "✕" : "☰"}
+            <MenuIcon open={open} />
           </button>
-          <h1 className="shell-title">{title}</h1>
+          <div className="shell-heading">
+            {breadcrumbs.length > 1 ? (
+              <nav
+                className="breadcrumbs shell-breadcrumbs"
+                aria-label={appDict.dashboard.breadcrumbLabel}
+              >
+                <ol className="breadcrumbs-list">
+                  {breadcrumbs.map((item, index) => {
+                    const isLast = index === breadcrumbs.length - 1;
+                    return (
+                      <li key={`${item.label}-${index}`}>
+                        {index > 0 ? (
+                          <span className="sep" aria-hidden="true">
+                            /
+                          </span>
+                        ) : null}
+                        {item.href && !isLast ? (
+                          <Link href={item.href}>{item.label}</Link>
+                        ) : (
+                          <span aria-current={isLast ? "page" : undefined}>{item.label}</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+              </nav>
+            ) : (
+              <p className="shell-context">{roleLabel}</p>
+            )}
+            <h1 className="shell-title">{title}</h1>
+          </div>
           <span className="shell-topbar-actions">
             <span className="locale-switch" role="group" aria-label="Language / اللغة">
               <Link
                 href={buildLocaleSwitchHref(pathname, "ar", urlSuffix)}
+                lang="ar"
                 className={locale === "ar" ? "current" : undefined}
                 aria-current={locale === "ar" ? "true" : undefined}
               >
@@ -263,11 +361,21 @@ export function AppShell({
               </Link>
               <Link
                 href={buildLocaleSwitchHref(pathname, "en", urlSuffix)}
+                lang="en"
                 className={locale === "en" ? "current" : undefined}
                 aria-current={locale === "en" ? "true" : undefined}
               >
                 EN
               </Link>
+            </span>
+            <span className="shell-account" aria-label={roleLabel}>
+              <span className="shell-account-avatar" aria-hidden="true">
+                BX
+              </span>
+              <span className="shell-account-copy">
+                <strong>BLACK X</strong>
+                <small>{roleLabel}</small>
+              </span>
             </span>
             {showSignOut ? (
               <button
@@ -281,32 +389,6 @@ export function AppShell({
           </span>
         </header>
         <main className="shell-content" id="main">
-          {breadcrumbs.length > 1 ? (
-            <nav
-              className="breadcrumbs shell-breadcrumbs"
-              aria-label={appDict.dashboard.breadcrumbLabel}
-            >
-              <ol className="breadcrumbs-list">
-                {breadcrumbs.map((item, index) => {
-                  const isLast = index === breadcrumbs.length - 1;
-                  return (
-                    <li key={`${item.label}-${index}`}>
-                      {index > 0 ? (
-                        <span className="sep" aria-hidden="true">
-                          /
-                        </span>
-                      ) : null}
-                      {item.href && !isLast ? (
-                        <Link href={item.href}>{item.label}</Link>
-                      ) : (
-                        <span aria-current={isLast ? "page" : undefined}>{item.label}</span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
-            </nav>
-          ) : null}
           {children}
         </main>
       </div>

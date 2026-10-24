@@ -48,9 +48,9 @@ const STATUS_FLOW = [
 ] as const;
 
 const ASSIGNEES = [
-  { ar: "منسق معاينة أ", en: "Preview Coordinator A" },
-  { ar: "مهندس معاينات ب", en: "Preview Inspector B" },
-  { ar: "مدير مشاريع ج", en: "Preview PM C" },
+  { ar: "منسّق أ", en: "Coordinator A" },
+  { ar: "مهندس معاينات ب", en: "Inspection Engineer B" },
+  { ar: "مدير مشاريع ج", en: "Project Manager C" },
 ];
 
 function moduleHref(locale: Locale, moduleKey: DashboardModuleKey): string {
@@ -282,8 +282,8 @@ export function RequestsBoard({
                         status: draftStatus,
                         at: new Date().toISOString().slice(0, 10),
                         note: {
-                          ar: "تغيير حالة داخل المعاينة",
-                          en: "Status changed inside preview",
+                          ar: "تم تحديث حالة الطلب",
+                          en: "Request status updated",
                         },
                       },
                     ]
@@ -315,10 +315,43 @@ export function RequestsBoard({
   }
 
   const hasFilters = query !== "" || statusFilter !== "" || serviceFilter !== "";
+  const requestSummary = [
+    {
+      label: appDict.dashboard.operations.domain.summary,
+      value: requests.length,
+    },
+    {
+      label: appDict.status.new ?? "new",
+      value: requests.filter((request) => request.status === "new").length,
+    },
+    {
+      label: appDict.status.inspection_scheduled ?? "inspection_scheduled",
+      value: requests.filter((request) => request.status === "inspection_scheduled").length,
+    },
+    {
+      label: appDict.status.on_hold ?? "on_hold",
+      value: requests.filter((request) => request.status === "on_hold").length,
+    },
+  ];
 
   return (
-    <div className="panel">
-      <div className="panel-head">
+    <section className="panel requests-board">
+      <div className="requests-board-head">
+        <div className="requests-board-copy">
+          <p className="requests-board-eyebrow">{appDict.dashboard.modules.requests}</p>
+          <h2>{appDict.dashboard.requestsTitle}</h2>
+          <p>{appDict.dashboard.requestsLead}</p>
+        </div>
+        <dl className="requests-summary" aria-label={appDict.dashboard.requestsTitle}>
+          {requestSummary.map((item) => (
+            <div key={item.label}>
+              <dt>{item.label}</dt>
+              <dd>{formatNumber(item.value, locale)}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      <div className="panel-head requests-toolbar-shell">
         <div className="toolbar" style={{ flex: 1 }}>
           <div className="search-box">
             <span className="search-icon" aria-hidden="true">
@@ -405,9 +438,7 @@ export function RequestsBoard({
               <th scope="col">{cols.date}</th>
               <th scope="col">{cols.priority}</th>
               <th scope="col">{cols.status}</th>
-              <th scope="col">
-                <span className="sr-only">{appDict.dashboard.operations.nextStep}</span>
-              </th>
+              <th scope="col">{appDict.dashboard.operations.nextStep}</th>
               <th scope="col">{cols.assignee}</th>
               <th scope="col">{appDict.actions}</th>
             </tr>
@@ -927,6 +958,6 @@ export function RequestsBoard({
           closeLabel={appDict.close}
         />
       ) : null}
-    </div>
+    </section>
   );
 }

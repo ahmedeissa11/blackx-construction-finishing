@@ -8,7 +8,7 @@ import { articles, publishedArticles } from "@/content/publications";
 import { formatNumber } from "@/lib/format";
 import { siteHref } from "@/config/navigation";
 import { PageHero } from "@/components/site/PageHero";
-import { Arrow, EmptyState, PreviewTag } from "@/components/ui/Pieces";
+import { Arrow, EmptyState } from "@/components/ui/Pieces";
 
 export async function generateMetadata({
   params,
@@ -25,7 +25,6 @@ export async function generateMetadata({
 export default async function ArticlesPage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = await resolveLocale(params);
   const dict = getDictionary(locale);
-  const hasPreviewArticles = articles.some((article) => article.preview);
 
   return (
     <>
@@ -43,16 +42,6 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
             <EmptyState icon="▤" title={dict.articles.emptyTitle} text={dict.articles.emptyText} />
           ) : (
             <>
-              {hasPreviewArticles ? (
-                <div className="alert alert-warning" style={{ marginBlockEnd: 26 }}>
-                  <span aria-hidden="true">◐</span>
-                  <p>
-                    {locale === "ar"
-                      ? "المقالات المميزة بوسم «محتوى توضيحي للمعاينة» موجودة لمراجعة تصميم صفحة المقالات فقط، وسيتم استبدالها بمحتوى معتمد رسميًا قبل الإطلاق."
-                      : "Articles marked as illustrative preview content exist only for reviewing the article design and will be replaced with officially approved content before launch."}
-                  </p>
-                </div>
-              ) : null}
               <div className="articles-grid">
                 {articles.map((article) => (
                   <Link
@@ -72,7 +61,6 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
                     </span>
                     <span className="ac-body">
                       <span className="ac-meta">
-                        {article.preview ? <PreviewTag label={dict.common.previewContent} /> : null}
                         <span>
                           {formatNumber(article.readingMinutes, locale)} {dict.common.minRead}
                         </span>

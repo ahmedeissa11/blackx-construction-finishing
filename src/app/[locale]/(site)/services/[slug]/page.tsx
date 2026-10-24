@@ -110,6 +110,9 @@ export default async function ServiceDetailPage({
             </ol>
 
             <h3 style={{ fontSize: "1.2rem", marginBlockEnd: 16 }}>{dict.services.galleryTitle}</h3>
+            <p style={{ color: "var(--color-muted)", fontSize: "0.9rem", marginBlockEnd: 16 }}>
+              {dict.common.illustrativeNote}
+            </p>
             <div className="gallery" style={{ marginBlockEnd: 40 }}>
               {service.gallery.map((src, i) => (
                 <figure key={`${src}-${i}`}>
@@ -121,7 +124,6 @@ export default async function ServiceDetailPage({
                     sizes="(max-width: 800px) 50vw, 30vw"
                     loading="lazy"
                   />
-                  <figcaption>{dict.common.previewContent}</figcaption>
                 </figure>
               ))}
             </div>

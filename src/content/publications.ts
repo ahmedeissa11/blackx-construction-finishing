@@ -247,8 +247,8 @@ export const faqs: Array<{ q: LocalizedText; a: LocalizedText }> = [
   {
     q: { ar: "ماذا يحدث بعد إرسال الطلب؟", en: "What happens after I submit a request?" },
     a: {
-      ar: "تتم مراجعة بيانات طلبك أولًا، ثم التواصل لتأكيد التفاصيل وترتيب المعاينة. بعد المعاينة يُعدّ مقترح مكتوب بنطاق العمل والخيارات المناسبة لمراجعته واعتماده قبل أي تنفيذ. ملحوظة: نسخة الموقع الحالية واجهة للمراجعة، والإرسال داخلها تجريبي إلى حين ربط النظام الفعلي.",
-      en: "Your request is reviewed first, then we confirm details and arrange the inspection. After the visit, a written proposal with scope and suitable options is prepared for your review and approval before any execution. Note: the current site build is a review frontend, so submission inside it is a demo until the live system is connected.",
+      ar: "تتم مراجعة بيانات طلبك أولًا، ثم التواصل لتأكيد التفاصيل وترتيب المعاينة. بعد المعاينة يُعدّ مقترح مكتوب بنطاق العمل والخيارات المناسبة لمراجعته واعتماده قبل أي تنفيذ.",
+      en: "Your request is reviewed first, then we confirm details and arrange the inspection. After the visit, a written proposal with scope and suitable options is prepared for your review and approval before any execution.",
     },
   },
   {

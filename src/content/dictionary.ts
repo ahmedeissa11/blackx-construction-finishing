@@ -35,7 +35,6 @@ const ar = {
     backToHome: "العودة للرئيسية",
     back: "رجوع",
     illustrativeNote: "صور توضيحية لتوجهنا في الخامات والتشطيب، وليست صورًا لمشاريع منجزة.",
-    previewContent: "محتوى توضيحي للمعاينة",
     readMore: "اقرأ المقال",
     minRead: "دقائق قراءة",
     relatedServices: "خدمات ذات صلة",
@@ -180,14 +179,14 @@ const ar = {
       reset: "إرسال طلب جديد",
     },
     unitTypes: ["شقة سكنية", "فيلا", "دوبلكس", "مكتب / إداري", "تجاري", "أخرى"],
-    successTitle: "اكتمل تجهيز الطلب داخل المعاينة فقط",
+    successTitle: "تم تجهيز ملخص طلبك",
     successText:
-      "اكتملت خطوة الإرسال محليًا داخل واجهة العرض التجريبي فقط؛ لم تُرسل البيانات إلى فريق بلاك إكس ولم تُحفظ في أي نظام. سيبدأ الإرسال الفعلي بعد ربط نظام خلفي معتمد.",
-    referenceLabel: "الرقم المرجعي للمعاينة",
+      "تم تجهيز ملخص الطلب داخل هذه الجلسة فقط، ولم يتم إرساله إلى فريق الشركة. احتفظ بالرقم المرجعي لمراجعة البيانات التي أدخلتها.",
+    referenceLabel: "الرقم المرجعي",
     errorTitle: "تعذّر إتمام الإرسال",
     errorText: "حدثت مشكلة أثناء تجهيز الطلب. راجع البيانات وحاول مرة تانية.",
     previewNote:
-      "تنبيه: هذه نسخة واجهة للعرض والتطوير — الإرسال هنا تجريبي ولا يُحفَظ في نظام الشركة بعد.",
+      "سيتم تجهيز ملخص للطلب داخل هذه الجلسة لمراجعته، ولن تغادر البيانات متصفحك في هذه الخطوة.",
   },
   contact: {
     title: "تواصل معنا",
@@ -219,9 +218,9 @@ const ar = {
       submitting: "جارٍ الإرسال...",
     },
     subjects: ["استفسار عن خدمة", "طلب معاينة", "متابعة مشروع قائم", "أخرى"],
-    successTitle: "اكتمل تجهيز الرسالة داخل المعاينة فقط",
+    successTitle: "تم تجهيز رسالتك",
     successText:
-      "اكتمل تجهيز الرسالة محليًا داخل واجهة العرض التجريبي فقط؛ لم تُرسل ولم تُحفظ في أي نظام. سيبدأ الإرسال الفعلي بعد ربط قنوات التواصل الرسمية للشركة.",
+      "تم تجهيز نص الرسالة داخل هذه الجلسة فقط، ولم يتم إرساله خارج متصفحك في هذه الخطوة.",
     verifiedNote:
       "لا نعرض أرقام هواتف أو عناوين بريدية هنا قبل اعتمادها رسميًا من إدارة الشركة، حتى لا تصل رسائلك لقنوات غير صحيحة.",
   },
@@ -252,7 +251,7 @@ const ar = {
     servicesTitle: "خدماتنا",
     companyTitle: "الشركة",
     rights: "© بلاك إكس للإنشاءات والتشطيبات. جميع الحقوق محفوظة.",
-    frontendNote: "نسخة واجهة للمراجعة — البيانات التجريبية موضّحة داخل أقسام التشغيل والبوابة.",
+    frontendNote: "إدارة واضحة للمشاريع والتشطيبات من أول طلب حتى التسليم ومتابعة ما بعده.",
   },
   states: {
     notFoundTitle: "الصفحة مش موجودة",
@@ -302,7 +301,6 @@ const en: Dictionary = {
     back: "Back",
     illustrativeNote:
       "Illustrative imagery showing our materials and finishing direction — not photos of completed projects.",
-    previewContent: "Illustrative preview content",
     readMore: "Read article",
     minRead: "min read",
     relatedServices: "Related services",
@@ -476,14 +474,14 @@ const en: Dictionary = {
       reset: "Submit another request",
     },
     unitTypes: ["Apartment", "Villa", "Duplex", "Office / Admin", "Commercial", "Other"],
-    successTitle: "Request completed in preview only",
+    successTitle: "Your request summary is ready",
     successText:
-      "The submission completed locally in this frontend preview only; the data was not delivered to the Black X team or stored in any system. Actual delivery will start after an approved backend is connected.",
-    referenceLabel: "Preview reference number",
+      "A request summary was prepared in this session only and was not sent to the company team. Keep the reference number to review the details you entered.",
+    referenceLabel: "Reference number",
     errorTitle: "Submission could not be completed",
     errorText: "Something went wrong while preparing the request. Check the details and try again.",
     previewNote:
-      "Note: this is a frontend review build — submission here is a demo and is not yet stored in a company system.",
+      "A request summary will be prepared in this session for your review, and the details will not leave your browser in this step.",
   },
   contact: {
     title: "Contact Us",
@@ -515,9 +513,9 @@ const en: Dictionary = {
       submitting: "Sending...",
     },
     subjects: ["Service enquiry", "Inspection request", "Ongoing project follow-up", "Other"],
-    successTitle: "Message completed in preview only",
+    successTitle: "Your message is ready",
     successText:
-      "The message completed locally in this frontend preview only; it was not delivered or stored in any system. Actual delivery starts once the company's official contact channels are connected.",
+      "Your message was prepared in this session only and was not sent outside your browser in this step.",
     verifiedNote:
       "We do not publish phone numbers or email addresses here before they are officially approved by company management, so your messages never go to the wrong channels.",
   },
@@ -550,7 +548,7 @@ const en: Dictionary = {
     companyTitle: "Company",
     rights: "© Black X Construction & Finishing. All rights reserved.",
     frontendNote:
-      "Frontend review build — demo data is labelled inside the operations and portal sections.",
+      "Clear project and finishing management from the first request through handover and aftercare.",
   },
   states: {
     notFoundTitle: "Page not found",

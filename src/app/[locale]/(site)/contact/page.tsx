@@ -7,6 +7,7 @@ import { siteHref } from "@/config/navigation";
 import { PageHero } from "@/components/site/PageHero";
 import { ContactForm } from "@/components/site/ContactForm";
 import { SectionHead } from "@/components/ui/Pieces";
+import { GlyphIcon } from "@/components/ui/GlyphIcon";
 
 export async function generateMetadata({
   params,
@@ -41,7 +42,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             {c.infoCards.map((card, i) => (
               <article className="info-card" key={card.title}>
                 <span className="t-icon" aria-hidden="true">
-                  {CARD_ICONS[i]}
+                  <GlyphIcon icon={CARD_ICONS[i] ?? "▦"} />
                 </span>
                 <h3>{card.title}</h3>
                 <p>{card.text}</p>

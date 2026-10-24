@@ -4,7 +4,7 @@ import { resolveLocale } from "@/lib/locale-params";
 import { getAppDictionary, statusBadgeClass } from "@/content/app-dictionary";
 import { previewPortalReports } from "@/content/preview-modules";
 import { formatDate } from "@/lib/format";
-import { DemoActionButton } from "@/components/portal/PortalPanels";
+import { UnavailableActionButton } from "@/components/portal/PortalPanels";
 
 export async function generateMetadata({
   params,
@@ -35,7 +35,11 @@ export default async function PortalReports({ params }: { params: Promise<{ loca
                 </div>
               </div>
               <span className={statusBadgeClass(report.status)}>{app.status[report.status]}</span>
-              <DemoActionButton locale={locale} appDict={app} label={app.portal.downloadPreview} />
+              <UnavailableActionButton
+                locale={locale}
+                appDict={app}
+                label={app.portal.downloadPreview}
+              />
             </div>
           ))}
         </div>

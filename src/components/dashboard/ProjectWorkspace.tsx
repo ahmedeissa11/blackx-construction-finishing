@@ -233,22 +233,57 @@ export function ProjectWorkspace({
 
   return (
     <>
-      <div>
-        <Link href={dashboardHref(locale, "projects")} className="btn btn-ghost btn-sm">
-          <Arrow back /> {d.backToProjects}
-        </Link>
-        <h2 style={{ fontSize: "1.45rem", marginBlockStart: 10 }}>{pick(project.title, locale)}</h2>
-        <div className="project-detail-kicker">
-          <span dir="ltr">{project.id}</span>
-          <span aria-hidden="true">·</span>
-          <span>{pick(project.customer, locale)}</span>
-          <StatusBadge appDict={appDict} status={project.status} />
-          <span className="project-detail-progress">
-            {d.cols.progress} · {formatPercent(progress, locale)}
-          </span>
+      <header className="project-command-header">
+        <div className="project-command-main">
+          <Link href={dashboardHref(locale, "projects")} className="btn btn-ghost btn-sm">
+            <Arrow back /> {d.backToProjects}
+          </Link>
+          <div className="project-command-title-row">
+            <h2>{pick(project.title, locale)}</h2>
+            <StatusBadge appDict={appDict} status={project.status} />
+          </div>
+          <div className="project-detail-kicker">
+            <span dir="ltr">{project.id}</span>
+            <span aria-hidden="true">·</span>
+            <span>{pick(project.customer, locale)}</span>
+            <span aria-hidden="true">·</span>
+            <span>{pick(project.serviceLabel, locale)}</span>
+          </div>
+          <p className="project-command-lead">{d.projectWorkspaceLead}</p>
+          <div className="project-command-progress">
+            <span>
+              {d.cols.progress} · {formatPercent(progress, locale)}
+            </span>
+            <ProgressMeter
+              appDict={appDict}
+              locale={locale}
+              value={progress}
+              label={`${pick(project.title, locale)} · ${d.cols.progress}`}
+            />
+          </div>
         </div>
-        <p style={{ color: "var(--color-muted)", maxWidth: 920 }}>{d.projectWorkspaceLead}</p>
-      </div>
+        <dl className="project-command-metrics" aria-label={d.projectOverview}>
+          <div>
+            <dt>{actionLabels.nextMilestone}</dt>
+            <dd>
+              {nextMilestone ? localizedValue(nextMilestone.title, locale) : d.noProjectRecords}
+            </dd>
+            {nextMilestone?.date ? <dd>{formatDate(nextMilestone.date, locale)}</dd> : null}
+          </div>
+          <div>
+            <dt>{actionLabels.blockers}</dt>
+            <dd>{formatNumber(operations.blockerRows.length, locale)}</dd>
+          </div>
+          <div>
+            <dt>{actionLabels.pendingReports}</dt>
+            <dd>{formatNumber(operations.pendingReports, locale)}</dd>
+          </div>
+          <div>
+            <dt>{actionLabels.handoverState}</dt>
+            <dd>{handoverStateLabel}</dd>
+          </div>
+        </dl>
+      </header>
 
       <nav className="workspace-anchor-nav" aria-label={d.projectOverview}>
         <Link className="btn btn-ghost btn-sm" href="#project-overview">
@@ -274,147 +309,150 @@ export function ProjectWorkspace({
         </Link>
       </nav>
 
-      <WorkspacePanel id="project-overview" title={d.projectOverview}>
-        <div className="panel-body">
-          <div className="record-detail-groups">
-            <section aria-labelledby="project-overview-basics-title">
-              <h4 id="project-overview-basics-title">{d.recordSections.overview}</h4>
-              <RecordMetaList
-                variant="detail"
-                items={[
-                  meta(d.cols.project, project.id, { dir: "ltr" }),
-                  meta(
-                    d.cols.customer,
-                    <>
-                      {pick(project.customer, locale)} · <span dir="ltr">{project.customerId}</span>
-                    </>,
-                  ),
-                  meta(d.cols.service, pick(project.serviceLabel, locale), { wide: true }),
-                  meta(d.cols.milestone, pick(project.currentMilestone, locale), { wide: true }),
-                ]}
-              />
-            </section>
-            <section aria-labelledby="project-overview-status-title">
-              <h4 id="project-overview-status-title">{d.recordSections.statusResponsibility}</h4>
-              <RecordMetaList
-                variant="detail"
-                items={[
-                  meta(d.cols.status, <StatusBadge appDict={appDict} status={project.status} />),
-                  meta(d.cols.updated, formatDate(project.updatedAt, locale)),
-                  meta(
-                    d.statUnresolvedFindings,
-                    formatNumber(operations.unresolvedFindings, locale),
-                  ),
-                  meta(d.statPendingReports, formatNumber(operations.pendingReports, locale)),
-                ]}
-              />
-            </section>
-          </div>
-          <div className="project-overview-progress">
-            <span>{d.cols.progress}</span>
-            <ProgressMeter appDict={appDict} locale={locale} value={progress} />
-          </div>
-        </div>
-      </WorkspacePanel>
-
-      <WorkspacePanel id="project-actions" title={actionLabels.title}>
-        <div className="project-action-grid">
-          <div className="project-action-item">
-            <span>{actionLabels.nextMilestone}</span>
-            {nextMilestone ? (
-              <>
-                <strong>{localizedValue(nextMilestone.title, locale)}</strong>
-                <div>
-                  {nextMilestone.date ? formatDate(nextMilestone.date, locale) : null}
-                  {nextMilestone.progress !== undefined
-                    ? ` · ${formatPercent(clampPercent(nextMilestone.progress), locale)}`
-                    : null}
-                </div>
-                {nextMilestone.status ? (
-                  <StatusBadge appDict={appDict} status={nextMilestone.status} />
-                ) : null}
-              </>
-            ) : (
-              <strong>{d.noProjectRecords}</strong>
-            )}
-            <div>
-              <Link className="btn btn-ghost btn-sm" href="#project-milestones">
-                {actionLabels.reviewMilestones}
-              </Link>
+      <div className="project-command-grid">
+        <WorkspacePanel id="project-overview" title={d.projectOverview}>
+          <div className="panel-body">
+            <div className="record-detail-groups">
+              <section aria-labelledby="project-overview-basics-title">
+                <h4 id="project-overview-basics-title">{d.recordSections.overview}</h4>
+                <RecordMetaList
+                  variant="detail"
+                  items={[
+                    meta(d.cols.project, project.id, { dir: "ltr" }),
+                    meta(
+                      d.cols.customer,
+                      <>
+                        {pick(project.customer, locale)} ·{" "}
+                        <span dir="ltr">{project.customerId}</span>
+                      </>,
+                    ),
+                    meta(d.cols.service, pick(project.serviceLabel, locale), { wide: true }),
+                    meta(d.cols.milestone, pick(project.currentMilestone, locale), { wide: true }),
+                  ]}
+                />
+              </section>
+              <section aria-labelledby="project-overview-status-title">
+                <h4 id="project-overview-status-title">{d.recordSections.statusResponsibility}</h4>
+                <RecordMetaList
+                  variant="detail"
+                  items={[
+                    meta(d.cols.status, <StatusBadge appDict={appDict} status={project.status} />),
+                    meta(d.cols.updated, formatDate(project.updatedAt, locale)),
+                    meta(
+                      d.statUnresolvedFindings,
+                      formatNumber(operations.unresolvedFindings, locale),
+                    ),
+                    meta(d.statPendingReports, formatNumber(operations.pendingReports, locale)),
+                  ]}
+                />
+              </section>
+            </div>
+            <div className="project-overview-progress">
+              <span>{d.cols.progress}</span>
+              <ProgressMeter appDict={appDict} locale={locale} value={progress} />
             </div>
           </div>
+        </WorkspacePanel>
 
-          <div className="project-action-item">
-            <span>{actionLabels.latestProgress}</span>
-            {latestProgressRow ? (
-              <>
-                <strong>{rowTitle(latestProgressRow, locale, appDict)}</strong>
-                <div>
-                  {latestProgressDate ? formatDate(latestProgressDate, locale) : null}
-                  {latestProgressValue !== undefined
-                    ? ` · ${formatPercent(clampPercent(latestProgressValue), locale)}`
-                    : null}
-                </div>
-              </>
-            ) : (
-              <strong>{d.noProjectRecords}</strong>
-            )}
-            <div>
-              <Link className="btn btn-ghost btn-sm" href="#project-activity">
-                {actionLabels.reviewActivity}
-              </Link>
+        <WorkspacePanel id="project-actions" title={actionLabels.title}>
+          <div className="project-action-grid">
+            <div className="project-action-item">
+              <span>{actionLabels.nextMilestone}</span>
+              {nextMilestone ? (
+                <>
+                  <strong>{localizedValue(nextMilestone.title, locale)}</strong>
+                  <div>
+                    {nextMilestone.date ? formatDate(nextMilestone.date, locale) : null}
+                    {nextMilestone.progress !== undefined
+                      ? ` · ${formatPercent(clampPercent(nextMilestone.progress), locale)}`
+                      : null}
+                  </div>
+                  {nextMilestone.status ? (
+                    <StatusBadge appDict={appDict} status={nextMilestone.status} />
+                  ) : null}
+                </>
+              ) : (
+                <strong>{d.noProjectRecords}</strong>
+              )}
+              <div>
+                <Link className="btn btn-ghost btn-sm" href="#project-milestones">
+                  {actionLabels.reviewMilestones}
+                </Link>
+              </div>
             </div>
-          </div>
 
-          <div className="project-action-item">
-            <span>{actionLabels.blockers}</span>
-            <strong>{formatNumber(operations.blockerRows.length, locale)}</strong>
-            {blockerReferences.length > 0 ? (
-              <div dir="ltr">{blockerReferences.join(" · ")}</div>
-            ) : (
-              <div>{d.operations.noBlockers}</div>
-            )}
-            <Link className="btn btn-ghost btn-sm" href="#project-findings">
-              {actionLabels.reviewFindings}
-            </Link>
-          </div>
-
-          <div className="project-action-item">
-            <span>{actionLabels.pendingReports}</span>
-            <strong>{formatNumber(operations.pendingReports, locale)}</strong>
-            <div>
-              <Link className="btn btn-ghost btn-sm" href="#project-reports">
-                {actionLabels.reviewReports}
-              </Link>
+            <div className="project-action-item">
+              <span>{actionLabels.latestProgress}</span>
+              {latestProgressRow ? (
+                <>
+                  <strong>{rowTitle(latestProgressRow, locale, appDict)}</strong>
+                  <div>
+                    {latestProgressDate ? formatDate(latestProgressDate, locale) : null}
+                    {latestProgressValue !== undefined
+                      ? ` · ${formatPercent(clampPercent(latestProgressValue), locale)}`
+                      : null}
+                  </div>
+                </>
+              ) : (
+                <strong>{d.noProjectRecords}</strong>
+              )}
+              <div>
+                <Link className="btn btn-ghost btn-sm" href="#project-activity">
+                  {actionLabels.reviewActivity}
+                </Link>
+              </div>
             </div>
-          </div>
 
-          <div className="project-action-item">
-            <span>{actionLabels.handoverState}</span>
-            <strong>{handoverStateLabel}</strong>
-            <div>
-              {formatNumber(operations.handoverRows.length, locale)} {d.modules.handover}
-            </div>
-            <div>
-              <Link className="btn btn-ghost btn-sm" href="#project-handover">
-                {actionLabels.reviewHandover}
-              </Link>
-            </div>
-          </div>
-
-          <div className="project-action-item">
-            <span>{d.statUnresolvedFindings}</span>
-            <strong>{formatNumber(operations.unresolvedFindings, locale)}</strong>
-            <div>
-              <Link className="btn btn-ghost btn-sm" href="#project-quality">
+            <div className="project-action-item">
+              <span>{actionLabels.blockers}</span>
+              <strong>{formatNumber(operations.blockerRows.length, locale)}</strong>
+              {blockerReferences.length > 0 ? (
+                <div dir="ltr">{blockerReferences.join(" · ")}</div>
+              ) : (
+                <div>{d.operations.noBlockers}</div>
+              )}
+              <Link className="btn btn-ghost btn-sm" href="#project-findings">
                 {actionLabels.reviewFindings}
               </Link>
             </div>
-          </div>
-        </div>
-      </WorkspacePanel>
 
-      <div className="two-col">
+            <div className="project-action-item">
+              <span>{actionLabels.pendingReports}</span>
+              <strong>{formatNumber(operations.pendingReports, locale)}</strong>
+              <div>
+                <Link className="btn btn-ghost btn-sm" href="#project-reports">
+                  {actionLabels.reviewReports}
+                </Link>
+              </div>
+            </div>
+
+            <div className="project-action-item">
+              <span>{actionLabels.handoverState}</span>
+              <strong>{handoverStateLabel}</strong>
+              <div>
+                {formatNumber(operations.handoverRows.length, locale)} {d.modules.handover}
+              </div>
+              <div>
+                <Link className="btn btn-ghost btn-sm" href="#project-handover">
+                  {actionLabels.reviewHandover}
+                </Link>
+              </div>
+            </div>
+
+            <div className="project-action-item">
+              <span>{d.statUnresolvedFindings}</span>
+              <strong>{formatNumber(operations.unresolvedFindings, locale)}</strong>
+              <div>
+                <Link className="btn btn-ghost btn-sm" href="#project-quality">
+                  {actionLabels.reviewFindings}
+                </Link>
+              </div>
+            </div>
+          </div>
+        </WorkspacePanel>
+      </div>
+
+      <div className="two-col project-workspace-columns">
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
           <WorkspacePanel
             id="project-milestones"
@@ -608,9 +646,6 @@ export function ProjectWorkspace({
             href={dashboardHref(locale, "documents")}
             linkLabel={d.viewAll}
           >
-            <div className="panel-body" style={{ paddingBlockEnd: 6 }}>
-              <p style={{ color: "var(--color-muted)" }}>{d.modulePreviewLimits.documents}</p>
-            </div>
             <ModuleRowsList
               rows={operations.documentRows}
               module="documents"
@@ -625,9 +660,6 @@ export function ProjectWorkspace({
             href={dashboardHref(locale, "reports")}
             linkLabel={d.viewAll}
           >
-            <div className="panel-body" style={{ paddingBlockEnd: 6 }}>
-              <p style={{ color: "var(--color-muted)" }}>{d.modulePreviewLimits.reports}</p>
-            </div>
             <ModuleRowsList
               rows={operations.reportRows}
               module="reports"

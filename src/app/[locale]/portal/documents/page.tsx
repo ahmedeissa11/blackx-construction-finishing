@@ -4,7 +4,7 @@ import { resolveLocale } from "@/lib/locale-params";
 import { getAppDictionary } from "@/content/app-dictionary";
 import { previewPortalDocuments } from "@/content/preview-modules";
 import { formatDate } from "@/lib/format";
-import { DemoActionButton } from "@/components/portal/PortalPanels";
+import { UnavailableActionButton } from "@/components/portal/PortalPanels";
 
 export async function generateMetadata({
   params,
@@ -37,7 +37,11 @@ export default async function PortalDocuments({ params }: { params: Promise<{ lo
                   · {formatDate(doc.date, locale)}
                 </div>
               </div>
-              <DemoActionButton locale={locale} appDict={app} label={app.portal.downloadPreview} />
+              <UnavailableActionButton
+                locale={locale}
+                appDict={app}
+                label={app.portal.downloadPreview}
+              />
             </div>
           ))}
         </div>

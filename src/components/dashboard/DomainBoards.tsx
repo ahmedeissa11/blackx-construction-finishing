@@ -132,6 +132,18 @@ function LinkedRecordLinks({
   );
 }
 
+type BoardVariant =
+  | "directory"
+  | "chronology"
+  | "finance"
+  | "portfolio"
+  | "workflow"
+  | "analytics"
+  | "quality"
+  | "library"
+  | "lifecycle"
+  | "list";
+
 function BoardShell({
   locale,
   title,
@@ -140,6 +152,7 @@ function BoardShell({
   controls,
   children,
   layout = "grid",
+  variant = "directory",
 }: {
   locale: Locale;
   title: string;
@@ -148,24 +161,25 @@ function BoardShell({
   controls?: ReactNode;
   children: ReactNode;
   layout?: "grid" | "list";
+  variant?: BoardVariant;
 }) {
   return (
-    <section className="panel domain-board">
-      <div className="panel-head domain-board-head">
-        <div>
+    <section className={`panel domain-board domain-board--${variant}`}>
+      <div className="domain-board-hero">
+        <div className="domain-board-head">
           <h2>{title}</h2>
           <p>{intro}</p>
         </div>
+        <div className="domain-stats" role="list" aria-label={title}>
+          {stats.map((stat) => (
+            <div className="domain-stat" role="listitem" key={stat.label}>
+              <span>{stat.label}</span>
+              <strong>{formatNumber(stat.value, locale)}</strong>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="domain-stats" role="list">
-        {stats.map((stat) => (
-          <div className="domain-stat" role="listitem" key={stat.label}>
-            <span>{stat.label}</span>
-            <strong>{formatNumber(stat.value, locale)}</strong>
-          </div>
-        ))}
-      </div>
-      {controls}
+      {controls ? <div className="domain-toolbar-shell">{controls}</div> : null}
       <div className={layout === "list" ? "domain-record-list" : "domain-card-grid"}>
         {children}
       </div>
@@ -348,6 +362,8 @@ function NotificationsBoard({
     <BoardShell
       locale={locale}
       title={domain.notificationsTitle}
+      variant="list"
+      layout="list"
       intro={domain.notificationsIntro}
       stats={[
         { label: domain.summary, value: items.length },
@@ -492,6 +508,7 @@ function AuditBoard({
       locale={locale}
       layout="list"
       title={domain.auditTitle}
+      variant="chronology"
       intro={domain.auditIntro}
       stats={[
         { label: domain.summary, value: items.length },
@@ -580,12 +597,10 @@ export function DomainBoard({
   locale,
   appDict,
   moduleKey,
-  previewLimit,
 }: {
   locale: Locale;
   appDict: AppDictionary;
   moduleKey: DomainBoardModuleKey;
-  previewLimit?: string;
 }) {
   const [notice, setNotice] = useState<string | null>(null);
   const operations = appDict.dashboard.operations;
@@ -611,6 +626,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.customersTitle}
+        variant="directory"
         intro={domain.customersIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -718,6 +734,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.inspectionsTitle}
+        variant="chronology"
         intro={domain.inspectionsIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -762,6 +779,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.quotationsTitle}
+        variant="finance"
         intro={domain.quotationsIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -822,6 +840,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.contractsTitle}
+        variant="finance"
         intro={domain.contractsIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -886,6 +905,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.projectsTitle}
+        variant="portfolio"
         intro={domain.projectsIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -997,6 +1017,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.milestonesTitle}
+        variant="workflow"
         intro={domain.milestonesIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -1074,6 +1095,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.diaryTitle}
+        variant="chronology"
         intro={domain.diaryIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -1131,6 +1153,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.progressTitle}
+        variant="analytics"
         intro={domain.progressIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -1199,6 +1222,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.findingsTitle}
+        variant="quality"
         intro={domain.findingsIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -1271,6 +1295,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.reportsTitle}
+        variant="analytics"
         intro={domain.reportsIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -1333,6 +1358,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.documentsTitle}
+        variant="library"
         intro={domain.documentsIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -1395,6 +1421,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.handoverTitle}
+        variant="lifecycle"
         intro={domain.handoverIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -1503,6 +1530,7 @@ export function DomainBoard({
       <BoardShell
         locale={locale}
         title={domain.warrantyTitle}
+        variant="lifecycle"
         intro={domain.warrantyIntro}
         stats={[
           { label: domain.summary, value: items.length },
@@ -1587,8 +1615,7 @@ export function DomainBoard({
         closeLabel={appDict.close}
         onClose={() => setNotice(null)}
       >
-        <p>{notice ?? previewLimit ?? operations.unavailableInPreview}</p>
-        {previewLimit && notice !== previewLimit ? <p>{previewLimit}</p> : null}
+        <p>{notice ?? operations.unavailableInPreview}</p>
       </InfoDialog>
     </>
   );

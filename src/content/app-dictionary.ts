@@ -2,21 +2,19 @@ import type { Locale } from "@/lib/i18n";
 import type { DashboardModuleKey, DashboardNavGroupKey, PortalNavKey } from "@/config/navigation";
 
 const ar = {
-  previewBanner:
-    "وضع المعاينة التجريبي — جميع البيانات المعروضة اصطناعية لأغراض تطوير الواجهة فقط، ولا تمثل عملاء أو مشاريع حقيقية، ولا يتم حفظ أي تغيير في نظام فعلي.",
   authNote:
-    "هذه المنطقة محمية بتسجيل دخول خادمي للمراجعة المصرح بها. البيانات المعروضة تجريبية، ولا تُحفَظ أي تغييرات في نظام فعلي.",
+    "هذه المنطقة محمية بتسجيل دخول خادمي، ومخصصة للمستخدمين المصرح لهم بمتابعة أعمال الشركة.",
   signOut: "تسجيل الخروج",
   auth: {
-    title: "تسجيل دخول المراجعة",
-    lead: "هذه المنطقة مخصصة لمالك الشركة أو من يفوضه للمراجعة. بعد الدخول ستظهر بيانات تجريبية موسومة بوضوح، ولن تُنفَّذ أو تُحفَظ أي عمليات حقيقية.",
+    title: "تسجيل دخول مساحة العمل",
+    lead: "هذه المنطقة مخصصة لمالك الشركة أو من يفوضه. سجّل الدخول للمتابعة إلى مساحة عمل إدارة المشاريع والتشغيل.",
     email: "البريد الإلكتروني",
     password: "كلمة المرور",
     signIn: "تسجيل الدخول",
     invalidCredentials: "بيانات الدخول غير صحيحة. تحقق من البريد وكلمة المرور ثم حاول مرة أخرى.",
     rateLimited: "تم إيقاف محاولات الدخول مؤقتًا. حاول مرة أخرى لاحقًا.",
     configurationMissing: "تسجيل الدخول غير مهيأ بعد في هذه البيئة.",
-    protectedArea: "منطقة مراجعة محمية",
+    protectedArea: "منطقة عمل محمية",
   },
   backToSite: "العودة للموقع العام",
   search: "ابحث بالاسم أو رقم الطلب أو الخدمة...",
@@ -25,27 +23,25 @@ const ar = {
   allServicesFilter: "كل الخدمات",
   actions: "إجراءات",
   view: "عرض",
-  editPreview: "تعديل (معاينة)",
-  assignPreview: "تعيين مسؤول (معاينة)",
-  changeStatusPreview: "تغيير الحالة (معاينة)",
-  addNew: "إضافة جديد (معاينة)",
-  exportPreview: "تصدير (معاينة)",
+  editPreview: "تعديل",
+  assignPreview: "تعيين مسؤول",
+  changeStatusPreview: "تغيير الحالة",
+  addNew: "إضافة جديد",
+  exportPreview: "تصدير",
   confirm: "تأكيد",
   cancel: "إلغاء",
   close: "إغلاق",
   menu: "القائمة",
-  savePreview: "حفظ تجريبي",
+  savePreview: "تطبيق التغييرات",
   noResults: "لا توجد نتائج مطابقة لبحثك أو عوامل التصفية الحالية.",
   clearFilters: "مسح التصفية",
   showingResults: "نتيجة معروضة",
-  demoActionTitle: "إجراء تجريبي",
-  demoActionText:
-    "ده إجراء للمعاينة داخل الواجهة فقط. في النسخة الفعلية سيتم تنفيذه وحفظه عبر النظام الخلفي مع تسجيله في سجل التدقيق.",
-  demoSavedToast: "تم تطبيق التغيير داخل المعاينة فقط — لم يُحفَظ في أي نظام فعلي.",
-  previewUnavailableTitle: "غير متاح في مرحلة المعاينة",
-  previewUnavailableText:
-    "هذا الإجراء لا ينفذ أو يحفظ أي بيانات في واجهة المعاينة الحالية. سيُتاح فقط بعد ربط نظام خلفي معتمد، ولم يتغير أي شيء الآن.",
-  recordDetails: "تفاصيل السجل التجريبي",
+  demoActionTitle: "تأكيد الإجراء",
+  demoActionText: "سيظهر هذا التغيير هنا مباشرة، دون إرسال إشعار أو تنفيذ إجراء خارجي.",
+  demoSavedToast: "تم تطبيق التغيير هنا.",
+  previewUnavailableTitle: "غير متاح حاليًا",
+  previewUnavailableText: "هذا الإجراء غير متاح حاليًا، ولم يتم إجراء أي تغيير.",
+  recordDetails: "تفاصيل السجل",
   recordId: "رقم السجل",
   recordSummary: "المعلومات الأساسية",
   recordMoreDetails: "تفاصيل إضافية",
@@ -84,7 +80,7 @@ const ar = {
     optional: "اختياري",
   } as Record<string, string>,
   dashboard: {
-    shellRole: "لوحة إدارة الشركة — معاينة",
+    shellRole: "لوحة تشغيل الشركة",
     breadcrumbLabel: "مسار التنقل",
     navGroups: {
       home: "الرئيسية",
@@ -95,7 +91,7 @@ const ar = {
     } as Record<DashboardNavGroupKey, string>,
     overviewTitle: "نظرة سريعة على الشركة",
     overviewLead:
-      "أهم الأرقام والطلبات والمشاريع التي تحتاج متابعتك الآن — محسوبة من سجلات المعاينة التجريبية الحالية.",
+      "أهم المؤشرات والمهام والمشاريع التي تحتاج متابعتك الآن، مجمعة في مركز قيادة واحد لمتابعة التشغيل.",
     ownerActions: {
       reviewRequests: "مراجعة الطلبات الجديدة",
       viewProjects: "عرض المشاريع النشطة",
@@ -113,19 +109,19 @@ const ar = {
     statUnresolvedFindings: "ملاحظات جودة لم تُغلق",
     statNotes: {
       requests: "بانتظار أول تواصل",
-      inspections: "مجدولة من تاريخ لقطة المعاينة",
+      inspections: "مجدولة اعتبارًا من تاريخ المتابعة الحالي",
       projects: "في مراحل تنفيذ مختلفة",
       issues: "تحتاج متابعة ومعالجة",
-      quotations: "بحالة مُرسلة في سجلات المعاينة",
-      contracts: "بحالة قيد مراجعة في سجلات المعاينة",
-      overdue: "مقارنةً بتاريخ لقطة المعاينة",
-      reports: "لم تُعتمد أو تُسلَّم من هذه الواجهة",
+      quotations: "بحالة مُرسلة وبانتظار القرار",
+      contracts: "بحالة قيد المراجعة",
+      overdue: "مقارنةً بتاريخ المتابعة الحالي",
+      reports: "تحتاج مراجعة قبل الإتاحة",
       findings: "من سجلات الملاحظات والجودة المرتبطة",
     },
-    snapshotAsOf: "لقطة المعاينة حتى",
+    snapshotAsOf: "بيانات المتابعة حتى",
     operationalFlowTitle: "رحلة العمل — من طلب العميل حتى الصيانة",
     operationalFlowLead:
-      "ملخص سريع لعدد السجلات في كل مرحلة. الأعداد محسوبة من سجلات المعاينة الحالية فقط، وغياب رابط صريح لا يعني إنشاء علاقة افتراضية بين السجلات.",
+      "ملخص سريع لعدد السجلات في كل مرحلة، مع إظهار الروابط الصريحة فقط وعدم افتراض علاقات غير مسجلة.",
     operationalFlowStages: {
       requests: "طلب العميل",
       inspections: "معاينة الموقع",
@@ -137,16 +133,16 @@ const ar = {
       handover: "التسليم",
       warranty: "الضمان والصيانة",
     },
-    operationalFlowCount: "سجل معاينة",
+    operationalFlowCount: "سجل",
     attentionTitle: "يحتاج اهتمامك الآن",
     recentActivityTitle: "أحدث النشاط",
     upcomingInspectionsTitle: "المعاينات القادمة",
     upcomingMilestonesTitle: "المراحل القادمة",
-    noOverdueMilestones: "لا توجد مراحل متأخرة في سجلات المعاينة حتى تاريخ اللقطة.",
-    noUpcomingInspections: "لا توجد معاينات مجدولة قادمة في سجلات المعاينة الحالية.",
-    noUpcomingMilestones: "لا توجد مراحل قادمة غير مكتملة في سجلات المعاينة الحالية.",
-    noAttentionItems: "لا توجد مهام معلقة في سجلات المعاينة الحالية.",
-    noRecentActivity: "لا يوجد نشاط مسجل في سجل نشاط المعاينة.",
+    noOverdueMilestones: "لا توجد مراحل متأخرة حتى تاريخ المتابعة الحالي.",
+    noUpcomingInspections: "لا توجد معاينات مجدولة قادمة في السجلات الحالية.",
+    noUpcomingMilestones: "لا توجد مراحل قادمة غير مكتملة في السجلات الحالية.",
+    noAttentionItems: "لا توجد مهام معلقة في السجلات الحالية.",
+    noRecentActivity: "لا يوجد نشاط مسجل حتى الآن.",
     recentRequestsTitle: "أحدث طلبات العملاء",
     activeProjectsTitle: "المشاريع النشطة وتقدمها",
     todayTasksTitle: "مهام ومتابعات اليوم",
@@ -172,7 +168,7 @@ const ar = {
       audit: "سجل النشاط",
     } as Record<DashboardModuleKey, string>,
     moduleLead: {
-      customers: "سجل العملاء التجريبي مع بيانات التواصل وعدد المشاريع المرتبطة بكل عميل.",
+      customers: "سجل العملاء مع بيانات التواصل والطلبات والمشاريع المرتبطة بكل عميل.",
       inspections: "جدول المعاينات المجدولة والمكتملة مع المسؤول وحالة كل معاينة.",
       quotations: "عروض الأسعار وبنود الكميات والأسعار (BOQ) من الإعداد حتى الاعتماد.",
       contracts: "العقود وأوامر التغيير المرتبطة بها وحالة التوقيع والاعتماد.",
@@ -186,46 +182,32 @@ const ar = {
       quality: "فحوصات الجودة وبنود الملاحظات المطلوب إصلاحها قبل التسليم وحالة كل بند.",
       handover: "محاضر وإجراءات تسليم المشاريع للعملاء وبنود الاستلام.",
       warranty: "طلبات الضمان والصيانة بعد التسليم وحالة الاستجابة لها.",
-      notifications: "إشعارات النظام التشغيلية للفريق والعملاء (تجريبية).",
-      audit: "سجل بتغييرات الحالات والإجراءات المسجلة على السجلات (تجريبي).",
+      notifications: "إشعارات التشغيل للفريق والعملاء وروابطها بالسجلات ذات الصلة.",
+      audit: "سجل زمني بتغييرات الحالات والإجراءات المسجلة على السجلات.",
     } as Partial<Record<DashboardModuleKey, string>>,
     modulePreviewLimits: {
-      customers:
-        "قائمة العملاء مشتقة من طلبات ومشاريع المعاينة. لا توجد قناة تواصل أو حفظ بيانات فعلية في هذه الواجهة.",
-      inspections:
-        "تظهر المعاينات وروابط الطلبات والمسؤولين الحاليين فقط. الجدولة وإعادة الجدولة وإرسال التأكيدات غير متاحة قبل النظام الخلفي.",
-      quotations:
-        "تظهر ملخصات العروض الحالية وقيمها الاصطناعية فقط. بنود BOQ التفصيلية وسجل المراجعات والإرسال والاعتماد الفعلي غير متاحة في المعاينة.",
-      contracts:
-        "تظهر ملخصات العقود وأوامر التغيير الاصطناعية فقط. لا توجد مستندات موقعة أو توقيع أو اعتماد فعلي من هذه الواجهة.",
-      projects:
-        "افتح مساحة عمل المشروع لعرض السجلات المرتبطة صراحةً. إنشاء مشروع أو تعديل خطته غير متاح في المعاينة.",
-      milestones:
-        "تُقارن المواعيد بتاريخ لقطة المعاينة المعروف في البيانات. تحديث الجدول أو النسب غير محفوظ في نظام فعلي.",
-      diary: "يوميات الموقع نصية للمعاينة فقط، دون مرفقات أو صور موقع أو إثبات حضور فعلي.",
-      progress:
-        "سجلات التقدم تلخص النسب الحالية فقط، دون رفع أدلة أو اعتماد قياسات من هذه الواجهة.",
-      issues:
-        "الإجراءات التصحيحية التفصيلية متاحة داخل مساحة عمل المشروع للملاحظات الأساسية المرتبطة. تغيير الحالة أو الإغلاق غير متاح في المعاينة.",
-      documents:
-        "تظهر بيانات وصفية للمستندات فقط. لا توجد ملفات فعلية أو تنزيل أو رفع أو سجل إصدارات متاح هنا.",
-      reports:
-        "النموذج الحالي يميز فقط بين تقرير مُرسل في سجل المعاينة وتقرير قيد المراجعة. لا يوجد إجراء اعتماد أو إرسال أو إظهار للعميل من هذه الواجهة.",
+      customers: "تُشتق قائمة العملاء من الطلبات والمشاريع المسجلة، وتظهر الروابط الصريحة فقط.",
+      inspections: "تظهر المعاينات وروابط الطلبات والمسؤولون الحاليون مرتبين بحسب التاريخ والحالة.",
+      quotations: "تظهر ملخصات العروض وقيمها المسجلة وعلاقاتها بالعملاء والمشاريع.",
+      contracts: "تظهر العقود وأوامر التغيير بحالتها وقيمتها المسجلة وعلاقاتها بالمشاريع.",
+      projects: "افتح مساحة عمل المشروع لعرض السجلات المرتبطة صراحةً ومؤشرات المتابعة.",
+      milestones: "تُقارن المواعيد بتاريخ المتابعة الحالي، وتظهر المراحل غير المكتملة أولًا.",
+      diary: "تعرض يوميات الموقع النصية مع المشروع والمسؤول وتاريخ كل إدخال.",
+      progress: "تلخص سجلات التقدم النسب الحالية وتميز أحدث سجل لكل مشروع.",
+      issues: "تعرض الملاحظات والإجراءات التصحيحية حيثما يوفرها السجل المرتبط بالمشروع.",
+      documents: "تظهر البيانات الوصفية للمستندات وروابط مشاريعها ونوع كل ملف.",
+      reports: "تعرض التقارير بحالتها المسجلة مع تاريخها ومشروعها ونسبة التقدم المرتبطة.",
       quality:
-        "تظهر بنود الجودة المرتبطة بالمشروع. المسؤول وتاريخ الإغلاق وإجراء التصحيح لا يُعرضون إلا حيث يوفرهم السجل المرتبط، ولا يمكن إغلاق بند من المعاينة.",
-      handover:
-        "تظهر ملخصات التسليم فقط. قوائم الاستلام التفصيلية والتوقيع وإغلاق البنود المعلقة غير متاحة قبل النظام الخلفي.",
-      warranty:
-        "تظهر طلبات ومتابعات ما بعد التسليم الاصطناعية فقط. شروط ضمان فعلية أو مواعيد استجابة غير معروضة ولا تُدار هنا.",
-      notifications:
-        "هذه إشعارات سجل معاينة فقط؛ لم يُرسل أي بريد أو رسالة أو إشعار فعلي من الواجهة.",
-      audit:
-        "سجل تدقيق اصطناعي للقراءة فقط. لا يمثل سجل نظام فعلي ولا تُسجل فيه إجراءات هذه الجلسة.",
+        "تظهر بنود الجودة المرتبطة بالمشروع مع الأولوية والمسؤول وإجراء التصحيح حيثما يتوفر.",
+      handover: "تعرض سجلات التسليم حالة المشروع ومؤشرات المتابعة المسجلة قبل الإغلاق.",
+      warranty: "تعرض طلبات ما بعد التسليم بحالتها وتاريخها والمشروع المرتبط بها.",
+      notifications: "تعرض الإشعارات بحالتها المسجلة وروابطها الصريحة بالطلبات أو المشاريع.",
+      audit: "يعرض النشاط المسجل بترتيبه الزمني مع المنفذ والسجل المرتبط به.",
     } as Partial<Record<DashboardModuleKey, string>>,
     linkedRecords: "السجلات المرتبطة",
     linkedRecordsNote:
-      "تظهر الروابط الصريحة المحفوظة في نموذج المعاينة فقط. عند غياب رابط لا نفترض علاقة تشغيلية بين السجلات.",
-    noLinkedRecords: "لا توجد روابط صريحة لهذا السجل في بيانات المعاينة الحالية.",
+      "تظهر الروابط الصريحة بين السجلات فقط. عند غياب رابط لا نفترض علاقة تشغيلية.",
+    noLinkedRecords: "لا توجد روابط صريحة لهذا السجل حتى الآن.",
     linkedKinds: {
       customer: "العميل",
       request: "طلب الخدمة",
@@ -239,14 +221,14 @@ const ar = {
       dates: "التواريخ والمواعيد",
       relationships: "العميل والمشروع المرتبطان",
       activityHistory: "سجل الحالة والنشاط",
-      previewUpdate: "تحديث الحالة والمسؤول في المعاينة",
+      previewUpdate: "تحديث الحالة والمسؤول",
       availableActions: "الإجراءات المتاحة",
       requestDescription: "وصف الطلب",
     },
     openProjectWorkspace: "فتح مساحة عمل المشروع",
     backToProjects: "العودة إلى المشاريع",
     projectWorkspaceLead:
-      "مساحة عمل للقراءة تجمع فقط سجلات المعاينة المرتبطة صراحةً بهذا المشروع. أي إنشاء أو اعتماد أو إرسال أو إغلاق يتطلب النظام الخلفي لاحقًا.",
+      "مساحة عمل تجمع السجلات المرتبطة صراحةً بهذا المشروع، مع مؤشرات التقدم والعوائق والخطوات التالية في مكان واحد.",
     projectOverview: "ملخص المشروع",
     projectJourney: "سياق العميل والتعاقد",
     projectMilestones: "المراحل والمواعيد",
@@ -256,28 +238,28 @@ const ar = {
     projectDocuments: "المستندات المرتبطة",
     projectReports: "تقارير المشروع",
     projectHandover: "التسليم والضمان",
-    projectCustomerRequests: "طلبات العميل في بيانات المعاينة",
+    projectCustomerRequests: "طلبات العميل المسجلة",
     sourceRequestNotLinked:
-      "لا يوجد طلب مصدر مرتبط صراحةً بهذا المشروع في نموذج المعاينة؛ طلبات العميل المعروضة سياق مرتبط بالعميل فقط.",
-    noProjectRecords: "لا توجد سجلات معاينة مرتبطة بهذا المشروع في هذا القسم.",
+      "لا يوجد طلب مصدر مرتبط صراحةً بهذا المشروع؛ طلبات العميل المعروضة هنا سياق مرتبط بالعميل فقط.",
+    noProjectRecords: "لا توجد سجلات مرتبطة بهذا المشروع في هذا القسم.",
     linkedRequestRecords: "سجلات مرتبطة مباشرة بالطلب",
     sameCustomerRecords: "سجلات أخرى لنفس العميل",
     sameCustomerRecordsNote:
       "هذه السجلات مرتبطة بمعرف العميل فقط، ولا تعني بالضرورة أنها نشأت من هذا الطلب.",
-    noLinkedRequestRecords: "لا توجد معاينات أو عروض مرتبطة مباشرة بهذا الطلب في المعاينة.",
-    noSameCustomerRecords: "لا توجد مشاريع أو عقود أخرى مرتبطة بمعرف هذا العميل في المعاينة.",
+    noLinkedRequestRecords: "لا توجد معاينات أو عروض مرتبطة مباشرة بهذا الطلب حتى الآن.",
+    noSameCustomerRecords: "لا توجد مشاريع أو عقود أخرى مرتبطة بمعرف هذا العميل حتى الآن.",
     requestNoChanges: "لم تُجرِ تغييرات على الحالة أو المسؤول بعد.",
     requestStatusConfirmTitle: "تأكيد تغيير حالة مهم",
     requestStatusConfirmText:
-      "سيتغير الطلب {request} داخل المعاينة فقط إلى حالة «{status}». لن يُحفظ التغيير ولن يُرسل أي إشعار.",
+      "سيتغير الطلب {request} إلى حالة «{status}». راجع التغيير قبل التأكيد.",
     operations: {
       workflowTitle: "مسار الطلب والخطوة التالية",
       nextStep: "الخطوة التالية المقترحة",
       needsAttention: "نقاط تحتاج مراجعة",
-      statusOnly: "تدعمها حالة الطلب فقط؛ لا يوجد سجل مرتبط مباشرة في المعاينة.",
-      noBlockers: "لا توجد عوائق ظاهرة في سجلات المعاينة المرتبطة.",
-      unavailableInPreview: "هذا الإجراء غير متاح في المعاينة الأمامية.",
-      notRecorded: "غير مسجل في نموذج المعاينة",
+      statusOnly: "تدعمها حالة الطلب فقط؛ لا يوجد سجل مرتبط مباشرة.",
+      noBlockers: "لا توجد عوائق ظاهرة في السجلات المرتبطة.",
+      unavailableInPreview: "هذا الإجراء غير متاح حاليًا، ولم يتغير أي شيء.",
+      notRecorded: "غير مسجل",
       openRelated: "مراجعة السجل المرتبط",
       relatedProject: "المشروع المرتبط",
       relatedCustomer: "العميل المرتبط",
@@ -292,7 +274,7 @@ const ar = {
         decision: "قرار العميل",
       },
       stageStates: {
-        complete: "مكتمل في المعاينة",
+        complete: "مكتملة",
         current: "المرحلة الحالية",
         upcoming: "لم يبدأ بعد",
         blocked: "متوقف مؤقتًا",
@@ -312,7 +294,7 @@ const ar = {
         assigneeMissing: "لا يوجد مسؤول متابعة مسجل لهذا الطلب.",
         directInspectionMissing: "حالة الطلب تشير إلى معاينة، لكن لا يوجد سجل معاينة مرتبط مباشرة.",
         directQuotationMissing: "حالة الطلب تشير إلى عرض سعر، لكن لا يوجد عرض مرتبط مباشرة.",
-        onHold: "الطلب متوقف مؤقتًا في نموذج المعاينة.",
+        onHold: "الطلب متوقف مؤقتًا.",
         cancelled: "الطلب ملغي، لذلك توقف مسار التنفيذ.",
       },
       domain: {
@@ -344,25 +326,24 @@ const ar = {
         },
         inspectionsTitle: "قائمة عمل المعاينات",
         inspectionsIntro:
-          "تُفرز المعاينات المرتبطة صراحة بالطلبات والعملاء حسب تاريخها وحالتها في نموذج المعاينة.",
+          "تُفرز المعاينات المرتبطة صراحة بالطلبات والعملاء حسب تاريخها وحالتها في السجلات الحالية.",
         upcoming: "معاينات قادمة",
-        scheduleUnavailable: "جدولة المعاينة غير متاحة في المعاينة الأمامية؛ لن يتم إنشاء موعد.",
-        completeUnavailable: "إكمال أو اعتماد نتيجة المعاينة غير متاح في المعاينة الأمامية.",
+        scheduleUnavailable: "جدولة المعاينة غير متاحة حاليًا؛ لن يتم إنشاء موعد.",
+        completeUnavailable: "إكمال أو اعتماد نتيجة المعاينة غير متاح حاليًا.",
         quotationsTitle: "عروض الأسعار وجداول الكميات",
         quotationsIntro:
-          "تظهر القيم المسجلة فقط، ولا تُعرض بنود BOQ أو مراجعات غير موجودة في نموذج المعاينة.",
+          "تظهر القيم المسجلة فقط، ولا تُعرض بنود BOQ أو مراجعات غير موجودة في السجلات الحالية.",
         quotation: "عرض سعر",
         boq: "جدول كميات",
         amount: "القيمة المسجلة",
-        boqEditorUnavailable: "محرر بنود BOQ والأسعار والمراجعات غير متاح في المعاينة الأمامية.",
-        sendUnavailable: "إرسال عرض السعر أو اعتماده غير متاح في المعاينة الأمامية.",
+        boqEditorUnavailable: "محرر بنود BOQ والأسعار والمراجعات غير متاح حاليًا.",
+        sendUnavailable: "إرسال عرض السعر أو اعتماده غير متاح حاليًا.",
         contractsTitle: "العقود وأوامر التغيير",
-        contractsIntro:
-          "تعرض الشاشة الحالة والقيمة والعلاقات المسجلة فقط؛ لا توجد ملفات عقود أو توقيعات في المعاينة.",
+        contractsIntro: "تعرض الشاشة حالة العقود وقيمتها المسجلة وعلاقاتها بالمشروع والعميل.",
         contract: "عقد",
         changeOrder: "أمر تغيير",
-        approveUnavailable: "اعتماد أمر التغيير غير متاح في المعاينة الأمامية.",
-        signUnavailable: "التوقيع أو إدارة ملف العقد غير متاحة في المعاينة الأمامية.",
+        approveUnavailable: "اعتماد أمر التغيير غير متاح حاليًا.",
+        signUnavailable: "التوقيع أو إدارة ملف العقد غير متاحة حاليًا.",
         findingsTitle: "ملاحظات التنفيذ والجودة",
         findingsIntro:
           "تُعرض الإجراءات التصحيحية فقط عندما يوفرها سجل المشكلة الأساسي؛ الحقول غير المتاحة تظل ظاهرة كغير مسجلة.",
@@ -370,13 +351,13 @@ const ar = {
         correctiveAction: "الإجراء التصحيحي",
         reportedBy: "أبلغ بواسطة",
         dueDate: "تاريخ الاستحقاق",
-        closeUnavailable: "إغلاق الملاحظة أو تحديث إجراء التصحيح غير متاح في المعاينة الأمامية.",
+        closeUnavailable: "إغلاق الملاحظة أو تحديث إجراء التصحيح غير متاح حاليًا.",
         reportsTitle: "قائمة مراجعة التقارير",
         reportsIntro:
-          "تُستخدم الحالات المسجلة فقط؛ لا توجد حالة اعتماد داخلي أو ظهور للعميل منفصلة في نموذج المعاينة.",
+          "تُستخدم الحالات المسجلة فقط؛ لا توجد حالة اعتماد داخلي أو ظهور للعميل منفصلة في السجلات الحالية.",
         pending: "تقارير قيد الانتظار",
-        approveReportUnavailable: "اعتماد التقرير غير متاح في المعاينة الأمامية.",
-        deliverReportUnavailable: "إتاحة التقرير للعميل أو تنزيله غير متاحة في المعاينة الأمامية.",
+        approveReportUnavailable: "اعتماد التقرير غير متاح حاليًا.",
+        deliverReportUnavailable: "إتاحة التقرير للعميل أو تنزيله غير متاحة حاليًا.",
         customersTitle: "متابعة العملاء والطلبات",
         customersIntro:
           "يجمع كل سجل عميل أحدث طلباته والمشاريع المرتبطة بمعرف العميل نفسه، دون افتراض أن مشروع العميل نشأ من أحدث طلب.",
@@ -387,84 +368,79 @@ const ar = {
         customerContextNote:
           "المشاريع المعروضة مرتبطة بمعرف العميل فقط؛ لا تعني بالضرورة أنها نشأت من أحدث طلب ظاهر في البطاقة.",
         editCustomerUnavailable:
-          "تعديل بيانات العميل أو التواصل معه غير متاح في المعاينة الأمامية؛ لن يتم حفظ أو إرسال أي شيء.",
+          "تعديل بيانات العميل أو التواصل معه غير متاح حاليًا؛ لن يتم حفظ أو إرسال أي شيء.",
         projectsTitle: "محفظة المشاريع التشغيلية",
         projectsIntro:
           "تُرتب المشاريع بحسب العوائق والتقارير المعلقة في سجلاتها المرتبطة، وتربط كل بطاقة بمساحة عمل المشروع التفصيلية.",
         activeProjects: "مشاريع قيد التنفيذ",
         handedOverProjects: "مشاريع تم تسليمها",
         totalBlockers: "إجمالي عوائق المشاريع",
-        editProjectPlanUnavailable:
-          "إنشاء مشروع أو تعديل خطته أو نسب تقدمه غير متاح في المعاينة الأمامية.",
+        editProjectPlanUnavailable: "إنشاء مشروع أو تعديل خطته أو نسب تقدمه غير متاح حاليًا.",
         milestonesTitle: "جدول مراحل التنفيذ عبر المشاريع",
         milestonesIntro:
-          "تُقارن مواعيد المراحل بتاريخ لقطة المعاينة المسجل في البيانات، وتظهر المراحل غير المكتملة قبل المراحل المكتملة.",
+          "تُقارن مواعيد المراحل بتاريخ المتابعة الحالي، وتظهر المراحل غير المكتملة قبل المراحل المكتملة.",
         milestoneStates: {
           overdue: "متأخرة عن موعدها",
           dueSoon: "تستحق خلال سبعة أيام",
           scheduled: "مجدولة",
           completed: "مكتملة",
         },
-        updateMilestoneUnavailable:
-          "تحديث موعد المرحلة أو نسبة إنجازها أو حالتها غير متاح في المعاينة الأمامية.",
+        updateMilestoneUnavailable: "تحديث موعد المرحلة أو نسبة إنجازها أو حالتها غير متاح حاليًا.",
         diaryTitle: "سجل يوميات المواقع",
         diaryIntro:
           "تظهر يوميات الموقع النصية المرتبطة بالمشاريع مرتبة من الأحدث إلى الأقدم، دون صور أو مرفقات أو إثبات حضور.",
-        editDiaryUnavailable:
-          "إضافة أو تعديل يومية موقع أو إرفاق أدلة بها غير متاح في المعاينة الأمامية.",
+        editDiaryUnavailable: "إضافة أو تعديل يومية موقع أو إرفاق أدلة بها غير متاح حاليًا.",
         progressTitle: "سجلات تقدم الأعمال",
         progressIntro:
-          "تعرض السجلات نسب التقدم الموثقة في نموذج المعاينة، مع تمييز أحدث سجل لكل مشروع عن السجلات السابقة.",
+          "تعرض السجلات نسب التقدم الموثقة في السجلات الحالية، مع تمييز أحدث سجل لكل مشروع عن السجلات السابقة.",
         latestForProject: "أحدث سجل لهذا المشروع",
         earlierRecord: "سجل سابق",
         projectsCovered: "مشاريع مشمولة بالسجلات",
-        updateProgressUnavailable:
-          "تسجيل قياس تقدم أو اعتماد نسبة جديدة غير متاح في المعاينة الأمامية.",
+        updateProgressUnavailable: "تسجيل قياس تقدم أو اعتماد نسبة جديدة غير متاح حاليًا.",
         documentsTitle: "سجل مستندات المشاريع",
         documentsIntro:
-          "تظهر البيانات الوصفية للمستندات وروابط مشاريعها فقط؛ لا توجد ملفات فعلية أو إصدارات يمكن فتحها من هذه الواجهة.",
+          "تظهر البيانات الوصفية للمستندات ونوع كل ملف وروابط مشاريعه، مرتبة بحسب تاريخ التسجيل.",
         fileFormat: "صيغة الملف المسجلة",
-        uploadDocumentUnavailable: "رفع مستند أو إنشاء إصدار جديد غير متاح في المعاينة الأمامية.",
+        uploadDocumentUnavailable: "رفع مستند أو إنشاء إصدار جديد غير متاح حاليًا.",
         downloadDocumentUnavailable: "تنزيل المستند غير متاح لأن السجل يحتوي على بيانات وصفية فقط.",
         handoverTitle: "متابعة التسليم",
         handoverIntro:
           "تعرض كل بطاقة سجل التسليم ومؤشرات متابعة مسجلة للمشروع، دون اعتبار هذه المؤشرات قائمة اعتماد رسمية للتسليم.",
         recordedSignals: "مؤشرات متابعة مسجلة للمشروع",
         projectsWithoutHandover: "مشاريع دون سجل تسليم",
-        completeHandoverUnavailable: "إكمال أو توقيع محضر التسليم غير متاح في المعاينة الأمامية.",
-        scheduleHandoverUnavailable: "جدولة أو إعادة جدولة التسليم غير متاحة في المعاينة الأمامية.",
+        completeHandoverUnavailable: "إكمال أو توقيع محضر التسليم غير متاح حاليًا.",
+        scheduleHandoverUnavailable: "جدولة أو إعادة جدولة التسليم غير متاحة حاليًا.",
         warrantyTitle: "متابعة الضمان وما بعد التسليم",
         warrantyIntro:
-          "تظهر طلبات ومتابعات ما بعد التسليم المسجلة فقط؛ لا تُعرض شروط ضمان أو مواعيد استجابة غير موجودة في النموذج.",
+          "تظهر طلبات ومتابعات ما بعد التسليم المسجلة، مع حالة كل طلب ومشروعه المرتبط.",
         activeAftercare: "متابعات نشطة",
-        scheduleWarrantyVisitUnavailable:
-          "جدولة زيارة صيانة أو تعيين مسؤول لها غير متاح في المعاينة الأمامية.",
-        closeWarrantyUnavailable: "إغلاق طلب الضمان غير متاح في المعاينة الأمامية.",
-        notificationsTitle: "سجل إشعارات المعاينة",
+        scheduleWarrantyVisitUnavailable: "جدولة زيارة صيانة أو تعيين مسؤول لها غير متاح حاليًا.",
+        closeWarrantyUnavailable: "إغلاق طلب الضمان غير متاح حاليًا.",
+        notificationsTitle: "سجل الإشعارات",
         notificationsIntro:
-          "تظهر إدخالات سجل معاينة مرتبطة صراحةً بطلبات أو مشاريع. حالة الإرسال هي حالة مسجلة في النموذج فقط، ولا ترسل هذه الواجهة أي بريد أو رسالة فعلية.",
+          "تظهر الإشعارات مرتبطة صراحةً بطلبات أو مشاريع، مع حالة كل إدخال وقناة التسليم والمستلم حيثما يتوفر.",
         newNotifications: "إدخالات جديدة تحتاج مراجعة",
         recordedAsSent: "إدخالات بحالة مُرسلة في السجل",
         recordedEntities: "سجلات ظاهرة في الإدخالات",
         deliveryChannel: "قناة التسليم",
         recipient: "المستلم",
         notificationReviewNote:
-          "فتح السجل المرتبط لا يغيّر حالة هذا الإدخال؛ تغيير حالة المراجعة غير متاح قبل النظام الخلفي.",
+          "فتح السجل المرتبط لا يغيّر حالة هذا الإدخال؛ تغيير حالة المراجعة غير متاح حاليًا.",
         markNotificationReviewedUnavailable:
-          "وضع علامة تمت المراجعة أو تغيير حالة الإشعار غير متاح في المعاينة الأمامية؛ ستبقى الحالة كما هي.",
+          "وضع علامة تمت المراجعة أو تغيير حالة الإشعار غير متاح حاليًا؛ ستبقى الحالة كما هي.",
         resendNotificationUnavailable:
-          "إعادة إرسال الإشعار غير متاحة في المعاينة الأمامية؛ لن يتم إرسال بريد أو رسالة أو إشعار فعلي.",
-        auditTitle: "سجل تدقيق المعاينة للقراءة فقط",
+          "إعادة إرسال الإشعار غير متاحة حاليًا؛ لن يتم إرسال بريد أو رسالة أو إشعار فعلي.",
+        auditTitle: "سجل التدقيق",
         auditIntro:
-          "تسلسل اصطناعي من الإجراءات المسجلة في بيانات المعاينة وروابطها الصريحة. لا تُكتب إجراءات هذه الجلسة في السجل، ولا يمثل سجل نظام فعليًا.",
+          "يعرض سجل التدقيق الإجراءات المسجلة بترتيبها الزمني، مع المنفذ والسجل التشغيلي المرتبط بكل إجراء.",
         completedAuditEntries: "إدخالات بحالة مكتملة في السجل",
         recordedActors: "منفذون ظاهرون في السجل",
         linkedOperationalRecords: "سجلات تشغيلية مرتبطة",
-        exportAuditUnavailable:
-          "تصدير سجل التدقيق غير متاح في المعاينة الأمامية؛ لن يتم إنشاء أو تنزيل أي ملف.",
+        exportAuditUnavailable: "تصدير سجل التدقيق غير متاح حاليًا؛ لن يتم إنشاء أو تنزيل أي ملف.",
       },
       actionQueue: {
-        intro: "أهم المهام التي تحتاج قرارًا أو متابعة الآن، مرتبة حسب الأولوية في سجلات المعاينة.",
+        intro:
+          "أهم المهام التي تحتاج قرارًا أو متابعة الآن، مرتبة حسب الأولوية في السجلات الحالية.",
         total: "مهمة تحتاج متابعة",
         reviewRecord: "مراجعة المهمة",
         kinds: {
@@ -498,7 +474,7 @@ const ar = {
     },
     requestsTitle: "طلبات العملاء الواردة",
     requestsLead:
-      "ابحث وصفِّ طلبات العملاء وتابع حالة كل طلب والخطوة التالية. البيانات المعروضة تجريبية بالكامل.",
+      "ابحث وصفِّ طلبات العملاء، وتابع حالة كل طلب ومسؤول المتابعة والخطوة التالية من مكان واحد.",
     cols: {
       reference: "رقم الطلب",
       customer: "العميل",
@@ -534,17 +510,17 @@ const ar = {
     detailLabels: {
       customer: "بيانات العميل",
       request: "بيانات الطلب",
-      notes: "ملاحظات داخلية (تجريبية)",
+      notes: "ملاحظات داخلية",
       history: "سير حالة الطلب",
     },
     unassigned: "غير معيّن",
-    genericEmpty: "لا توجد سجلات تجريبية في هذا القسم بعد.",
+    genericEmpty: "لا توجد سجلات في هذا القسم بعد.",
   },
   portal: {
-    shellRole: "بوابة العميل — معاينة",
+    shellRole: "بوابة العميل",
     welcome: "أهلًا بك",
     overviewLead:
-      "من هنا تقدر تتابع مشروعك: المراحل الحالية، نسبة التقدم، أحدث التقارير والمستندات — كلها بيانات تجريبية للمعاينة.",
+      "تابع مشروعك من مكان واحد: المراحل الحالية، نسبة التقدم، أحدث التقارير والمستندات والملاحظات المفتوحة.",
     nav: {
       overview: "نظرة عامة",
       myProjects: "مشاريعي",
@@ -563,13 +539,12 @@ const ar = {
     latestReport: "أحدث تقرير",
     openIssuesCount: "ملاحظات مفتوحة",
     viewProject: "عرض المشروع",
-    downloadPreview: "تنزيل (معاينة)",
-    approvePreview: "اعتماد (معاينة)",
-    rejectPreview: "طلب مراجعة (معاينة)",
-    addIssuePreview: "إضافة ملاحظة (معاينة)",
-    issueAddedToast: "تمت إضافة ملاحظتك داخل المعاينة فقط — لن تصل لفريق الشركة في هذه النسخة.",
-    profileNote:
-      "بيانات الحساب المعروضة تجريبية. تعديل البيانات فعليًا سيتاح بعد تفعيل الدخول الآمن في مرحلة النظام الخلفي.",
+    downloadPreview: "تنزيل",
+    approvePreview: "اعتماد",
+    rejectPreview: "طلب مراجعة",
+    addIssuePreview: "إضافة ملاحظة",
+    issueAddedToast: "تمت إضافة الملاحظة إلى قائمة المتابعة الحالية.",
+    profileNote: "راجع بيانات التواصل المسجلة لحسابك وحدّثها هنا عند الحاجة.",
     fields: {
       name: "الاسم",
       phone: "رقم الهاتف",
@@ -578,21 +553,19 @@ const ar = {
       issueDetails: "تفاصيل الملاحظة",
       issueLocation: "مكان الملاحظة داخل الوحدة",
     },
-    emptyList: "لا توجد عناصر للعرض حاليًا في بيانات المعاينة.",
+    emptyList: "لا توجد عناصر للعرض حاليًا.",
   },
 };
 
 export type AppDictionary = typeof ar;
 
 const en: AppDictionary = {
-  previewBanner:
-    "Demo preview mode — all data shown is synthetic for frontend development only. It does not represent real clients or projects, and no change is saved to any live system.",
   authNote:
-    "This area is protected by server-side sign-in for authorized review. The records shown are demonstration data, and no change is saved to a live system.",
+    "This area is protected by server-side sign-in and is intended for authorized users following company work.",
   signOut: "Sign out",
   auth: {
-    title: "Review sign-in",
-    lead: "This area is for the company owner or an authorized reviewer. After sign-in, clearly labelled demonstration data is shown and no real business operation is executed or saved.",
+    title: "Workspace sign-in",
+    lead: "This area is for the company owner or an authorized delegate. Sign in to continue to the project and operations workspace.",
     email: "Email",
     password: "Password",
     signIn: "Sign in",
@@ -600,7 +573,7 @@ const en: AppDictionary = {
       "The sign-in details are incorrect. Check the email and password and try again.",
     rateLimited: "Sign-in attempts are temporarily paused. Try again later.",
     configurationMissing: "Sign-in is not configured in this environment yet.",
-    protectedArea: "Protected review area",
+    protectedArea: "Protected workspace",
   },
   backToSite: "Back to public site",
   search: "Search by name, reference or service...",
@@ -609,27 +582,26 @@ const en: AppDictionary = {
   allServicesFilter: "All services",
   actions: "Actions",
   view: "View",
-  editPreview: "Edit (preview)",
-  assignPreview: "Assign owner (preview)",
-  changeStatusPreview: "Change status (preview)",
-  addNew: "Add new (preview)",
-  exportPreview: "Export (preview)",
+  editPreview: "Edit",
+  assignPreview: "Assign owner",
+  changeStatusPreview: "Change status",
+  addNew: "Add new",
+  exportPreview: "Export",
   confirm: "Confirm",
   cancel: "Cancel",
   close: "Close",
   menu: "Menu",
-  savePreview: "Save (preview)",
+  savePreview: "Apply changes",
   noResults: "No results match your current search or filters.",
   clearFilters: "Clear filters",
   showingResults: "results shown",
-  demoActionTitle: "Preview action",
+  demoActionTitle: "Confirm action",
   demoActionText:
-    "This is a frontend preview action only. In the live version it will be executed and saved via the backend and recorded in the audit log.",
-  demoSavedToast: "Applied inside the preview only — nothing was saved to a live system.",
-  previewUnavailableTitle: "Unavailable in this preview",
-  previewUnavailableText:
-    "This action does not run or save any data in the current frontend preview. It will be available only after an approved backend is connected, and nothing has changed now.",
-  recordDetails: "Preview record details",
+    "This change will appear here immediately, without sending an external notification or action.",
+  demoSavedToast: "The change is now reflected here.",
+  previewUnavailableTitle: "Not available yet",
+  previewUnavailableText: "This action is not available at the moment, and no change was made.",
+  recordDetails: "Record details",
   recordId: "Record ID",
   recordSummary: "Key information",
   recordMoreDetails: "Additional details",
@@ -668,7 +640,7 @@ const en: AppDictionary = {
     optional: "Optional",
   },
   dashboard: {
-    shellRole: "Company admin — preview",
+    shellRole: "Company operations",
     breadcrumbLabel: "Breadcrumb",
     navGroups: {
       home: "Home",
@@ -679,7 +651,7 @@ const en: AppDictionary = {
     },
     overviewTitle: "Company at a Glance",
     overviewLead:
-      "The key numbers, requests and projects that need your attention now — calculated from the current synthetic preview records.",
+      "The key indicators, tasks and projects that need your attention now, brought together in one operations command view.",
     ownerActions: {
       reviewRequests: "Review new requests",
       viewProjects: "View active projects",
@@ -697,19 +669,19 @@ const en: AppDictionary = {
     statUnresolvedFindings: "Open quality findings",
     statNotes: {
       requests: "Awaiting first contact",
-      inspections: "Scheduled from the preview snapshot date",
+      inspections: "Scheduled from the current tracking date",
       projects: "At different execution stages",
       issues: "Need follow-up and correction",
-      quotations: "Marked sent in the preview records",
-      contracts: "Marked pending review in the preview records",
-      overdue: "Compared with the preview snapshot date",
-      reports: "Not approved or delivered from this interface",
+      quotations: "Marked sent and awaiting a decision",
+      contracts: "Marked pending review",
+      overdue: "Compared with the current tracking date",
+      reports: "Need review before they are made available",
       findings: "From linked issue and quality records",
     },
-    snapshotAsOf: "Preview snapshot as of",
+    snapshotAsOf: "Tracking data as of",
     operationalFlowTitle: "How work moves — request to aftercare",
     operationalFlowLead:
-      "A quick count of records at each stage. Counts come only from the current preview records, and a missing explicit link is never treated as an assumed relationship.",
+      "A quick count of records at each stage, showing explicit links only and never assuming an unrecorded relationship.",
     operationalFlowStages: {
       requests: "Customer request",
       inspections: "Site inspection",
@@ -721,18 +693,16 @@ const en: AppDictionary = {
       handover: "Handover",
       warranty: "Warranty & maintenance",
     },
-    operationalFlowCount: "preview records",
+    operationalFlowCount: "records",
     attentionTitle: "Needs Your Attention",
     recentActivityTitle: "Recent Activity",
     upcomingInspectionsTitle: "Upcoming inspections",
     upcomingMilestonesTitle: "Upcoming milestones",
-    noOverdueMilestones:
-      "No milestones are overdue in the preview records as of the snapshot date.",
-    noUpcomingInspections:
-      "No upcoming scheduled inspections exist in the current preview records.",
-    noUpcomingMilestones: "No incomplete upcoming milestones exist in the current preview records.",
-    noAttentionItems: "No pending tasks exist in the current preview records.",
-    noRecentActivity: "No activity is recorded in the preview activity log.",
+    noOverdueMilestones: "No milestones are overdue as of the current tracking date.",
+    noUpcomingInspections: "No upcoming scheduled inspections exist in the current records.",
+    noUpcomingMilestones: "No incomplete upcoming milestones exist in the current records.",
+    noAttentionItems: "No pending tasks exist in the current records.",
+    noRecentActivity: "No activity has been recorded yet.",
     recentRequestsTitle: "Latest customer requests",
     activeProjectsTitle: "Active Projects & Progress",
     todayTasksTitle: "Today's tasks & follow-ups",
@@ -758,7 +728,7 @@ const en: AppDictionary = {
       audit: "Activity Log",
     },
     moduleLead: {
-      customers: "The preview customer register with contact details and linked project counts.",
+      customers: "The customer register with contact details, requests and linked projects.",
       inspections: "Scheduled and completed inspections with owners and statuses.",
       quotations: "Quotations and BOQ items from preparation through approval.",
       contracts: "Contracts and their change orders with signature and approval statuses.",
@@ -772,47 +742,41 @@ const en: AppDictionary = {
       quality: "Quality checks and snag lists with the correction status of each item.",
       handover: "Project handover records and client sign-off items.",
       warranty: "Post-handover warranty and maintenance tickets with response statuses.",
-      notifications: "Operational system notifications for the team and clients (preview).",
-      audit: "Recorded status changes and actions on records (preview).",
+      notifications:
+        "Operational notifications for the team and clients, with their related records.",
+      audit: "A chronological log of recorded status changes and actions.",
     },
     modulePreviewLimits: {
       customers:
-        "The customer list is derived from preview requests and projects. No real communication or data storage is available in this interface.",
-      inspections:
-        "Only current inspections, request links and owners are shown. Scheduling, rescheduling and confirmations are unavailable before the backend phase.",
+        "The customer list is derived from recorded requests and projects, showing explicit links only.",
+      inspections: "Inspections, request links and owners are ordered by date and status.",
       quotations:
-        "Only current quotation summaries and their synthetic amounts are shown. Detailed BOQ lines, revision history, sending and real approval are unavailable in the preview.",
+        "Quotation summaries show recorded amounts and their customer and project relationships.",
       contracts:
-        "Only synthetic contract and change-order summaries are shown. No signed document, signature or real approval is available from this interface.",
+        "Contracts and change orders show their recorded status, amount and project relationships.",
       projects:
-        "Open a project workspace to see explicitly linked records. Creating a project or changing its plan is unavailable in the preview.",
+        "Open a project workspace to review explicitly linked records and follow-up indicators.",
       milestones:
-        "Dates are compared with the known preview snapshot date. Schedule or percentage changes are not saved to a live system.",
-      diary:
-        "Site diary entries are text-only preview records, with no attachments, site photos or real attendance evidence.",
+        "Dates are compared with the current tracking date, with incomplete milestones shown first.",
+      diary: "Site diary entries show the project, owner and date for each recorded note.",
       progress:
-        "Progress records summarize current percentages only, with no evidence upload or measurement approval from this interface.",
-      issues:
-        "Detailed corrective actions are available in the project workspace for linked canonical issues. Status changes and closure are unavailable in the preview.",
-      documents:
-        "Only document metadata is shown. No real file, download, upload or version history is available here.",
-      reports:
-        "The current model distinguishes only a report marked sent in the preview record from one pending review. There is no approve, send or client-visibility action in this interface.",
+        "Progress records summarize current percentages and identify the latest record for each project.",
+      issues: "Findings show corrective actions wherever the linked project record provides them.",
+      documents: "Document records show file metadata, type and project links.",
+      reports: "Reports show their recorded status, date, project and linked progress value.",
       quality:
-        "Quality items are shown with their project links. Owner, closure date and corrective action appear only where the linked record provides them, and no item can be closed from the preview.",
+        "Quality items show project links, priority, owner and corrective action where recorded.",
       handover:
-        "Only handover summaries are shown. Detailed sign-off checklists, signatures and outstanding-item closure are unavailable before the backend phase.",
-      warranty:
-        "Only synthetic post-handover requests and follow-ups are shown. Real warranty terms or response commitments are neither displayed nor managed here.",
+        "Handover records show project status and recorded follow-up signals before closure.",
+      warranty: "Post-handover requests show their recorded status, date and linked project.",
       notifications:
-        "These are preview log entries only; no email, message or real notification was sent from this interface.",
-      audit:
-        "This is a read-only synthetic audit log. It is not a live system log, and actions in this session are not recorded in it.",
+        "Notifications show their recorded status and explicit links to requests or projects.",
+      audit: "Recorded activity is shown chronologically with its actor and linked record.",
     },
     linkedRecords: "Linked records",
     linkedRecordsNote:
-      "Only explicit links stored in the preview model are shown. When a link is absent, no operational relationship is assumed.",
-    noLinkedRecords: "No explicit links exist for this record in the current preview data.",
+      "Only explicit links between records are shown. When a link is absent, no operational relationship is assumed.",
+    noLinkedRecords: "No explicit links exist for this record yet.",
     linkedKinds: {
       customer: "Customer",
       request: "Service request",
@@ -826,14 +790,14 @@ const en: AppDictionary = {
       dates: "Dates & deadlines",
       relationships: "Linked client & project",
       activityHistory: "Status & activity history",
-      previewUpdate: "Update status & owner in preview",
+      previewUpdate: "Update status & owner",
       availableActions: "Available actions",
       requestDescription: "Request description",
     },
     openProjectWorkspace: "Open project workspace",
     backToProjects: "Back to projects",
     projectWorkspaceLead:
-      "A read-only workspace that gathers only preview records explicitly linked to this project. Creating, approving, sending or closing anything requires the future backend.",
+      "A project workspace that brings explicitly linked records, progress indicators, blockers and next steps into one view.",
     projectOverview: "Project summary",
     projectJourney: "Customer & commercial context",
     projectMilestones: "Milestones & dates",
@@ -843,30 +807,28 @@ const en: AppDictionary = {
     projectDocuments: "Linked documents",
     projectReports: "Project reports",
     projectHandover: "Handover & warranty",
-    projectCustomerRequests: "Customer requests in the preview data",
+    projectCustomerRequests: "Recorded customer requests",
     sourceRequestNotLinked:
-      "No source request is explicitly linked to this project in the preview model; customer requests shown here are customer context only.",
-    noProjectRecords: "No preview records are linked to this project in this section.",
+      "No source request is explicitly linked to this project; customer requests shown here are customer context only.",
+    noProjectRecords: "No records are linked to this project in this section.",
     linkedRequestRecords: "Records linked directly to this request",
     sameCustomerRecords: "Other records for the same customer",
     sameCustomerRecordsNote:
       "These records share the customer ID only and do not necessarily originate from this request.",
-    noLinkedRequestRecords:
-      "No inspections or quotations are linked directly to this request in the preview.",
-    noSameCustomerRecords:
-      "No other projects or contracts are linked to this customer ID in the preview.",
+    noLinkedRequestRecords: "No inspections or quotations are linked directly to this request yet.",
+    noSameCustomerRecords: "No other projects or contracts are linked to this customer ID yet.",
     requestNoChanges: "No status or owner changes have been made yet.",
     requestStatusConfirmTitle: "Confirm consequential status change",
     requestStatusConfirmText:
-      "Request {request} will change inside the preview only to “{status}”. Nothing will be saved and no notification will be sent.",
+      "Request {request} will move to “{status}”. Review the change before confirming.",
     operations: {
       workflowTitle: "Request workflow & next step",
       nextStep: "Suggested next step",
       needsAttention: "Points needing review",
-      statusOnly: "Supported by the request status only; no directly linked preview record.",
-      noBlockers: "No blockers are visible in the linked preview records.",
-      unavailableInPreview: "This action is unavailable in the front-end preview.",
-      notRecorded: "Not recorded in the preview model",
+      statusOnly: "Supported by the request status only; no record is linked directly.",
+      noBlockers: "No blockers are visible in the linked records.",
+      unavailableInPreview: "This action is not available at the moment, and nothing has changed.",
+      notRecorded: "Not recorded",
       openRelated: "Review linked record",
       relatedProject: "Linked project",
       relatedCustomer: "Linked customer",
@@ -881,7 +843,7 @@ const en: AppDictionary = {
         decision: "Client decision",
       },
       stageStates: {
-        complete: "Complete in preview",
+        complete: "Complete",
         current: "Current stage",
         upcoming: "Not started",
         blocked: "On hold",
@@ -903,7 +865,7 @@ const en: AppDictionary = {
           "The request status implies an inspection, but no inspection record is linked directly.",
         directQuotationMissing:
           "The request status implies a quotation, but no quotation record is linked directly.",
-        onHold: "The request is on hold in the preview model.",
+        onHold: "The request is currently on hold.",
         cancelled: "The request is cancelled, so the operational path has stopped.",
       },
       domain: {
@@ -935,30 +897,28 @@ const en: AppDictionary = {
         },
         inspectionsTitle: "Inspection work queue",
         inspectionsIntro:
-          "Inspections explicitly linked to requests and customers are ordered by date and status in the preview model.",
+          "Inspections explicitly linked to requests and customers are ordered by date and status in the current records.",
         upcoming: "Upcoming inspections",
         scheduleUnavailable:
-          "Inspection scheduling is unavailable in the front-end preview; no appointment will be created.",
+          "Inspection scheduling is unavailable at the moment; no appointment will be created.",
         completeUnavailable:
-          "Completing or approving an inspection outcome is unavailable in the front-end preview.",
+          "Completing or approving an inspection outcome is unavailable at the moment.",
         quotationsTitle: "Quotations & BOQs",
         quotationsIntro:
-          "Only recorded amounts appear; BOQ lines and revisions that are absent from the preview model are not invented.",
+          "Only recorded amounts appear; BOQ lines and revisions that are absent from the current records are not invented.",
         quotation: "Quotation",
         boq: "BOQ",
         amount: "Recorded amount",
         boqEditorUnavailable:
-          "The BOQ line, pricing and revision editor is unavailable in the front-end preview.",
-        sendUnavailable:
-          "Sending or approving a quotation is unavailable in the front-end preview.",
+          "The BOQ line, pricing and revision editor is unavailable at the moment.",
+        sendUnavailable: "Sending or approving a quotation is unavailable at the moment.",
         contractsTitle: "Contracts & change orders",
         contractsIntro:
-          "This screen shows recorded status, amount and relationships only; contract files and signatures are not in the preview.",
+          "This screen shows each contract status, recorded amount and project and customer relationships.",
         contract: "Contract",
         changeOrder: "Change order",
-        approveUnavailable: "Approving a change order is unavailable in the front-end preview.",
-        signUnavailable:
-          "Signing or managing a contract file is unavailable in the front-end preview.",
+        approveUnavailable: "Approving a change order is unavailable at the moment.",
+        signUnavailable: "Signing or managing a contract file is unavailable at the moment.",
         findingsTitle: "Execution & quality findings",
         findingsIntro:
           "Corrective actions appear only when the canonical issue record provides them; unavailable fields remain shown as not recorded.",
@@ -967,14 +927,14 @@ const en: AppDictionary = {
         reportedBy: "Reported by",
         dueDate: "Due date",
         closeUnavailable:
-          "Closing a finding or updating its corrective action is unavailable in the front-end preview.",
+          "Closing a finding or updating its corrective action is unavailable at the moment.",
         reportsTitle: "Report review queue",
         reportsIntro:
-          "Only recorded statuses are used; there is no separate internal approval or client-visibility state in the preview model.",
+          "Only recorded statuses are used; there is no separate internal approval or client-visibility state in the current records.",
         pending: "Pending reports",
-        approveReportUnavailable: "Report approval is unavailable in the front-end preview.",
+        approveReportUnavailable: "Report approval is unavailable at the moment.",
         deliverReportUnavailable:
-          "Making a report available to the client or downloading it is unavailable in the front-end preview.",
+          "Making a report available to the client or downloading it is unavailable at the moment.",
         customersTitle: "Customer & request follow-up",
         customersIntro:
           "Each customer record gathers the customer's latest requests and projects recorded under the same customer ID, without assuming that a project originated from the latest request.",
@@ -985,7 +945,7 @@ const en: AppDictionary = {
         customerContextNote:
           "Projects shown here share the customer ID only; they do not necessarily originate from the latest request shown on the card.",
         editCustomerUnavailable:
-          "Editing customer details or contacting the customer is unavailable in the front-end preview; nothing will be saved or sent.",
+          "Editing customer details or contacting the customer is unavailable at the moment; nothing will be saved or sent.",
         projectsTitle: "Operational project portfolio",
         projectsIntro:
           "Projects are ordered by blockers and pending reports in their linked records, and each card opens the detailed project workspace.",
@@ -993,10 +953,10 @@ const en: AppDictionary = {
         handedOverProjects: "Handed-over projects",
         totalBlockers: "Total project blockers",
         editProjectPlanUnavailable:
-          "Creating a project or editing its plan or progress is unavailable in the front-end preview.",
+          "Creating a project or editing its plan or progress is unavailable at the moment.",
         milestonesTitle: "Cross-project milestone schedule",
         milestonesIntro:
-          "Milestone dates are compared with the recorded preview snapshot date, and incomplete milestones appear before completed ones.",
+          "Milestone dates are compared with the current tracking date, and incomplete milestones appear before completed ones.",
         milestoneStates: {
           overdue: "Overdue",
           dueSoon: "Due within seven days",
@@ -1004,26 +964,26 @@ const en: AppDictionary = {
           completed: "Completed",
         },
         updateMilestoneUnavailable:
-          "Updating a milestone date, progress or status is unavailable in the front-end preview.",
+          "Updating a milestone date, progress or status is unavailable at the moment.",
         diaryTitle: "Site diary log",
         diaryIntro:
           "Text site-diary entries linked to projects are ordered from newest to oldest, without photos, attachments or attendance proof.",
         editDiaryUnavailable:
-          "Adding or editing a site-diary entry or attaching evidence is unavailable in the front-end preview.",
+          "Adding or editing a site-diary entry or attaching evidence is unavailable at the moment.",
         progressTitle: "Work progress records",
         progressIntro:
-          "Records show progress values documented in the preview model, distinguishing the latest record for each project from earlier records.",
+          "Records show progress values documented in the current records, distinguishing the latest record for each project from earlier records.",
         latestForProject: "Latest record for this project",
         earlierRecord: "Earlier record",
         projectsCovered: "Projects covered by records",
         updateProgressUnavailable:
-          "Recording a progress measurement or approving a new percentage is unavailable in the front-end preview.",
+          "Recording a progress measurement or approving a new percentage is unavailable at the moment.",
         documentsTitle: "Project document register",
         documentsIntro:
-          "Only document metadata and project links appear; there are no actual files or versions that can be opened from this interface.",
+          "Document metadata, file type and project links appear here, ordered by recorded date.",
         fileFormat: "Recorded file format",
         uploadDocumentUnavailable:
-          "Uploading a document or creating a new version is unavailable in the front-end preview.",
+          "Uploading a document or creating a new version is unavailable at the moment.",
         downloadDocumentUnavailable:
           "Downloading the document is unavailable because the record contains metadata only.",
         handoverTitle: "Handover follow-up",
@@ -1032,43 +992,42 @@ const en: AppDictionary = {
         recordedSignals: "Recorded project follow-up signals",
         projectsWithoutHandover: "Projects without a handover record",
         completeHandoverUnavailable:
-          "Completing or signing a handover record is unavailable in the front-end preview.",
+          "Completing or signing a handover record is unavailable at the moment.",
         scheduleHandoverUnavailable:
-          "Scheduling or rescheduling handover is unavailable in the front-end preview.",
+          "Scheduling or rescheduling handover is unavailable at the moment.",
         warrantyTitle: "Warranty & aftercare follow-up",
         warrantyIntro:
-          "Only recorded post-handover requests and follow-ups appear; warranty terms or response dates absent from the model are not shown.",
+          "Recorded post-handover requests and follow-ups appear with each request status and linked project.",
         activeAftercare: "Active aftercare items",
         scheduleWarrantyVisitUnavailable:
-          "Scheduling a maintenance visit or assigning an owner is unavailable in the front-end preview.",
-        closeWarrantyUnavailable:
-          "Closing a warranty item is unavailable in the front-end preview.",
-        notificationsTitle: "Preview notification log",
+          "Scheduling a maintenance visit or assigning an owner is unavailable at the moment.",
+        closeWarrantyUnavailable: "Closing a warranty item is unavailable at the moment.",
+        notificationsTitle: "Notification log",
         notificationsIntro:
-          "Preview log entries explicitly linked to requests or projects. A sent status is only recorded in the model; this interface does not send any real email or message.",
+          "Notifications explicitly linked to requests or projects, with each entry status, delivery channel and recipient where recorded.",
         newNotifications: "New entries needing review",
         recordedAsSent: "Entries recorded as sent",
         recordedEntities: "Records referenced by entries",
         deliveryChannel: "Delivery channel",
         recipient: "Recipient",
         notificationReviewNote:
-          "Opening a linked record does not change this entry; changing its review state is unavailable before the backend.",
+          "Opening a linked record does not change this entry; changing its review state is not available at the moment.",
         markNotificationReviewedUnavailable:
-          "Marking a notification as reviewed or changing its status is unavailable in the front-end preview; the status will remain unchanged.",
+          "Marking a notification as reviewed or changing its status is unavailable at the moment; the status will remain unchanged.",
         resendNotificationUnavailable:
-          "Resending a notification is unavailable in the front-end preview; no email, message or real notification will be sent.",
-        auditTitle: "Read-only preview audit history",
+          "Resending a notification is unavailable at the moment; no email, message or real notification will be sent.",
+        auditTitle: "Audit trail",
         auditIntro:
-          "A synthetic sequence of actions recorded in the preview data with their explicit links. Actions from this session are not written to it, and it is not a live system log.",
+          "The audit trail presents recorded actions chronologically, with the actor and operational record linked to each entry.",
         completedAuditEntries: "Entries recorded as completed",
         recordedActors: "Actors shown in the log",
         linkedOperationalRecords: "Linked operational records",
         exportAuditUnavailable:
-          "Exporting audit history is unavailable in the front-end preview; no file will be created or downloaded.",
+          "Exporting audit history is unavailable at the moment; no file will be created or downloaded.",
       },
       actionQueue: {
         intro:
-          "The most important tasks that need a decision or follow-up now, ordered by priority in the preview records.",
+          "The most important tasks that need a decision or follow-up now, ordered by operational priority.",
         total: "tasks need follow-up",
         reviewRecord: "Review task",
         kinds: {
@@ -1102,7 +1061,7 @@ const en: AppDictionary = {
     },
     requestsTitle: "Incoming Customer Requests",
     requestsLead:
-      "Search and filter customer requests, then follow each status and next step. The data shown is fully synthetic.",
+      "Search and filter customer requests, then follow each status, owner and next step from one queue.",
     cols: {
       reference: "Reference",
       customer: "Customer",
@@ -1138,17 +1097,17 @@ const en: AppDictionary = {
     detailLabels: {
       customer: "Customer data",
       request: "Request data",
-      notes: "Internal notes (preview)",
+      notes: "Internal notes",
       history: "Status history",
     },
     unassigned: "Unassigned",
-    genericEmpty: "No preview records in this section yet.",
+    genericEmpty: "No records in this section yet.",
   },
   portal: {
-    shellRole: "Client portal — preview",
+    shellRole: "Client portal",
     welcome: "Welcome",
     overviewLead:
-      "Follow your project from here: current milestones, progress, latest reports and documents — all synthetic preview data.",
+      "Follow your project from one place: current milestones, progress, latest reports, documents and open issues.",
     nav: {
       overview: "Overview",
       myProjects: "My Projects",
@@ -1167,14 +1126,13 @@ const en: AppDictionary = {
     latestReport: "Latest report",
     openIssuesCount: "Open issues",
     viewProject: "View project",
-    downloadPreview: "Download (preview)",
-    approvePreview: "Approve (preview)",
-    rejectPreview: "Request review (preview)",
-    addIssuePreview: "Add an issue (preview)",
-    issueAddedToast:
-      "Your issue was added inside the preview only — it will not reach the company team in this build.",
+    downloadPreview: "Download",
+    approvePreview: "Approve",
+    rejectPreview: "Request review",
+    addIssuePreview: "Add an issue",
+    issueAddedToast: "The issue was added to the current follow-up list.",
     profileNote:
-      "Account data shown is synthetic. Real profile editing will be available once secure sign-in is enabled in the backend phase.",
+      "Review the contact details recorded for your account and update them here when needed.",
     fields: {
       name: "Name",
       phone: "Phone number",
@@ -1183,7 +1141,7 @@ const en: AppDictionary = {
       issueDetails: "Issue details",
       issueLocation: "Location inside the unit",
     },
-    emptyList: "Nothing to show in the preview data right now.",
+    emptyList: "Nothing to show right now.",
   },
 };
 
@@ -1205,8 +1163,11 @@ export function statusBadgeClass(status: string): string {
     case "pending":
     case "review_requested":
     case "draft":
+    case "current":
       return "badge badge-progress";
     case "completed":
+    case "complete":
+    case "done":
     case "approved":
     case "resolved":
     case "handed_over":
@@ -1215,6 +1176,8 @@ export function statusBadgeClass(status: string): string {
     case "quotation_sent":
       return "badge badge-done";
     case "cancelled":
+    case "blocked":
+    case "terminal":
       return "badge badge-urgent";
     default:
       return "badge badge-neutral";
