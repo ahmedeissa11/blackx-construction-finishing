@@ -8,6 +8,7 @@ import { dashboardModules, type DashboardModuleKey } from "@/config/navigation";
 import { previewModuleTables } from "@/content/preview-modules";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { DomainBoard, type DomainBoardModuleKey } from "@/components/dashboard/DomainBoards";
+import { ExpansionBoard, type ExpansionModuleKey } from "@/components/dashboard/ExpansionBoards";
 
 const DOMAIN_BOARD_MODULES = new Set<DashboardModuleKey>([
   "customers",
@@ -30,6 +31,18 @@ const DOMAIN_BOARD_MODULES = new Set<DashboardModuleKey>([
 
 function isDomainBoardModule(key: DashboardModuleKey): key is DomainBoardModuleKey {
   return DOMAIN_BOARD_MODULES.has(key);
+}
+
+const EXPANSION_BOARD_MODULES = new Set<DashboardModuleKey>([
+  "engineers",
+  "finance",
+  "purchases",
+  "complaints",
+  "messages",
+]);
+
+function isExpansionBoardModule(key: DashboardModuleKey): key is ExpansionModuleKey {
+  return EXPANSION_BOARD_MODULES.has(key);
 }
 
 const TABLE_MODULES = dashboardModules.filter(
@@ -75,6 +88,10 @@ export default async function DashboardModulePage({
 
   if (isDomainBoardModule(key)) {
     return <DomainBoard locale={locale} appDict={app} moduleKey={key} />;
+  }
+
+  if (isExpansionBoardModule(key)) {
+    return <ExpansionBoard locale={locale} appDict={app} moduleKey={key} />;
   }
 
   return (

@@ -5,6 +5,13 @@
 import type { LocalizedText } from "@/lib/i18n";
 import type { DashboardModuleKey } from "@/config/navigation";
 import { previewProjects, previewRequests } from "@/content/preview-data";
+import {
+  previewComplaints,
+  previewContactMessages,
+  previewEngineers,
+  previewPurchases,
+} from "@/content/preview-expansion";
+import { getAllDuesWithBalance, purchaseTotals } from "@/lib/preview-expansion";
 
 const t = (ar: string, en: string): LocalizedText => ({ ar, en });
 
@@ -93,6 +100,78 @@ const previewProjectRows: PreviewModuleRow[] = previewProjects.map((project) => 
   },
 }));
 
+const previewEngineerRoleText: Record<string, LocalizedText> = {
+  coordinator: t("منسّق", "Coordinator"),
+  inspection_engineer: t("مهندس معاينات", "Inspection engineer"),
+  project_manager: t("مدير مشاريع", "Project manager"),
+  site_supervisor: t("مشرف موقع", "Site supervisor"),
+};
+
+function expansionCustomerName(customerId: string): LocalizedText {
+  const request = previewRequests.find((item) => item.customerId === customerId);
+  return request?.customerName ?? t(customerId, customerId);
+}
+
+const previewEngineerRows: PreviewModuleRow[] = previewEngineers.map((engineer) => ({
+  id: engineer.id,
+  cells: {
+    ref: pl(engineer.id),
+    name: { kind: "text", value: engineer.name },
+    type: { kind: "text", value: previewEngineerRoleText[engineer.role] ?? t("", "") },
+    phone: pl(engineer.phone),
+  },
+}));
+
+const previewFinanceRows: PreviewModuleRow[] = getAllDuesWithBalance().map((item) => ({
+  id: item.due.id,
+  links: { customerId: item.due.customerId, projectId: item.due.projectId },
+  cells: {
+    ref: pl(item.due.id),
+    title: { kind: "text", value: item.due.label },
+    customer: { kind: "text", value: expansionCustomerName(item.due.customerId) },
+    date: dt(item.due.dueDate),
+    amount: mn(item.due.amount),
+    status: st(item.status),
+  },
+}));
+
+const previewPurchaseRows: PreviewModuleRow[] = previewPurchases.map((purchase) => ({
+  id: purchase.id,
+  links: { projectId: purchase.projectId },
+  cells: {
+    ref: pl(purchase.id),
+    supplier: pl(purchase.supplierId),
+    project: pl(purchase.projectId),
+    date: dt(purchase.date),
+    amount: mn(purchaseTotals(purchase).net),
+    status: st("recorded"),
+  },
+}));
+
+const previewComplaintRows: PreviewModuleRow[] = previewComplaints.map((complaint) => ({
+  id: complaint.id,
+  links: { customerId: complaint.customerId, projectId: complaint.projectId },
+  cells: {
+    ref: pl(complaint.id),
+    title: { kind: "text", value: complaint.title },
+    customer: { kind: "text", value: expansionCustomerName(complaint.customerId) },
+    date: dt(complaint.createdAt),
+    priority: pr(complaint.priority),
+    status: st(complaint.status),
+  },
+}));
+
+const previewMessageRows: PreviewModuleRow[] = previewContactMessages.map((message) => ({
+  id: message.id,
+  cells: {
+    ref: pl(message.id),
+    title: { kind: "text", value: message.subject },
+    name: { kind: "text", value: message.name },
+    date: dt(message.receivedAt),
+    status: st(message.status),
+  },
+}));
+
 const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleTable>> = {
   customers: {
     columns: [
@@ -104,6 +183,58 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
       { id: "status", labelKey: "status" },
     ],
     rows: previewCustomerRows,
+  },
+  engineers: {
+    columns: [
+      { id: "ref", labelKey: "reference" },
+      { id: "name", labelKey: "name" },
+      { id: "type", labelKey: "type" },
+      { id: "phone", labelKey: "phone" },
+    ],
+    rows: previewEngineerRows,
+  },
+  finance: {
+    columns: [
+      { id: "ref", labelKey: "reference" },
+      { id: "title", labelKey: "title" },
+      { id: "customer", labelKey: "customer" },
+      { id: "date", labelKey: "dueDate" },
+      { id: "amount", labelKey: "amount" },
+      { id: "status", labelKey: "status" },
+    ],
+    rows: previewFinanceRows,
+  },
+  purchases: {
+    columns: [
+      { id: "ref", labelKey: "reference" },
+      { id: "supplier", labelKey: "supplier" },
+      { id: "project", labelKey: "project" },
+      { id: "date", labelKey: "date" },
+      { id: "amount", labelKey: "amount" },
+      { id: "status", labelKey: "status" },
+    ],
+    rows: previewPurchaseRows,
+  },
+  complaints: {
+    columns: [
+      { id: "ref", labelKey: "reference" },
+      { id: "title", labelKey: "title" },
+      { id: "customer", labelKey: "customer" },
+      { id: "date", labelKey: "date" },
+      { id: "priority", labelKey: "priority" },
+      { id: "status", labelKey: "status" },
+    ],
+    rows: previewComplaintRows,
+  },
+  messages: {
+    columns: [
+      { id: "ref", labelKey: "reference" },
+      { id: "title", labelKey: "title" },
+      { id: "name", labelKey: "name" },
+      { id: "date", labelKey: "date" },
+      { id: "status", labelKey: "status" },
+    ],
+    rows: previewMessageRows,
   },
   inspections: {
     columns: [

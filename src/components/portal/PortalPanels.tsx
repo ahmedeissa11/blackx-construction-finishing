@@ -384,103 +384,122 @@ export function ProfilePanel({ locale, appDict }: PanelProps) {
   }
 
   return (
-    <form className="panel portal-panel portal-profile-panel" onSubmit={onSubmit} noValidate>
-      <div className="panel-body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <div className="alert alert-info">
-          <span aria-hidden="true">ℹ</span>
-          <p>{appDict.portal.profileNote}</p>
-        </div>
-        <div className="form-grid">
-          <div className="field">
-            <label className="form-label" htmlFor="pf-name">
-              {f.name}
-              <span className="form-field-note form-field-note-required">
-                {appDict.requiredField}
-              </span>
-            </label>
-            <input
-              id="pf-name"
-              required
-              className="form-input"
-              type="text"
-              autoComplete="name"
-              value={name}
-              onChange={(e) => updateName(e.target.value)}
-              aria-invalid={Boolean(errors.name)}
-              aria-describedby={errors.name ? "pf-name-err" : undefined}
-            />
-            {errFor("name") ? (
-              <p className="field-error" id="pf-name-err" role="alert">
-                <span aria-hidden="true">⚠</span> {errFor("name")}
-              </p>
-            ) : null}
+    <>
+      <form className="panel portal-panel portal-profile-panel" onSubmit={onSubmit} noValidate>
+        <div className="panel-body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className="alert alert-info">
+            <span aria-hidden="true">ℹ</span>
+            <p>{appDict.portal.profileNote}</p>
           </div>
-          <div className="field">
-            <label className="form-label" htmlFor="pf-phone">
-              {f.phone}
-              <span className="form-field-note form-field-note-required">
-                {appDict.requiredField}
-              </span>
-            </label>
-            <input
-              id="pf-phone"
-              required
-              className="form-input"
-              type="tel"
-              dir="ltr"
-              style={{ textAlign: "end" }}
-              autoComplete="tel"
-              value={phone}
-              onChange={(e) => updatePhone(e.target.value)}
-              aria-invalid={Boolean(errors.phone)}
-              aria-describedby={errors.phone ? "pf-phone-err" : undefined}
-            />
-            {errFor("phone") ? (
-              <p className="field-error" id="pf-phone-err" role="alert">
-                <span aria-hidden="true">⚠</span> {errFor("phone")}
-              </p>
-            ) : null}
+          <div className="form-grid">
+            <div className="field">
+              <label className="form-label" htmlFor="pf-name">
+                {f.name}
+                <span className="form-field-note form-field-note-required">
+                  {appDict.requiredField}
+                </span>
+              </label>
+              <input
+                id="pf-name"
+                required
+                className="form-input"
+                type="text"
+                autoComplete="name"
+                value={name}
+                onChange={(e) => updateName(e.target.value)}
+                aria-invalid={Boolean(errors.name)}
+                aria-describedby={errors.name ? "pf-name-err" : undefined}
+              />
+              {errFor("name") ? (
+                <p className="field-error" id="pf-name-err" role="alert">
+                  <span aria-hidden="true">⚠</span> {errFor("name")}
+                </p>
+              ) : null}
+            </div>
+            <div className="field">
+              <label className="form-label" htmlFor="pf-phone">
+                {f.phone}
+                <span className="form-field-note form-field-note-required">
+                  {appDict.requiredField}
+                </span>
+              </label>
+              <input
+                id="pf-phone"
+                required
+                className="form-input"
+                type="tel"
+                dir="ltr"
+                style={{ textAlign: "end" }}
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => updatePhone(e.target.value)}
+                aria-invalid={Boolean(errors.phone)}
+                aria-describedby={errors.phone ? "pf-phone-err" : undefined}
+              />
+              {errFor("phone") ? (
+                <p className="field-error" id="pf-phone-err" role="alert">
+                  <span aria-hidden="true">⚠</span> {errFor("phone")}
+                </p>
+              ) : null}
+            </div>
+            <div className="field full">
+              <label className="form-label" htmlFor="pf-email">
+                {f.email}
+                <span className="form-field-note form-field-note-required">
+                  {appDict.requiredField}
+                </span>
+              </label>
+              <input
+                id="pf-email"
+                required
+                className="form-input"
+                type="email"
+                dir="ltr"
+                style={{ textAlign: "end" }}
+                autoComplete="email"
+                value={email}
+                onChange={(e) => updateEmail(e.target.value)}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? "pf-email-err" : undefined}
+              />
+              {errFor("email") ? (
+                <p className="field-error" id="pf-email-err" role="alert">
+                  <span aria-hidden="true">⚠</span> {errFor("email")}
+                </p>
+              ) : null}
+            </div>
           </div>
-          <div className="field full">
-            <label className="form-label" htmlFor="pf-email">
-              {f.email}
-              <span className="form-field-note form-field-note-required">
-                {appDict.requiredField}
-              </span>
-            </label>
-            <input
-              id="pf-email"
-              required
-              className="form-input"
-              type="email"
-              dir="ltr"
-              style={{ textAlign: "end" }}
-              autoComplete="email"
-              value={email}
-              onChange={(e) => updateEmail(e.target.value)}
-              aria-invalid={Boolean(errors.email)}
-              aria-describedby={errors.email ? "pf-email-err" : undefined}
-            />
-            {errFor("email") ? (
-              <p className="field-error" id="pf-email-err" role="alert">
-                <span aria-hidden="true">⚠</span> {errFor("email")}
-              </p>
-            ) : null}
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary">
+              {appDict.savePreview}
+            </button>
           </div>
         </div>
-        <div className="form-actions">
-          <button type="submit" className="btn btn-primary">
-            {appDict.savePreview}
-          </button>
+        {toast ? (
+          <Toast
+            message={appDict.demoSavedToast}
+            onDismiss={() => setToast(false)}
+            closeLabel={appDict.close}
+          />
+        ) : null}
+      </form>
+      <section className="panel portal-panel" aria-label={appDict.portal.preferences.title}>
+        <div className="panel-body" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <h3 style={{ margin: 0 }}>{appDict.portal.preferences.title}</h3>
+          <div className="alert alert-info">
+            <span aria-hidden="true">ℹ</span>
+            <p>{appDict.portal.preferences.note}</p>
+          </div>
+          <div className="list-rows">
+            <div className="list-row">
+              <div className="lr-main">
+                <div className="lr-title">{appDict.portal.preferences.whatsappLabel}</div>
+                <div className="lr-sub">{appDict.portal.preferences.notRecorded}</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      {toast ? (
-        <Toast
-          message={appDict.demoSavedToast}
-          onDismiss={() => setToast(false)}
-          closeLabel={appDict.close}
-        />
-      ) : null}
-    </form>
+      </section>
+    </>
   );
 }

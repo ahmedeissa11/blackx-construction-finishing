@@ -11,6 +11,7 @@ import {
   previewPortalProjects,
 } from "@/content/preview-data";
 import { formatDate, formatPercent } from "@/lib/format";
+import { getProjectPhases, getProjectWorkItems, workItemProgress } from "@/lib/preview-expansion";
 import { Arrow } from "@/components/ui/Pieces";
 import { portalHref } from "@/config/navigation";
 
@@ -44,6 +45,10 @@ export default async function PortalProjectDetail({
   const app = getAppDictionary(locale);
   const project = getPreviewPortalProject(id);
   if (!project) notFound();
+  const phases = getProjectPhases(project.id);
+  const workItemGroups = getProjectWorkItems(project.id);
+  const workflow = app.dashboard.expansion.workflow;
+  const phaseTypes = app.dashboard.expansion.phaseTypes;
 
   return (
     <>
@@ -143,6 +148,87 @@ export default async function PortalProjectDetail({
           </section>
         </div>
       </div>
+
+      <section className="panel" aria-label={app.portal.phases.title}>
+        <div className="panel-head">
+          <h2>{app.portal.phases.title}</h2>
+        </div>
+        <div className="panel-body">
+          <p style={{ color: "var(--color-muted)" }}>{app.portal.phases.intro}</p>
+          {phases.length === 0 ? (
+            <p>{app.portal.phases.noPhases}</p>
+          ) : (
+            <div className="list-rows">
+              {phases.map((phase) => (
+                <div className="list-row" key={phase.id}>
+                  <div className="lr-main">
+                    <div className="lr-title">
+                      {phaseTypes[phase.type] ?? phase.type} — {pick(phase.title, locale)}
+                    </div>
+                    <div className="lr-sub">{formatPercent(phase.progress, locale)}</div>
+                    <div
+                      className="progress"
+                      role="progressbar"
+                      aria-valuenow={phase.progress}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={pick(phase.title, locale)}
+                      style={{ marginBlockStart: 8 }}
+                    >
+                      <span style={{ width: `${phase.progress}%` }} />
+                    </div>
+                  </div>
+                  <span className={statusBadgeClass(phase.status)}>{app.status[phase.status]}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {workItemGroups.length > 0 ? (
+        <section className="panel" aria-label={workflow.workItemsTitle}>
+          <div className="panel-head">
+            <h2>{workflow.workItemsTitle}</h2>
+          </div>
+          <div className="panel-body">
+            <p style={{ color: "var(--color-muted)" }}>{workflow.workItemsIntro}</p>
+            {workItemGroups.map((group) => (
+              <div key={group.phase.id} style={{ marginBlockStart: 16 }}>
+                <h3 style={{ fontSize: "1rem" }}>
+                  {phaseTypes[group.phase.type] ?? group.phase.type} —{" "}
+                  {pick(group.phase.title, locale)}
+                </h3>
+                <div className="list-rows">
+                  {group.items.map((item) => (
+                    <div className="list-row" key={item.id}>
+                      <div className="lr-main">
+                        <div className="lr-title">{pick(item.label, locale)}</div>
+                        <div className="lr-sub">
+                          {workflow.completedQty} {item.completedQty}/{item.plannedQty}{" "}
+                          {pick(item.unit, locale)} ·{" "}
+                          {formatPercent(workItemProgress(item), locale)}
+                        </div>
+                        <div
+                          className="progress"
+                          role="progressbar"
+                          aria-valuenow={workItemProgress(item)}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-label={pick(item.label, locale)}
+                          style={{ marginBlockStart: 8 }}
+                        >
+                          <span style={{ width: `${workItemProgress(item)}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </>
   );
 }

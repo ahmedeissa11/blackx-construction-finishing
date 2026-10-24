@@ -23,6 +23,7 @@ import {
   StatusBadge,
   type RecordMetaItem,
 } from "@/components/dashboard/RecordUI";
+import { OverviewExpansion } from "@/components/dashboard/OverviewExpansion";
 
 export async function generateMetadata({
   params,
@@ -514,6 +515,7 @@ export default async function DashboardOverview({
           ))}
         </ol>
       </Panel>
+      <OverviewExpansion locale={locale} appDict={app} />
     </div>
   );
 }

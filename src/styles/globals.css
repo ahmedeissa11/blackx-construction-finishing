@@ -4334,3 +4334,219 @@ html[dir="rtl"] .executive-kpi-band .stat-card::before {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ============ Frontend expansion: tabs, replies, balances ============ */
+.expansion-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 16px;
+}
+.expansion-tab {
+  appearance: none;
+  border: 1px solid var(--color-sage-deep);
+  background: transparent;
+  color: var(--color-charcoal);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.expansion-tab:hover {
+  background: var(--color-sage-soft);
+}
+.expansion-tab.is-active {
+  background: var(--color-charcoal);
+  border-color: var(--color-charcoal);
+  color: var(--color-paper);
+}
+.expansion-tab:focus-visible {
+  outline: 3px solid var(--color-sage-deep);
+  outline-offset: 2px;
+}
+.expansion-note {
+  color: var(--color-muted);
+  max-width: 980px;
+  margin-block: 12px;
+}
+.expansion-documents,
+.expansion-balances {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  grid-column: 1 / -1;
+}
+.expansion-balances section > h3 {
+  margin-block-end: 10px;
+  font-size: 1rem;
+}
+.expansion-assignment-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.expansion-assignment-groups h4 {
+  margin-block-end: 6px;
+  font-size: 0.9rem;
+  color: var(--color-charcoal);
+}
+.expansion-replies {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.reply-block {
+  border: 1px solid var(--color-sage-deep);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--color-paper);
+}
+.reply-block > h4 {
+  margin-block-end: 8px;
+  font-size: 0.9rem;
+  color: var(--color-charcoal);
+}
+.reply-block--customer {
+  border-inline-start: 4px solid var(--color-sage-deep);
+}
+.reply-block--internal {
+  border-style: dashed;
+  border-inline-start: 4px solid var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 4%, var(--color-paper));
+}
+.reply-item {
+  padding-block: 8px;
+  border-block-start: 1px solid var(--color-sage-soft);
+}
+.reply-item:first-of-type {
+  border-block-start: 0;
+}
+.reply-item header {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+.reply-item header span {
+  color: var(--color-muted);
+}
+.reply-item p {
+  margin: 4px 0 0;
+}
+.customer-workspace-panel {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.overview-expansion-stats {
+  margin-block-start: 12px;
+}
+.overview-expansion-stat {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.overview-expansion-stat:hover {
+  border-color: var(--color-sage-deep);
+}
+.portal-complaint-item {
+  padding-block: 14px;
+  border-block-start: 1px solid var(--color-sage-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.portal-complaint-item:first-child {
+  border-block-start: 0;
+}
+@media (max-width: 640px) {
+  .expansion-tabs {
+    gap: 6px;
+  }
+  .expansion-tab {
+    padding: 5px 12px;
+    font-size: 0.85rem;
+  }
+  .customer-workspace-panel {
+    padding: 14px;
+  }
+}
+
+/*
+ * Record list side badges: the shared `.record-card-badges { max-width: 48% }`
+ * rule is sized for card heads; inside the narrow `.record-list-side` column
+ * it squeezes status badges until Arabic labels stack letter-by-letter
+ * (combined with `overflow-wrap: anywhere` from the shell containment rules).
+ * Keep one-line pills in list sides at every width; card-head badges are
+ * unchanged.
+ */
+.record-list-side .record-card-badges {
+  max-width: 100%;
+}
+.shell .record-list-side .record-card-badges .badge {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+/* Workflow detail blocks (inspections, quotations, contracts, histories) */
+.wf-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.wf-detail-group {
+  border-top: 1px dashed var(--line, rgba(0, 0, 0, 0.12));
+  padding-top: 10px;
+}
+.wf-detail-group > h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+.wf-detail-group > p {
+  margin: 0 0 6px;
+  color: var(--muted, #555);
+}
+.wf-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wf-timeline-item header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: baseline;
+}
+.wf-timeline-item header span {
+  color: var(--muted, #555);
+  font-size: 0.85rem;
+}
+.wf-timeline-item p {
+  margin: 2px 0 0;
+  color: var(--muted, #555);
+}
+.wf-evidence-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.wf-doc-group {
+  margin-bottom: 18px;
+}
+.wf-doc-group > h3 {
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+}
