@@ -1,0 +1,77 @@
+:root {
+  /* Approved brand palette */
+  --color-paper: #f4f1ec;
+  --color-sand: #e3dcd1;
+  --color-sand-deep: #d8cfbf;
+  --color-taupe: #a39789;
+  --color-taupe-dark: #7d7264;
+  --color-charcoal: #3a3835;
+  --color-charcoal-deep: #2b2926;
+  --color-sage: #8c9a86;
+  --color-sage-deep: #5f6f5c;
+  --color-sage-soft: #e6eae2;
+  --color-white: #fffdfa;
+  --color-ink: #2e2c29;
+  --color-muted: #6f6a61;
+  --color-line: #ddd4c5;
+  --color-line-dark: #4a4742;
+  --color-error: #9c3d2e;
+  --color-error-bg: #f7e9e5;
+  --color-success: #46603f;
+  --color-success-bg: #e9efe4;
+  --color-warning: #8a6d2f;
+  --color-warning-bg: #f4ecd8;
+  --color-info: #4c5f6e;
+  --color-info-bg: #e8ecee;
+
+  --font-ar: "Cairo Variable", Cairo, "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-en: "Inter Variable", Inter, "Segoe UI", Arial, sans-serif;
+
+  /* Button system */
+  --button-radius: 4px;
+  --button-primary: var(--color-sage-deep);
+  --button-primary-hover: #4d5d4e;
+  --button-primary-active: #435243;
+  --button-secondary-border: #bcae99;
+  --button-secondary-hover-border: var(--color-taupe-dark);
+  --button-danger: var(--color-error);
+  --button-danger-hover: #843225;
+  --button-danger-active: #6f2b20;
+  --button-focus: #40513f;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --shadow-card: 0 1px 2px rgba(58, 56, 53, 0.06), 0 8px 24px rgba(58, 56, 53, 0.06);
+  --shadow-pop: 0 12px 40px rgba(43, 41, 38, 0.18);
+
+  --container: 1240px;
+  --header-h: 68px;
+
+  /* Public navigation — a slim warm surface appears after scrolling. */
+  --nav-blur: 10px;
+  --nav-surface: rgba(244, 241, 236, 0.94);
+  --nav-surface-fallback: #f4f1ec;
+  --nav-line: rgba(125, 114, 100, 0.16);
+  --nav-shadow: 0 8px 24px rgba(43, 41, 38, 0.07);
+  --nav-panel-shadow: 0 18px 34px rgba(43, 41, 38, 0.1);
+
+  /* Mobile navigation — dark architectural sheet and restrained motion. */
+  --mobile-nav-bg: #252722;
+  --mobile-nav-bg-end: #353a30;
+  --mobile-nav-fg: #f4f1ec;
+  --mobile-nav-muted: rgba(244, 241, 236, 0.68);
+  --mobile-nav-line: rgba(244, 241, 236, 0.1);
+  --mobile-nav-accent: var(--color-sage);
+  --mobile-nav-scrim: rgba(24, 26, 23, 0.46);
+  --mobile-nav-shadow: 0 18px 38px rgba(20, 22, 19, 0.22);
+  --mobile-nav-duration: 300ms;
+  --mobile-nav-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --header-h: 60px;
+  }
+}

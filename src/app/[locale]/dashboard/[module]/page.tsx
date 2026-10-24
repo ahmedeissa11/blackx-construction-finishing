@@ -1,0 +1,107 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { locales } from "@/lib/i18n";
+import { requireReviewAccess } from "@/auth";
+import { resolveLocale } from "@/lib/locale-params";
+import { getAppDictionary } from "@/content/app-dictionary";
+import { dashboardModules, type DashboardModuleKey } from "@/config/navigation";
+import { previewModuleTables } from "@/content/preview-modules";
+import { DataTable } from "@/components/dashboard/DataTable";
+import { DomainBoard, type DomainBoardModuleKey } from "@/components/dashboard/DomainBoards";
+
+const DOMAIN_BOARD_MODULES = new Set<DashboardModuleKey>([
+  "customers",
+  "inspections",
+  "quotations",
+  "contracts",
+  "projects",
+  "milestones",
+  "diary",
+  "progress",
+  "issues",
+  "quality",
+  "reports",
+  "documents",
+  "handover",
+  "warranty",
+  "notifications",
+  "audit",
+]);
+
+function isDomainBoardModule(key: DashboardModuleKey): key is DomainBoardModuleKey {
+  return DOMAIN_BOARD_MODULES.has(key);
+}
+
+const TABLE_MODULES = dashboardModules.filter(
+  (m) => m.key !== "overview" && m.key !== "requests" && m.segment !== "",
+);
+
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return locales.flatMap((locale) => TABLE_MODULES.map((m) => ({ locale, module: m.segment })));
+}
+
+function moduleKeyFor(segment: string): DashboardModuleKey | undefined {
+  return dashboardModules.find((m) => m.segment === segment)?.key;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; module: string }>;
+}): Promise<Metadata> {
+  const { module } = await params;
+  const locale = await resolveLocale(params);
+  const key = moduleKeyFor(module);
+  if (!key || key === "overview" || key === "requests") notFound();
+  return { title: getAppDictionary(locale).dashboard.modules[key] };
+}
+
+export default async function DashboardModulePage({
+  params,
+}: {
+  params: Promise<{ locale: string; module: string }>;
+}) {
+  const { module } = await params;
+  const locale = await resolveLocale(params);
+  await requireReviewAccess(locale);
+  const app = getAppDictionary(locale);
+  const key = moduleKeyFor(module);
+  if (!key || key === "overview" || key === "requests") notFound();
+
+  const table = previewModuleTables[key];
+  const lead = app.dashboard.moduleLead[key];
+  const previewLimit = app.dashboard.modulePreviewLimits[key];
+
+  return (
+    <>
+      <div>
+        <h2 style={{ fontSize: "1.45rem" }}>{app.dashboard.modules[key]}</h2>
+        {lead ? <p style={{ color: "var(--color-muted)" }}>{lead}</p> : null}
+      </div>
+      {previewLimit ? (
+        <div className="alert alert-info" role="note">
+          <span aria-hidden="true">ⓘ</span>
+          <p>{previewLimit}</p>
+        </div>
+      ) : null}
+      {isDomainBoardModule(key) ? (
+        <DomainBoard locale={locale} appDict={app} moduleKey={key} previewLimit={previewLimit} />
+      ) : table ? (
+        <DataTable
+          locale={locale}
+          appDict={app}
+          table={table}
+          moduleKey={key}
+          previewLimit={previewLimit}
+        />
+      ) : (
+        <div className="empty-state">
+          <h2>{app.dashboard.modules[key]}</h2>
+          <p>{app.dashboard.genericEmpty}</p>
+        </div>
+      )}
+    </>
+  );
+}
