@@ -7,7 +7,12 @@ import { pick } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
 import { dashboardHref } from "@/config/navigation";
 import { previewProjects, previewRequests } from "@/content/preview-data";
-import { previewContactMessages, previewDues } from "@/content/preview-expansion";
+import {
+  expansionSnapshotDate,
+  previewContactMessages,
+  previewDues,
+  type PreviewPaymentMethod,
+} from "@/content/preview-expansion";
 import {
   customerVisibleReplies,
   getAgingBuckets,
@@ -19,7 +24,11 @@ import {
   getPreviewPhase,
   getProjectFinance,
   internalReplies,
+  planSessionAllocations,
   purchaseTotals,
+  sessionRemainingFor,
+  withSessionAllocations,
+  type SessionAllocation,
 } from "@/lib/preview-expansion";
 import { previewComplaints, previewExpenses } from "@/content/preview-expansion";
 import { previewCertificates, previewInvoices } from "@/content/preview-expansion";
@@ -486,6 +495,27 @@ function EngineersBoard({ locale, appDict }: BoardProps) {
 /* ---------------- Finance ---------------- */
 
 type FinanceTab = "dues" | "payments" | "expenses" | "documents" | "balances";
+
+/** Owner-required manual payment methods (D1). Recording is session-only. */
+const RECORDABLE_METHODS: PreviewPaymentMethod[] = ["cash", "instapay", "fawry", "bank_transfer"];
+
+type SessionPayment = {
+  id: string;
+  customerId: string;
+  projectId: string;
+  paidAt: string;
+  method: PreviewPaymentMethod;
+  amount: number;
+  reference: string;
+  notes: string;
+  verification: "pending_verification" | "confirmed";
+  allocations: SessionAllocation[];
+  receiptId?: string;
+};
+
+type RecordFormErrors = Partial<
+  Record<"customer" | "project" | "amount" | "date" | "method" | "reference" | "duplicate", string>
+>;
 type DocumentTab = "invoices" | "certificates" | "receipts";
 
 function FinanceBoard({ locale, appDict }: BoardProps) {
@@ -494,10 +524,30 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  const [sessionPayments, setSessionPayments] = useState<SessionPayment[]>([]);
+  const [formOpen, setFormOpen] = useState(false);
+  const [formCustomer, setFormCustomer] = useState("");
+  const [formProject, setFormProject] = useState("");
+  const [formAmount, setFormAmount] = useState("");
+  const [formDate, setFormDate] = useState(expansionSnapshotDate);
+  const [formMethod, setFormMethod] = useState("");
+  const [formReference, setFormReference] = useState("");
+  const [formNotes, setFormNotes] = useState("");
+  const [formErrors, setFormErrors] = useState<RecordFormErrors>({});
   const x = appDict.dashboard.expansion;
   const cols = appDict.dashboard.cols;
+  const v = appDict.validation;
+  const rf = x.finance.recordForm;
 
-  const dues = useMemo(() => getAllDuesWithBalance(), []);
+  const baseDues = useMemo(() => getAllDuesWithBalance(), []);
+  const confirmedSessionAllocations = sessionPayments
+    .filter((payment) => payment.verification === "confirmed")
+    .flatMap((payment) => payment.allocations);
+  const dues = useMemo(
+    () => withSessionAllocations(baseDues, confirmedSessionAllocations),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [baseDues, sessionPayments],
+  );
   const totals = useMemo(
     () => ({
       dues: dues.reduce((total, item) => total + item.due.amount, 0),
@@ -522,7 +572,7 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
   );
 
   const customerIds = [...new Set(previewDues.map((due) => due.customerId))].sort();
-  const aging = getAgingBuckets();
+  const aging = getAgingBuckets(dues);
   const allPayments = customerIds
     .flatMap((id) => getCustomerFinance(id).payments)
     .sort((a, b) => b.paidAt.localeCompare(a.paidAt));
@@ -559,6 +609,310 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
     { key: "documents", label: x.finance.tabs.documents },
     { key: "balances", label: x.finance.tabs.balances },
   ];
+
+  const formProjectOptions = formCustomer
+    ? [
+        ...new Set(
+          dues
+            .filter((item) => item.due.customerId === formCustomer)
+            .map((item) => item.due.projectId),
+        ),
+      ].sort()
+    : [];
+  const formRemaining =
+    formCustomer && formProject ? sessionRemainingFor(dues, formCustomer, formProject) : null;
+
+  function sessionExtraForCustomer(customerId: string): number {
+    return sessionPayments
+      .filter(
+        (payment) => payment.verification === "confirmed" && payment.customerId === customerId,
+      )
+      .reduce(
+        (total, payment) =>
+          total + payment.allocations.reduce((sum, allocation) => sum + allocation.amount, 0),
+        0,
+      );
+  }
+
+  function sessionExtraForProject(projectId: string): number {
+    return sessionPayments
+      .filter((payment) => payment.verification === "confirmed" && payment.projectId === projectId)
+      .reduce(
+        (total, payment) =>
+          total + payment.allocations.reduce((sum, allocation) => sum + allocation.amount, 0),
+        0,
+      );
+  }
+
+  function openRecordForm(prefill?: { customerId: string; projectId: string; amount?: number }) {
+    setFormErrors({});
+    if (prefill) {
+      setFormCustomer(prefill.customerId);
+      setFormProject(prefill.projectId);
+      setFormAmount(prefill.amount ? String(prefill.amount) : "");
+    }
+    setTab("payments");
+    setFormOpen(true);
+  }
+
+  function submitRecordForm(event: React.FormEvent) {
+    event.preventDefault();
+    const errors: RecordFormErrors = {};
+    const amount = Number(formAmount);
+    if (!formCustomer) errors.customer = v.required;
+    if (!formProject) errors.project = v.required;
+    if (!formMethod) errors.method = v.required;
+    if (!formAmount.trim() || !Number.isFinite(amount) || amount <= 0) {
+      errors.amount = v.amountInvalid;
+    } else if (
+      formCustomer &&
+      formProject &&
+      amount > sessionRemainingFor(dues, formCustomer, formProject)
+    ) {
+      errors.amount = v.amountExceedsRemaining;
+    }
+    if (!formDate || Number.isNaN(Date.parse(formDate)) || formDate > expansionSnapshotDate) {
+      errors.date = v.dateInvalid;
+    }
+    const reference = formReference.trim();
+    if (formMethod && formMethod !== "cash" && reference.length < 4) {
+      errors.reference = v.referenceRequired;
+    }
+    if (!errors.amount && !errors.date && formCustomer && formProject && formMethod) {
+      const duplicate = sessionPayments.some(
+        (payment) =>
+          payment.customerId === formCustomer &&
+          payment.projectId === formProject &&
+          payment.amount === amount &&
+          payment.paidAt === formDate &&
+          payment.method === formMethod &&
+          payment.reference.toLowerCase() === reference.toLowerCase(),
+      );
+      const referenceClash =
+        reference.length > 0 &&
+        sessionPayments.some(
+          (payment) => payment.reference.toLowerCase() === reference.toLowerCase(),
+        );
+      if (duplicate || referenceClash) errors.duplicate = v.duplicatePayment;
+    }
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+    const nextIndex = sessionPayments.length + 1;
+    setSessionPayments((previous) => [
+      {
+        id: `SES-PA-${String(nextIndex).padStart(3, "0")}`,
+        customerId: formCustomer,
+        projectId: formProject,
+        paidAt: formDate,
+        method: formMethod as PreviewPaymentMethod,
+        amount,
+        reference,
+        notes: formNotes.trim(),
+        verification: "pending_verification",
+        allocations: [],
+      },
+      ...previous,
+    ]);
+    setFormOpen(false);
+    setFormAmount("");
+    setFormReference("");
+    setFormNotes("");
+    setFormMethod("");
+  }
+
+  function confirmSessionPayment(paymentId: string) {
+    setSessionPayments((previous) =>
+      previous.map((payment) => {
+        if (payment.id !== paymentId || payment.verification === "confirmed") return payment;
+        const allocations = planSessionAllocations(dues, {
+          customerId: payment.customerId,
+          projectId: payment.projectId,
+          amount: payment.amount,
+        });
+        const receiptIndex =
+          previous.filter((item) => item.verification === "confirmed").length + 1;
+        return {
+          ...payment,
+          verification: "confirmed" as const,
+          allocations,
+          receiptId: `SES-RC-${String(receiptIndex).padStart(3, "0")}`,
+        };
+      }),
+    );
+  }
+
+  const recordForm = formOpen ? (
+    <form className="payment-record-form" onSubmit={submitRecordForm} noValidate>
+      <h3>{rf.title}</h3>
+      <div className="payment-record-grid">
+        <div className="filter-field">
+          <label className="filter-label" htmlFor="record-payment-customer">
+            {cols.customer}
+          </label>
+          <select
+            id="record-payment-customer"
+            className="form-select"
+            value={formCustomer}
+            onChange={(event) => {
+              setFormCustomer(event.target.value);
+              setFormProject("");
+            }}
+          >
+            <option value="">{rf.selectCustomer}</option>
+            {customerIds.map((customerId) => (
+              <option key={customerId} value={customerId}>
+                {pick(customerName(customerId), locale)} · {customerId}
+              </option>
+            ))}
+          </select>
+          {formErrors.customer ? (
+            <p className="form-error" role="alert">
+              {formErrors.customer}
+            </p>
+          ) : null}
+        </div>
+        <div className="filter-field">
+          <label className="filter-label" htmlFor="record-payment-project">
+            {cols.project}
+          </label>
+          <select
+            id="record-payment-project"
+            className="form-select"
+            value={formProject}
+            onChange={(event) => setFormProject(event.target.value)}
+          >
+            <option value="">{rf.selectProject}</option>
+            {formProjectOptions.map((projectId) => (
+              <option key={projectId} value={projectId}>
+                {pick(projectTitle(projectId), locale)} · {projectId}
+              </option>
+            ))}
+          </select>
+          {formErrors.project ? (
+            <p className="form-error" role="alert">
+              {formErrors.project}
+            </p>
+          ) : null}
+        </div>
+        <div className="filter-field">
+          <label className="filter-label" htmlFor="record-payment-amount">
+            {cols.amount}
+          </label>
+          <input
+            id="record-payment-amount"
+            className="form-input"
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="any"
+            dir="ltr"
+            value={formAmount}
+            onChange={(event) => setFormAmount(event.target.value)}
+          />
+          {formRemaining !== null ? (
+            <p className="viz-note">
+              {rf.remainingForSelection} ·{" "}
+              <strong dir="ltr">{formatMoney(formRemaining, locale)}</strong>
+            </p>
+          ) : null}
+          {formErrors.amount ? (
+            <p className="form-error" role="alert">
+              {formErrors.amount}
+            </p>
+          ) : null}
+        </div>
+        <div className="filter-field">
+          <label className="filter-label" htmlFor="record-payment-date">
+            {cols.date}
+          </label>
+          <input
+            id="record-payment-date"
+            className="form-input"
+            type="date"
+            dir="ltr"
+            max={expansionSnapshotDate}
+            value={formDate}
+            onChange={(event) => setFormDate(event.target.value)}
+          />
+          {formErrors.date ? (
+            <p className="form-error" role="alert">
+              {formErrors.date}
+            </p>
+          ) : null}
+        </div>
+        <div className="filter-field">
+          <label className="filter-label" htmlFor="record-payment-method">
+            {rf.methodLabel}
+          </label>
+          <select
+            id="record-payment-method"
+            className="form-select"
+            value={formMethod}
+            onChange={(event) => setFormMethod(event.target.value)}
+          >
+            <option value="">{rf.selectMethod}</option>
+            {RECORDABLE_METHODS.map((method) => (
+              <option key={method} value={method}>
+                {x.paymentMethods[method] ?? method}
+              </option>
+            ))}
+          </select>
+          {formErrors.method ? (
+            <p className="form-error" role="alert">
+              {formErrors.method}
+            </p>
+          ) : null}
+        </div>
+        <div className="filter-field">
+          <label className="filter-label" htmlFor="record-payment-reference">
+            {rf.referenceLabel}
+          </label>
+          <input
+            id="record-payment-reference"
+            className="form-input"
+            type="text"
+            dir="ltr"
+            value={formReference}
+            onChange={(event) => setFormReference(event.target.value)}
+          />
+          {formErrors.reference ? (
+            <p className="form-error" role="alert">
+              {formErrors.reference}
+            </p>
+          ) : null}
+        </div>
+        <div className="filter-field payment-record-notes">
+          <label className="filter-label" htmlFor="record-payment-notes">
+            {rf.notesLabel} · {v.optional}
+          </label>
+          <input
+            id="record-payment-notes"
+            className="form-input"
+            type="text"
+            value={formNotes}
+            onChange={(event) => setFormNotes(event.target.value)}
+          />
+        </div>
+      </div>
+      <p className="expansion-note">{rf.gatewayNote}</p>
+      <p className="expansion-note">{rf.evidenceUnavailable}</p>
+      <p className="expansion-note">{rf.sessionOnlyNote}</p>
+      <p className="expansion-note">{rf.pendingNote}</p>
+      {formErrors.duplicate ? (
+        <p className="form-error" role="alert">
+          {formErrors.duplicate}
+        </p>
+      ) : null}
+      <div className="payment-record-actions">
+        <button type="submit" className="btn btn-primary btn-sm">
+          {rf.submit}
+        </button>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setFormOpen(false)}>
+          {rf.cancel}
+        </button>
+      </div>
+    </form>
+  ) : null;
 
   let content: ReactNode = null;
 
@@ -601,28 +955,54 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
               ),
             ]}
             actions={
-              <UnavailableButton
-                label={x.finance.recordPayment}
-                message={x.finance.postingUnavailable}
-                onUnavailable={setNotice}
-              />
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() =>
+                  openRecordForm({
+                    customerId: item.due.customerId,
+                    projectId: item.due.projectId,
+                    amount: item.remaining,
+                  })
+                }
+              >
+                {x.finance.recordPayment}
+              </button>
             }
           />
         ))
       );
   } else if (tab === "payments") {
     const filtered = filteredPayments;
-    content =
-      filtered.length === 0 ? (
-        <RecordEmptyState>{x.finance.noPayments}</RecordEmptyState>
-      ) : (
-        filtered.map((payment) => (
+    const visibleSessionPayments = sessionPayments.filter((payment) =>
+      matchesQuery(query, [
+        payment.id,
+        payment.reference,
+        customerName(payment.customerId).ar,
+        customerName(payment.customerId).en,
+        payment.projectId,
+        x.paymentMethods[payment.method] ?? payment.method,
+      ]),
+    );
+    const sessionBanner =
+      sessionPayments.length > 0 ? (
+        <div className="payment-session-banner" role="note">
+          <strong>{rf.sessionPaymentsTitle}</strong>
+          <p>{rf.sessionOnlyNote}</p>
+          <p>{rf.pendingNote}</p>
+        </div>
+      ) : null;
+    content = (
+      <>
+        {recordForm}
+        {sessionBanner}
+        {visibleSessionPayments.map((payment) => (
           <RecordListItem
             key={payment.id}
             {...cardLabels(appDict)}
             title={formatMoney(payment.amount, locale)}
             reference={<span dir="ltr">{payment.id}</span>}
-            badges={<StatusBadge appDict={appDict} status="recorded" />}
+            badges={<StatusBadge appDict={appDict} status={payment.verification} />}
             summaryItems={[
               meta(
                 cols.customer,
@@ -638,20 +1018,87 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
               ),
               meta(cols.date, formatDate(payment.paidAt, locale)),
               meta(cols.method, x.paymentMethods[payment.method] ?? payment.method),
+              ...(payment.reference
+                ? [meta(rf.referenceLabel, <span dir="ltr">{payment.reference}</span>)]
+                : []),
             ]}
-            detailItems={payment.allocations.map((allocation) =>
-              meta(
-                x.finance.allocationTo,
-                <>
-                  <span dir="ltr">{allocation.dueId}</span> ·{" "}
-                  {formatMoney(allocation.amount, locale)}
-                </>,
-                { wide: true },
+            detailItems={[
+              ...payment.allocations.map((allocation) =>
+                meta(
+                  x.finance.allocationTo,
+                  <>
+                    <span dir="ltr">{allocation.dueId}</span> ·{" "}
+                    {formatMoney(allocation.amount, locale)}
+                  </>,
+                  { wide: true },
+                ),
               ),
-            )}
+              ...(payment.receiptId
+                ? [
+                    meta(rf.sessionReceipt, <span dir="ltr">{payment.receiptId}</span>, {
+                      wide: true,
+                    }),
+                  ]
+                : []),
+              ...(payment.notes ? [meta(rf.notesLabel, payment.notes, { wide: true })] : []),
+            ]}
+            actions={
+              payment.verification === "pending_verification" ? (
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => confirmSessionPayment(payment.id)}
+                >
+                  {rf.confirmReceipt}
+                </button>
+              ) : undefined
+            }
           />
-        ))
-      );
+        ))}
+        {filtered.length === 0 && visibleSessionPayments.length === 0 ? (
+          <RecordEmptyState>{x.finance.noPayments}</RecordEmptyState>
+        ) : (
+          filtered.map((payment) => (
+            <RecordListItem
+              key={payment.id}
+              {...cardLabels(appDict)}
+              title={formatMoney(payment.amount, locale)}
+              reference={<span dir="ltr">{payment.id}</span>}
+              badges={<StatusBadge appDict={appDict} status="confirmed" />}
+              summaryItems={[
+                meta(
+                  cols.customer,
+                  <Link
+                    className="record-chip-link"
+                    href={customerHref(locale, payment.customerId)}
+                  >
+                    {pick(customerName(payment.customerId), locale)}
+                  </Link>,
+                ),
+                meta(
+                  x.linkedProject,
+                  <Link className="record-chip-link" href={projectHref(locale, payment.projectId)}>
+                    {pick(projectTitle(payment.projectId), locale)}
+                  </Link>,
+                ),
+                meta(cols.date, formatDate(payment.paidAt, locale)),
+                meta(cols.method, x.paymentMethods[payment.method] ?? payment.method),
+              ]}
+              detailItems={payment.allocations.map((allocation) =>
+                meta(
+                  x.finance.allocationTo,
+                  <>
+                    <span dir="ltr">{allocation.dueId}</span> ·{" "}
+                    {formatMoney(allocation.amount, locale)}
+                  </>,
+                  { wide: true },
+                ),
+              )}
+            />
+          ))
+        )}
+      </>
+    );
   } else if (tab === "expenses") {
     const filtered = filteredExpenses;
     content =
@@ -849,6 +1296,7 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
           <div className="domain-record-list">
             {customerIds.map((customerId) => {
               const finance = getCustomerFinance(customerId);
+              const sessionExtra = sessionExtraForCustomer(customerId);
               return (
                 <RecordListItem
                   key={customerId}
@@ -863,12 +1311,20 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
                     meta(x.finance.totalDues, formatMoney(finance.duesTotal, locale), {
                       dir: "ltr",
                     }),
-                    meta(x.finance.totalCollected, formatMoney(finance.collected, locale), {
-                      dir: "ltr",
-                    }),
-                    meta(x.finance.totalRemaining, formatMoney(finance.remaining, locale), {
-                      dir: "ltr",
-                    }),
+                    meta(
+                      x.finance.totalCollected,
+                      formatMoney(finance.collected + sessionExtra, locale),
+                      {
+                        dir: "ltr",
+                      },
+                    ),
+                    meta(
+                      x.finance.totalRemaining,
+                      formatMoney(Math.max(0, finance.remaining - sessionExtra), locale),
+                      {
+                        dir: "ltr",
+                      },
+                    ),
                   ]}
                 />
               );
@@ -894,12 +1350,23 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
                     meta(x.finance.totalDues, formatMoney(finance.duesTotal, locale), {
                       dir: "ltr",
                     }),
-                    meta(x.finance.totalCollected, formatMoney(finance.collected, locale), {
-                      dir: "ltr",
-                    }),
-                    meta(x.finance.totalRemaining, formatMoney(finance.remaining, locale), {
-                      dir: "ltr",
-                    }),
+                    meta(
+                      x.finance.totalCollected,
+                      formatMoney(finance.collected + sessionExtraForProject(project.id), locale),
+                      {
+                        dir: "ltr",
+                      },
+                    ),
+                    meta(
+                      x.finance.totalRemaining,
+                      formatMoney(
+                        Math.max(0, finance.remaining - sessionExtraForProject(project.id)),
+                        locale,
+                      ),
+                      {
+                        dir: "ltr",
+                      },
+                    ),
                     meta(x.finance.totalExpenses, formatMoney(finance.expensesTotal, locale), {
                       dir: "ltr",
                     }),
@@ -994,11 +1461,21 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
                     statuses={["settled", "due", "overdue"]}
                   />
                 ) : null}
-                <UnavailableButton
-                  label={tab === "payments" ? x.finance.recordPayment : x.finance.createDue}
-                  message={x.finance.postingUnavailable}
-                  onUnavailable={setNotice}
-                />
+                {tab === "payments" ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => openRecordForm()}
+                  >
+                    {x.finance.recordPayment}
+                  </button>
+                ) : (
+                  <UnavailableButton
+                    label={x.finance.createDue}
+                    message={x.finance.postingUnavailable}
+                    onUnavailable={setNotice}
+                  />
+                )}
               </Controls>
             ) : null}
           </>

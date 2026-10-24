@@ -5677,3 +5677,92 @@ html[dir="rtl"] .shell-nav a[aria-current="page"] {
     padding: 14px;
   }
 }
+
+/* =========================================================================
+   D1 PAYMENT METHODS — manual recording, verification states, portal guides
+   ========================================================================= */
+
+.payment-record-form {
+  grid-column: 1 / -1;
+  padding: 20px;
+  margin-bottom: 18px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(176, 141, 87, 0.12), transparent 14rem),
+    linear-gradient(150deg, #fffefa, #f4efe3);
+  border: 1.5px solid var(--bx-brass-soft);
+  border-radius: 16px;
+}
+.payment-record-form h3 {
+  margin: 0 0 14px;
+  font-size: 1.06rem;
+}
+.payment-record-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: 14px 16px;
+}
+.payment-record-notes {
+  grid-column: span 2;
+}
+@media (max-width: 620px) {
+  .payment-record-notes {
+    grid-column: auto;
+  }
+}
+.payment-record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.form-error {
+  color: #a13b32;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 6px 0 0;
+  line-height: 1.45;
+}
+.payment-session-banner {
+  grid-column: 1 / -1;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  border: 1.5px dashed var(--viz-warn);
+  border-radius: 14px;
+  background: rgba(192, 138, 46, 0.07);
+}
+.payment-session-banner strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.payment-session-banner p {
+  margin: 2px 0;
+  font-size: 0.84rem;
+  color: var(--color-muted);
+}
+.payment-method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.payment-method-card {
+  padding: 14px 16px;
+  border: 1px solid var(--admin-border-soft, #e3dcc9);
+  border-inline-start: 4px solid var(--bx-brass);
+  border-radius: 12px;
+  background: #fffefa;
+}
+.payment-method-card strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-charcoal);
+}
+.payment-method-card p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--color-muted);
+  line-height: 1.55;
+}
+.portal-report-form {
+  margin-top: 14px;
+}

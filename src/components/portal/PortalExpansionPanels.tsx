@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
 import { statusBadgeClass } from "@/content/app-dictionary";
-import { previewPortalClient } from "@/content/preview-data";
+import { previewPortalClient, previewSnapshotDate } from "@/content/preview-data";
 import { getPortalComplaints, getPortalFinance } from "@/lib/preview-expansion";
 import { formatDate, formatMoney, formatPercent } from "@/lib/format";
 import { InfoDialog } from "@/components/ui/ConfirmDialog";
@@ -20,10 +20,47 @@ type PanelProps = { locale: Locale; appDict: AppDictionary };
  * expenses, supplier purchases and every other customer's records are
  * excluded by the derivation layer.
  */
+type ReportFormErrors = Partial<Record<"amount" | "date" | "method" | "reference", string>>;
+
+const PORTAL_PAYMENT_METHODS = ["cash", "instapay", "fawry", "bank_transfer"] as const;
+
 export function PortalFinancePanel({ locale, appDict }: PanelProps) {
   const [docTab, setDocTab] = useState<"invoices" | "certificates" | "receipts">("invoices");
+  const [reportMethod, setReportMethod] = useState("");
+  const [reportAmount, setReportAmount] = useState("");
+  const [reportDate, setReportDate] = useState(previewSnapshotDate);
+  const [reportReference, setReportReference] = useState("");
+  const [reportErrors, setReportErrors] = useState<ReportFormErrors>({});
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const f = appDict.portal.finance;
+  const v = appDict.validation;
+  const cols = appDict.dashboard.cols;
+  const paymentMethods = appDict.dashboard.expansion.paymentMethods;
   const finance = useMemo(() => getPortalFinance(previewPortalClient.id), []);
+
+  function onReportSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const errors: ReportFormErrors = {};
+    const amount = Number(reportAmount);
+    if (!reportMethod) errors.method = v.required;
+    if (!reportAmount.trim() || !Number.isFinite(amount) || amount <= 0) {
+      errors.amount = v.amountInvalid;
+    } else if (amount > finance.remaining) {
+      errors.amount = v.amountExceedsRemaining;
+    }
+    if (!reportDate || Number.isNaN(Date.parse(reportDate)) || reportDate > previewSnapshotDate) {
+      errors.date = v.dateInvalid;
+    }
+    if (reportMethod && reportMethod !== "cash" && reportReference.trim().length < 4) {
+      errors.reference = v.referenceRequired;
+    }
+    setReportErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+    // Same honesty rule as portal complaints: portal submission is not
+    // enabled by the current architecture, so nothing is sent or saved
+    // and the balance never changes from a customer-side report.
+    setReportDialogOpen(true);
+  }
 
   const docTabs = [
     { key: "invoices" as const, label: f.invoices },
@@ -72,6 +109,152 @@ export function PortalFinancePanel({ locale, appDict }: PanelProps) {
               ))}
             </div>
           )}
+        </section>
+
+        <section aria-label={f.paymentsTitle}>
+          <h3>{f.paymentsTitle}</h3>
+          {finance.payments.length === 0 ? (
+            <p>{f.noPayments}</p>
+          ) : (
+            <div className="list-rows">
+              {finance.payments.map((payment) => (
+                <div className="list-row" key={payment.id}>
+                  <div className="lr-main">
+                    <div className="lr-title">
+                      <span dir="ltr">{formatMoney(payment.amount, locale)}</span>
+                    </div>
+                    <div className="lr-sub">
+                      <span dir="ltr">{payment.id}</span> · {formatDate(payment.paidAt, locale)} ·{" "}
+                      {paymentMethods[payment.method] ?? payment.method}
+                    </div>
+                  </div>
+                  <span className={statusBadgeClass("confirmed")}>{appDict.status.confirmed}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section aria-label={f.methodsTitle}>
+          <h3>{f.methodsTitle}</h3>
+          <p style={{ color: "var(--color-muted)", maxWidth: 900 }}>{f.methodsIntro}</p>
+          <div className="payment-method-grid">
+            {PORTAL_PAYMENT_METHODS.map((method) => (
+              <div className="payment-method-card" key={method}>
+                <strong>{paymentMethods[method] ?? method}</strong>
+                <p>{f.methodGuides[method]}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section aria-label={f.reportTitle}>
+          <h3>{f.reportTitle}</h3>
+          <p style={{ color: "var(--color-muted)", maxWidth: 900 }}>{f.reportNote}</p>
+          <form
+            className="payment-record-form portal-report-form"
+            onSubmit={onReportSubmit}
+            noValidate
+          >
+            <div className="payment-record-grid">
+              <div className="filter-field">
+                <label className="filter-label" htmlFor="portal-report-method">
+                  {appDict.dashboard.expansion.finance.recordForm.methodLabel}
+                </label>
+                <select
+                  id="portal-report-method"
+                  className="form-select"
+                  value={reportMethod}
+                  onChange={(event) => setReportMethod(event.target.value)}
+                >
+                  <option value="">
+                    {appDict.dashboard.expansion.finance.recordForm.selectMethod}
+                  </option>
+                  {PORTAL_PAYMENT_METHODS.map((method) => (
+                    <option key={method} value={method}>
+                      {paymentMethods[method] ?? method}
+                    </option>
+                  ))}
+                </select>
+                {reportErrors.method ? (
+                  <p className="form-error" role="alert">
+                    {reportErrors.method}
+                  </p>
+                ) : null}
+              </div>
+              <div className="filter-field">
+                <label className="filter-label" htmlFor="portal-report-amount">
+                  {cols.amount}
+                </label>
+                <input
+                  id="portal-report-amount"
+                  className="form-input"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="any"
+                  dir="ltr"
+                  value={reportAmount}
+                  onChange={(event) => setReportAmount(event.target.value)}
+                />
+                {reportErrors.amount ? (
+                  <p className="form-error" role="alert">
+                    {reportErrors.amount}
+                  </p>
+                ) : null}
+              </div>
+              <div className="filter-field">
+                <label className="filter-label" htmlFor="portal-report-date">
+                  {cols.date}
+                </label>
+                <input
+                  id="portal-report-date"
+                  className="form-input"
+                  type="date"
+                  dir="ltr"
+                  max={previewSnapshotDate}
+                  value={reportDate}
+                  onChange={(event) => setReportDate(event.target.value)}
+                />
+                {reportErrors.date ? (
+                  <p className="form-error" role="alert">
+                    {reportErrors.date}
+                  </p>
+                ) : null}
+              </div>
+              <div className="filter-field">
+                <label className="filter-label" htmlFor="portal-report-reference">
+                  {appDict.dashboard.expansion.finance.recordForm.referenceLabel}
+                </label>
+                <input
+                  id="portal-report-reference"
+                  className="form-input"
+                  type="text"
+                  dir="ltr"
+                  value={reportReference}
+                  onChange={(event) => setReportReference(event.target.value)}
+                />
+                {reportErrors.reference ? (
+                  <p className="form-error" role="alert">
+                    {reportErrors.reference}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div className="payment-record-actions">
+              <button type="submit" className="btn btn-primary btn-sm">
+                {f.reportSubmit}
+              </button>
+            </div>
+          </form>
+          <InfoDialog
+            open={reportDialogOpen}
+            onClose={() => setReportDialogOpen(false)}
+            title={f.reportTitle}
+            closeLabel={appDict.close}
+          >
+            <p>{f.reportUnavailable}</p>
+          </InfoDialog>
         </section>
 
         <section aria-label={f.invoices}>

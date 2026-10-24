@@ -71,6 +71,8 @@ const ar = {
     stopped: "متوقفة",
     issued: "مُصدرة",
     recorded: "مسجّل",
+    pending_verification: "قيد التحقق",
+    confirmed: "مؤكّدة",
     settled: "مسدّدة",
     overdue: "متأخرة",
     due: "مستحقة",
@@ -82,6 +84,11 @@ const ar = {
     nameShort: "اكتب الاسم كاملًا",
     phoneInvalid: "أدخل رقم هاتف صحيحًا",
     emailInvalid: "أدخل بريدًا إلكترونيًا صحيحًا",
+    amountInvalid: "أدخل مبلغًا صحيحًا أكبر من صفر",
+    amountExceedsRemaining: "المبلغ أكبر من إجمالي المتبقي على هذا العميل في المشروع المختار",
+    referenceRequired: "رقم العملية أو المرجع مطلوب لهذه الطريقة",
+    duplicatePayment: "توجد دفعة مسجلة بنفس البيانات في هذه الجلسة؛ راجع الرقم المرجعي والمبلغ",
+    dateInvalid: "أدخل تاريخًا صحيحًا لا يتجاوز تاريخ المتابعة الحالي",
     issueTitleShort: "اكتب عنوانًا واضحًا للملاحظة",
     issueDetailsShort: "اكتب تفاصيل كافية لا تقل عن ١٠ أحرف",
     optional: "اختياري",
@@ -621,6 +628,29 @@ const ar = {
         createDue: "إضافة مستحق",
         postingUnavailable:
           "إجراءات التسجيل والاعتماد المالي غير متاحة حاليًا بانتظار اعتماد السياسة المالية وربط النظام؛ لم يتم تسجيل أي قيد.",
+        recordForm: {
+          title: "تسجيل دفعة واردة",
+          methodLabel: "طريقة الدفع",
+          selectMethod: "اختر طريقة الدفع",
+          selectCustomer: "اختر العميل",
+          selectProject: "اختر المشروع",
+          referenceLabel: "رقم العملية / المرجع",
+          notesLabel: "ملاحظات",
+          submit: "حفظ الدفعة كقيد قيد التحقق",
+          cancel: "إلغاء",
+          evidenceUnavailable:
+            "إرفاق صورة الإيصال أو إثبات التحويل غير متاح حاليًا؛ اكتفِ بتدوين الرقم المرجعي.",
+          sessionOnlyNote:
+            "التسجيل هنا مؤقت داخل جلسة العمل الحالية فقط ولا يُحفظ بعد تحديث الصفحة أو تسجيل الخروج، لأن الحفظ الدائم بانتظار ربط قاعدة البيانات.",
+          pendingNote:
+            "لا تُحتسب الدفعة في الأرصدة ولا تُصدر لها إيصال قبل تأكيد الاستلام من مسؤول مخوّل.",
+          gatewayNote:
+            "لا توجد بوابة دفع إلكتروني مدمجة؛ فوري وInstaPay والتحويل البنكي تُسجَّل هنا يدويًا بعد إتمامها خارج النظام، واختيار الطريقة وحده لا يعني نجاح العملية.",
+          confirmReceipt: "تأكيد الاستلام",
+          sessionReceipt: "إيصال جلسة",
+          sessionPaymentsTitle: "دفعات هذه الجلسة",
+          remainingForSelection: "المتبقي الحالي للاختيار",
+        },
         noDues: "لا توجد مستحقات مسجلة.",
         noPayments: "لا توجد دفعات مسجلة.",
         noExpenses: "لا توجد مصروفات مسجلة.",
@@ -905,6 +935,26 @@ const ar = {
       receipts: "إيصالات الاستلام",
       noDues: "لا توجد مستحقات مسجلة لحسابك.",
       noDocuments: "لا توجد مستندات في هذا القسم بعد.",
+      paymentsTitle: "دفعاتي المسجلة",
+      noPayments: "لا توجد دفعات مسجلة لحسابك بعد.",
+      methodsTitle: "طرق الدفع المتاحة",
+      methodsIntro:
+        "يمكنك الدفع بإحدى الطرق التالية ثم إبلاغ الشركة بالرقم المرجعي للتحقق. تحديث رصيدك وإصدار الإيصال لا يتم إلا بعد تحقق الشركة من الاستلام؛ فإدخال الرقم أو إرسال صورة وحده لا يؤكد الدفعة.",
+      methodGuides: {
+        cash: "الدفع نقدًا بمقر الشركة أو بالموقع مقابل إيصال استلام بعد التحقق.",
+        instapay:
+          "التحويل من تطبيق InstaPay إلى بيانات الشركة التي يعتمدها لك فريق المالية، ثم إرسال رقم العملية للتحقق.",
+        fawry:
+          "الدفع عبر منافذ فوري باستخدام البيانات التي توفّرها الشركة، فلا توجد بوابة دفع فوري مدمجة داخل البوابة.",
+        bank_transfer:
+          "التحويل البنكي إلى حساب الشركة المعتمد لدى فريق المالية، ثم إرسال رقم التحويل للتحقق.",
+      },
+      reportTitle: "إبلاغ الشركة عن دفعة تمت",
+      reportNote:
+        "الإبلاغ من البوابة لا يسجّل دفعة ولا يحدّث رصيدك؛ الغرض تنبيه الشركة فقط، وستوضح لك الرسالة التالية حالة الإرسال بصراحة.",
+      reportSubmit: "إرسال البلاغ",
+      reportUnavailable:
+        "إرسال بلاغات الدفع إلكترونيًا غير مفعّل داخل البوابة في الوقت الحالي؛ لم يُرسل هذا البلاغ ولم يُحفظ أي قيد بناءً عليه. تواصل مع الشركة مباشرةً بالرقم المرجعي لإتمام التحقق.",
     },
     complaints: {
       title: "شكواي ومقترحاتي",
@@ -1020,6 +1070,8 @@ const en: AppDictionary = {
     stopped: "Stopped",
     issued: "Issued",
     recorded: "Recorded",
+    pending_verification: "Pending verification",
+    confirmed: "Confirmed",
     settled: "Settled",
     overdue: "Overdue",
     due: "Due",
@@ -1031,6 +1083,13 @@ const en: AppDictionary = {
     nameShort: "Please enter your full name",
     phoneInvalid: "Please enter a valid phone number",
     emailInvalid: "Please enter a valid email address",
+    amountInvalid: "Enter a valid amount greater than zero",
+    amountExceedsRemaining:
+      "The amount exceeds this customer's remaining balance for the selected project",
+    referenceRequired: "A transaction or reference number is required for this method",
+    duplicatePayment:
+      "A payment with the same details was already recorded in this session; check the reference and amount",
+    dateInvalid: "Enter a valid date that is not after the current follow-up date",
     issueTitleShort: "Please enter a clear issue title",
     issueDetailsShort: "Please add details of at least 10 characters",
     optional: "Optional",
@@ -1600,6 +1659,29 @@ const en: AppDictionary = {
         createDue: "Add a due",
         postingUnavailable:
           "Recording and approving financial entries is currently unavailable pending the approved finance policy and system integration; no entry was recorded.",
+        recordForm: {
+          title: "Record an incoming payment",
+          methodLabel: "Payment method",
+          selectMethod: "Choose a payment method",
+          selectCustomer: "Choose a customer",
+          selectProject: "Choose a project",
+          referenceLabel: "Transaction / reference number",
+          notesLabel: "Notes",
+          submit: "Save payment as pending verification",
+          cancel: "Cancel",
+          evidenceUnavailable:
+            "Attaching a receipt photo or transfer proof is not available yet; record the reference number instead.",
+          sessionOnlyNote:
+            "Recording here is temporary to the current work session only and is not kept after a page refresh or sign-out, because permanent storage awaits the database connection.",
+          pendingNote:
+            "A payment does not count toward balances and no receipt is issued before an authorized staff member confirms receipt.",
+          gatewayNote:
+            "No online payment gateway is integrated; Fawry, InstaPay and bank transfers are recorded here manually after completion outside the system, and selecting a method alone does not mean the transaction succeeded.",
+          confirmReceipt: "Confirm receipt",
+          sessionReceipt: "Session receipt",
+          sessionPaymentsTitle: "Payments from this session",
+          remainingForSelection: "Current remaining for selection",
+        },
         noDues: "No dues recorded.",
         noPayments: "No payments recorded.",
         noExpenses: "No expenses recorded.",
@@ -1887,6 +1969,26 @@ const en: AppDictionary = {
       certificates: "Work certificates (Mustakhlas)",
       receipts: "Collection receipts",
       noDues: "No dues recorded for your account.",
+      paymentsTitle: "My recorded payments",
+      noPayments: "No payments recorded for your account yet.",
+      methodsTitle: "Available payment methods",
+      methodsIntro:
+        "You can pay using one of the methods below and then notify the company with the reference number for verification. Your balance is updated and a receipt issued only after the company verifies receipt; entering a reference or sending a screenshot alone does not confirm a payment.",
+      methodGuides: {
+        cash: "Cash at the company office or on site, against a receipt after verification.",
+        instapay:
+          "Transfer from the InstaPay app to the company details confirmed to you by the finance team, then send the transaction number for verification.",
+        fawry:
+          "Pay through Fawry outlets using the details the company provides; there is no Fawry gateway integrated into this portal.",
+        bank_transfer:
+          "Bank transfer to the company account confirmed by the finance team, then send the transfer number for verification.",
+      },
+      reportTitle: "Notify the company about a completed payment",
+      reportNote:
+        "Reporting from the portal does not record a payment or update your balance; you will be told plainly whether submission is enabled.",
+      reportSubmit: "Send notification",
+      reportUnavailable:
+        "Submitting payment notifications online is not enabled in the portal at the moment, so nothing will be saved. Contact the company directly with the reference number to complete verification.",
       noDocuments: "No documents in this section yet.",
     },
     complaints: {
@@ -1949,6 +2051,7 @@ export function statusBadgeClass(status: string): string {
     case "contacted":
     case "inspection_scheduled":
     case "pending":
+    case "pending_verification":
     case "review_requested":
     case "draft":
     case "current":
@@ -1964,6 +2067,7 @@ export function statusBadgeClass(status: string): string {
     case "quotation_sent":
     case "settled":
     case "recorded":
+    case "confirmed":
       return "badge badge-done";
     case "cancelled":
     case "blocked":

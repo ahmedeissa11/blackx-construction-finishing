@@ -125,6 +125,75 @@ export function getAllDuesWithBalance(): PreviewDueWithBalance[] {
     .sort((a, b) => a.due.dueDate.localeCompare(b.due.dueDate));
 }
 
+/* ---------------- Session payment recording (D1) ---------------- */
+
+/**
+ * Pure helpers for the Finance board's session-only payment recording.
+ * Nothing here persists: callers keep the recorded payments in component
+ * state, and only payments the staff explicitly confirm are planned into
+ * allocations and applied to balances. Pending (unverified) amounts must
+ * never be passed to these helpers.
+ */
+export type SessionAllocation = { dueId: string; amount: number };
+
+/** FIFO allocation plan against a customer's open dues for one project. */
+export function planSessionAllocations(
+  dues: PreviewDueWithBalance[],
+  input: { customerId: string; projectId: string; amount: number },
+): SessionAllocation[] {
+  let remainingToAllocate = Math.max(0, input.amount);
+  const plan: SessionAllocation[] = [];
+  const candidates = dues
+    .filter(
+      (item) =>
+        item.due.customerId === input.customerId &&
+        item.due.projectId === input.projectId &&
+        item.remaining > 0,
+    )
+    .sort((a, b) => a.due.dueDate.localeCompare(b.due.dueDate));
+  for (const item of candidates) {
+    if (remainingToAllocate <= 0) break;
+    const amount = Math.min(item.remaining, remainingToAllocate);
+    if (amount > 0) {
+      plan.push({ dueId: item.due.id, amount });
+      remainingToAllocate -= amount;
+    }
+  }
+  return plan;
+}
+
+/** Total still owed by one customer for one project across open dues. */
+export function sessionRemainingFor(
+  dues: PreviewDueWithBalance[],
+  customerId: string,
+  projectId: string,
+): number {
+  return dues
+    .filter((item) => item.due.customerId === customerId && item.due.projectId === projectId)
+    .reduce((total, item) => total + item.remaining, 0);
+}
+
+/** Re-derive balances/statuses after applying confirmed session allocations. */
+export function withSessionAllocations(
+  dues: PreviewDueWithBalance[],
+  allocations: SessionAllocation[],
+): PreviewDueWithBalance[] {
+  if (allocations.length === 0) return dues;
+  const extraByDue = new Map<string, number>();
+  for (const allocation of allocations) {
+    extraByDue.set(allocation.dueId, (extraByDue.get(allocation.dueId) ?? 0) + allocation.amount);
+  }
+  return dues.map((item) => {
+    const extra = extraByDue.get(item.due.id) ?? 0;
+    if (extra <= 0) return item;
+    const allocated = item.allocated + extra;
+    const remaining = Math.max(0, item.due.amount - allocated);
+    const status: PreviewDueStatus =
+      remaining === 0 ? "settled" : item.due.dueDate < expansionSnapshotDate ? "overdue" : "due";
+    return { due: item.due, allocated, remaining, status };
+  });
+}
+
 export type PreviewCustomerFinance = {
   dues: PreviewDueWithBalance[];
   payments: typeof previewPayments;
@@ -220,7 +289,7 @@ export function getProjectFinance(projectId: string): PreviewProjectFinance {
 
 export type PreviewAgingBucketKey = "current" | "d1_30" | "d31_60" | "d61_90" | "d90plus";
 
-export function getAgingBuckets(): Array<{
+export function getAgingBuckets(dues: PreviewDueWithBalance[] = getAllDuesWithBalance()): Array<{
   key: PreviewAgingBucketKey;
   amount: number;
   count: number;
@@ -233,7 +302,7 @@ export function getAgingBuckets(): Array<{
     d90plus: { amount: 0, count: 0 },
   };
   const snapshot = new Date(`${expansionSnapshotDate}T00:00:00Z`).getTime();
-  for (const item of getAllDuesWithBalance()) {
+  for (const item of dues) {
     if (item.remaining <= 0) continue;
     const days = Math.floor(
       (snapshot - new Date(`${item.due.dueDate}T00:00:00Z`).getTime()) / 86400000,

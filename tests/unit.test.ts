@@ -1700,3 +1700,79 @@ describe("handover, warranty and documents coverage", () => {
     }
   });
 });
+
+describe("D1 session payment allocation helpers", () => {
+  it("plans FIFO allocations only against the customer's open dues for the project", async () => {
+    const { getAllDuesWithBalance, planSessionAllocations, sessionRemainingFor } =
+      await import("@/lib/preview-expansion");
+    const dues = getAllDuesWithBalance();
+    const remaining = sessionRemainingFor(dues, "PV-CU-06", "PV-PR-201");
+    expect(remaining).toBeGreaterThan(0);
+    const plan = planSessionAllocations(dues, {
+      customerId: "PV-CU-06",
+      projectId: "PV-PR-201",
+      amount: 10000,
+    });
+    expect(plan.reduce((t, a) => t + a.amount, 0)).toBe(10000);
+    const firstOpen = dues
+      .filter(
+        (d) =>
+          d.due.customerId === "PV-CU-06" && d.due.projectId === "PV-PR-201" && d.remaining > 0,
+      )
+      .sort((a, b) => a.due.dueDate.localeCompare(b.due.dueDate))[0]!;
+    expect(plan[0]?.dueId).toBe(firstOpen.due.id);
+    // Never allocates to another customer or beyond what is owed.
+    expect(
+      planSessionAllocations(dues, {
+        customerId: "PV-CU-06",
+        projectId: "PV-PR-201",
+        amount: remaining + 500000,
+      }).reduce((t, a) => t + a.amount, 0),
+    ).toBe(remaining);
+    expect(
+      planSessionAllocations(dues, {
+        customerId: "PV-CU-04",
+        projectId: "PV-PR-201",
+        amount: 1000,
+      }),
+    ).toEqual([]);
+  });
+
+  it("applies confirmed allocations to balances and settles a fully paid due", async () => {
+    const { getAllDuesWithBalance, planSessionAllocations, withSessionAllocations } =
+      await import("@/lib/preview-expansion");
+    const dues = getAllDuesWithBalance();
+    const open = dues.find(
+      (d) => d.due.customerId === "PV-CU-06" && d.due.projectId === "PV-PR-201" && d.remaining > 0,
+    )!;
+    const plan = planSessionAllocations(dues, {
+      customerId: "PV-CU-06",
+      projectId: "PV-PR-201",
+      amount: open.remaining,
+    });
+    const updated = withSessionAllocations(dues, plan);
+    const settled = updated.find((d) => d.due.id === open.due.id)!;
+    expect(settled.remaining).toBe(0);
+    expect(settled.status).toBe("settled");
+    expect(settled.allocated).toBe(open.due.amount);
+    // Untouched dues are returned unchanged (same reference content).
+    const other = dues.find((d) => d.due.id !== open.due.id)!;
+    expect(updated.find((d) => d.due.id === other.due.id)?.remaining).toBe(other.remaining);
+    expect(withSessionAllocations(dues, [])).toBe(dues);
+  });
+
+  it("aging buckets accept session-adjusted dues without changing default totals", async () => {
+    const { getAgingBuckets, getAllDuesWithBalance, withSessionAllocations } =
+      await import("@/lib/preview-expansion");
+    const base = getAgingBuckets();
+    const dues = getAllDuesWithBalance();
+    const overdue = dues.find((d) => d.status === "overdue" && d.remaining > 0);
+    expect(overdue).toBeTruthy();
+    const adjusted = withSessionAllocations(dues, [
+      { dueId: overdue!.due.id, amount: overdue!.remaining },
+    ]);
+    const after = getAgingBuckets(adjusted);
+    const total = (rows: typeof base) => rows.reduce((t, r) => t + r.amount, 0);
+    expect(total(after)).toBe(total(base) - overdue!.remaining);
+  });
+});
