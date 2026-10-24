@@ -33,7 +33,7 @@ export function QuotationsPanel({ locale, appDict }: PanelProps) {
   const [toast, setToast] = useState(false);
 
   return (
-    <div className="panel">
+    <div className="panel portal-panel portal-quotations-panel">
       <div className="record-list">
         {items.map((q) => (
           <RecordListItem
@@ -156,8 +156,8 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
         location: { ar: cleanLocation || "—", en: cleanLocation || "—" },
         detail: { ar: cleanDetail, en: cleanDetail },
         correctiveAction: {
-          ar: "بانتظار مراجعة فريق الموقع داخل المعاينة",
-          en: "Awaiting site-team review inside the preview",
+          ar: "بانتظار مراجعة فريق الموقع",
+          en: "Awaiting site-team review",
         },
         assignee: { ar: "غير معيّن", en: "Unassigned" },
         status: "open",
@@ -173,8 +173,8 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-      <div className="panel">
+    <div className="portal-issues-layout">
+      <div className="panel portal-panel portal-issues-panel">
         <div className="record-list">
           {issues.map((issue) => (
             <RecordListItem
@@ -218,7 +218,7 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
           ))}
         </div>
       </div>
-      <form className="panel" onSubmit={addIssue} noValidate>
+      <form className="panel portal-panel portal-form-panel" onSubmit={addIssue} noValidate>
         <div className="panel-head">
           <h2>{appDict.portal.addIssuePreview}</h2>
         </div>
@@ -307,7 +307,7 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
   );
 }
 
-export function DemoActionButton({
+export function UnavailableActionButton({
   appDict,
   label,
   primary = false,
@@ -384,7 +384,7 @@ export function ProfilePanel({ locale, appDict }: PanelProps) {
   }
 
   return (
-    <form className="panel" onSubmit={onSubmit} noValidate>
+    <form className="panel portal-panel portal-profile-panel" onSubmit={onSubmit} noValidate>
       <div className="panel-body" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div className="alert alert-info">
           <span aria-hidden="true">ℹ</span>

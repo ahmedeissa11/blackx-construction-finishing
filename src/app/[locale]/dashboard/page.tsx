@@ -97,27 +97,6 @@ function actionQueueKindLabel(app: AppDictionary, item: OverviewActionQueueItem)
   return operations.actionQueue.kinds[item.kind];
 }
 
-function actionQueueIcon(item: OverviewActionQueueItem): string {
-  switch (item.kind) {
-    case "projectBlocker":
-      return "⚠";
-    case "requestReview":
-      return "✉";
-    case "milestone":
-      return "⚑";
-    case "pendingReport":
-      return "▥";
-    case "pendingHandover":
-      return "🔑";
-    case "quotationDecision":
-      return "▤";
-    case "pendingContract":
-      return "▣";
-    case "activeWarranty":
-      return "⛨";
-  }
-}
-
 export default async function DashboardOverview({
   params,
 }: {
@@ -186,9 +165,19 @@ export default async function DashboardOverview({
 
   const actionQueueItems = overview.actionQueue.slice(0, 8);
   const recentActivityItems = overview.recentActivityRows.slice(0, 5);
+  const maxFlowCount = Math.max(1, ...overview.operationalFlow.map((stage) => stage.count));
+  const averageActiveProgress =
+    overview.activeProjects.length > 0
+      ? Math.round(
+          overview.activeProjects.reduce(
+            (total, project) => total + clampPercent(project.progress),
+            0,
+          ) / overview.activeProjects.length,
+        )
+      : null;
 
   return (
-    <>
+    <div className="executive-dashboard">
       <section className="dashboard-intro" aria-labelledby="dashboard-overview-title">
         <div className="dashboard-intro-copy">
           <h2 id="dashboard-overview-title">{d.overviewTitle}</h2>
@@ -210,7 +199,7 @@ export default async function DashboardOverview({
         </div>
       </section>
 
-      <div className="stat-grid" aria-label={d.overviewTitle}>
+      <div className="stat-grid executive-kpi-band" aria-label={d.overviewTitle}>
         {primaryStats.map((stat) => (
           <Link
             className="stat-card"
@@ -220,7 +209,6 @@ export default async function DashboardOverview({
           >
             <div className="stat-label">
               <span>{stat.label}</span>
-              <span aria-hidden="true">{stat.icon}</span>
             </div>
             <div className="stat-value">{formatNumber(stat.value, locale)}</div>
             <div className="stat-note">{stat.note}</div>
@@ -248,9 +236,6 @@ export default async function DashboardOverview({
               const title = localizedQueueText(item.title, locale);
               return (
                 <div className="list-row action-queue-row priority-item" key={item.id}>
-                  <span className="file-icon" aria-hidden="true">
-                    {actionQueueIcon(item)}
-                  </span>
                   <div className="lr-main">
                     <div className="lr-title">{title}</div>
                     <div className="lr-sub">
@@ -278,13 +263,29 @@ export default async function DashboardOverview({
         )}
       </Panel>
 
-      <div className="two-col">
-        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+      <div className="two-col executive-columns">
+        <div
+          className="executive-main-column"
+          style={{ display: "flex", flexDirection: "column", gap: 22 }}
+        >
           <Panel
             title={d.activeProjectsTitle}
             href={moduleHref(locale, "projects")}
             linkLabel={d.viewAll}
           >
+            {averageActiveProgress !== null ? (
+              <div className="executive-project-summary">
+                <span>
+                  {d.activeProjectsTitle} · {d.cols.progress}
+                </span>
+                <ProgressMeter
+                  appDict={app}
+                  locale={locale}
+                  value={averageActiveProgress}
+                  label={`${d.activeProjectsTitle} · ${d.cols.progress}`}
+                />
+              </div>
+            ) : null}
             <div className="record-list">
               {overview.activeProjects.map((project) => {
                 const progress = clampPercent(project.progress);
@@ -352,7 +353,10 @@ export default async function DashboardOverview({
           </Panel>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+        <div
+          className="executive-side-column"
+          style={{ display: "flex", flexDirection: "column", gap: 22 }}
+        >
           <Panel
             title={d.upcomingInspectionsTitle}
             href={moduleHref(locale, "inspections")}
@@ -491,10 +495,15 @@ export default async function DashboardOverview({
                 <span className="ops-flow-index" aria-hidden="true">
                   {formatNumber(index + 1, locale)}
                 </span>
-                <span>
-                  <span className="ops-flow-label">{d.operationalFlowStages[stage.key]}</span>
-                  <span className="ops-flow-count">
-                    {formatNumber(stage.count, locale)} {d.operationalFlowCount}
+                <span className="ops-flow-main">
+                  <span className="ops-flow-topline">
+                    <span className="ops-flow-label">{d.operationalFlowStages[stage.key]}</span>
+                    <strong className="ops-flow-count">
+                      {formatNumber(stage.count, locale)} {d.operationalFlowCount}
+                    </strong>
+                  </span>
+                  <span className="ops-flow-bar" aria-hidden="true">
+                    <span style={{ width: `${(stage.count / maxFlowCount) * 100}%` }} />
                   </span>
                 </span>
                 <span style={{ marginInlineStart: "auto" }} aria-hidden="true">
@@ -505,6 +514,6 @@ export default async function DashboardOverview({
           ))}
         </ol>
       </Panel>
-    </>
+    </div>
   );
 }

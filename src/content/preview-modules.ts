@@ -1,6 +1,6 @@
 /**
- * Generic preview datasets for dashboard modules (see preview-data.ts header).
- * All records are synthetic. Columns reference `cols.*` keys in app-dictionary.
+ * Generic workspace datasets for dashboard modules (see preview-data.ts header).
+ * Records are maintained in the local workspace model. Columns reference `cols.*` keys in app-dictionary.
  */
 import type { LocalizedText } from "@/lib/i18n";
 import type { DashboardModuleKey } from "@/config/navigation";
@@ -119,10 +119,10 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "i1",
         cells: {
           ref: pl("PV-IN-41"),
-          customer: tx("عميل معاينة ٠٣", "Preview Client 03"),
+          customer: tx("العميل ٠٣", "Client 03"),
           service: tx("السباكة والحمامات", "Plumbing & Bathrooms"),
           date: dt("2026-10-23"),
-          assignee: tx("مهندس معاينات ب", "Preview Inspector B"),
+          assignee: tx("مهندس معاينات ب", "Inspection Engineer B"),
           status: st("inspection_scheduled"),
         },
       },
@@ -130,10 +130,10 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "i2",
         cells: {
           ref: pl("PV-IN-40"),
-          customer: tx("عميلة معاينة ٠٢", "Preview Client 02"),
+          customer: tx("العميلة ٠٢", "Client 02"),
           service: tx("المطابخ", "Kitchens"),
           date: dt("2026-10-24"),
-          assignee: tx("منسق معاينة أ", "Preview Coordinator A"),
+          assignee: tx("منسّق أ", "Coordinator A"),
           status: st("inspection_scheduled"),
         },
       },
@@ -141,10 +141,10 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "i3",
         cells: {
           ref: pl("PV-IN-39"),
-          customer: tx("عميل معاينة ٠٤", "Preview Client 04"),
+          customer: tx("العميل ٠٤", "Client 04"),
           service: tx("الواجهات", "Facades"),
           date: dt("2026-10-16"),
-          assignee: tx("مهندس معاينات ب", "Preview Inspector B"),
+          assignee: tx("مهندس معاينات ب", "Inspection Engineer B"),
           status: st("inspection_done"),
         },
       },
@@ -152,10 +152,10 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "i4",
         cells: {
           ref: pl("PV-IN-38"),
-          customer: tx("عميلة معاينة ٠٥", "Preview Client 05"),
+          customer: tx("العميلة ٠٥", "Client 05"),
           service: tx("التشطيبات الداخلية", "Interior Finishing"),
           date: dt("2026-10-13"),
-          assignee: tx("منسق معاينة أ", "Preview Coordinator A"),
+          assignee: tx("منسّق أ", "Coordinator A"),
           status: st("inspection_done"),
         },
       },
@@ -175,8 +175,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "q1",
         cells: {
           ref: pl("PV-QT-77"),
-          customer: tx("عميلة معاينة ٠٥", "Preview Client 05"),
-          title: tx("عرض سعر تجريبي — تشطيب دوبلكس", "Preview quotation — duplex finishing"),
+          customer: tx("العميلة ٠٥", "Client 05"),
+          title: tx("عرض سعر — تشطيب دوبلكس", "Quotation — duplex finishing"),
           amount: mn(485000),
           date: dt("2026-10-15"),
           status: st("sent"),
@@ -186,8 +186,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "q2",
         cells: {
           ref: pl("PV-QT-76"),
-          customer: tx("عميل معاينة ٠٤", "Preview Client 04"),
-          title: tx("عرض سعر تجريبي — واجهة حجر", "Preview quotation — stone facade"),
+          customer: tx("العميل ٠٤", "Client 04"),
+          title: tx("عرض سعر — واجهة حجر", "Quotation — stone facade"),
           amount: mn(312000),
           date: dt("2026-10-12"),
           status: st("approved"),
@@ -197,8 +197,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "q3",
         cells: {
           ref: pl("PV-QT-75"),
-          customer: tx("عميلة معاينة ٠٢", "Preview Client 02"),
-          title: tx("مسودة BOQ — مطبخ (تجريبي)", "Draft BOQ — kitchen (preview)"),
+          customer: tx("العميلة ٠٢", "Client 02"),
+          title: tx("مسودة BOQ — مطبخ", "Draft BOQ — kitchen"),
           amount: mn(168500),
           date: dt("2026-10-19"),
           status: st("draft"),
@@ -208,11 +208,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "q4",
         cells: {
           ref: pl("PV-QT-74"),
-          customer: tx("عميل معاينة ٠٦", "Preview Client 06"),
-          title: tx(
-            "عرض سعر معتمد — تشطيب داخلي (تجريبي)",
-            "Approved quotation — interior (preview)",
-          ),
+          customer: tx("العميل ٠٦", "Client 06"),
+          title: tx("عرض سعر معتمد — تشطيب داخلي", "Approved quotation — interior"),
           amount: mn(395000),
           date: dt("2026-10-06"),
           status: st("approved"),
@@ -234,8 +231,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "ct1",
         cells: {
           ref: pl("PV-CT-12"),
-          project: tx("مشروع معاينة — تشطيب شقة", "Preview — apartment finishing"),
-          type: tx("عقد تنفيذ (تجريبي)", "Execution contract (preview)"),
+          project: tx("مشروع — تشطيب شقة", "Apartment finishing project"),
+          type: tx("عقد تنفيذ", "Execution contract"),
           amount: mn(395000),
           date: dt("2026-10-07"),
           status: st("signed"),
@@ -245,11 +242,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "ct2",
         cells: {
           ref: pl("PV-CO-03"),
-          project: tx("مشروع معاينة — تشطيب شقة", "Preview — apartment finishing"),
-          type: tx(
-            "أمر تغيير: إضافة حجر للمدخل (تجريبي)",
-            "Change order: entrance stone (preview)",
-          ),
+          project: tx("مشروع — تشطيب شقة", "Apartment finishing project"),
+          type: tx("أمر تغيير: إضافة حجر للمدخل", "Change order: entrance stone"),
           amount: mn(24000),
           date: dt("2026-10-17"),
           status: st("pending"),
@@ -259,8 +253,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "ct3",
         cells: {
           ref: pl("PV-CT-11"),
-          project: tx("مشروع معاينة — واجهة فيلا", "Preview — villa facade"),
-          type: tx("عقد تنفيذ (تجريبي)", "Execution contract (preview)"),
+          project: tx("مشروع — واجهة فيلا", "Villa facade project"),
+          type: tx("عقد تنفيذ", "Execution contract"),
           amount: mn(312000),
           date: dt("2026-10-13"),
           status: st("signed"),
@@ -345,10 +339,10 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
           date: dt("2026-10-21"),
           project: pl("PV-PR-201"),
           title: tx(
-            "بدء طبقة دهان أولى — معيشة وممر (يومية تجريبية)",
-            "First paint coat started — living & corridor (preview entry)",
+            "بدء طبقة دهان أولى — معيشة وممر",
+            "First paint coat started — living & corridor",
           ),
-          actor: tx("مشرف موقع أ", "Preview Supervisor A"),
+          actor: tx("مشرف موقع أ", "Site Supervisor A"),
           status: st("completed"),
         },
       },
@@ -357,11 +351,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           date: dt("2026-10-20"),
           project: pl("PV-PR-202"),
-          title: tx(
-            "اختبار شبكة تغذية المطبخ بنجاح (تجريبي)",
-            "Kitchen supply network test passed (preview)",
-          ),
-          actor: tx("مشرف موقع ب", "Preview Supervisor B"),
+          title: tx("اختبار شبكة تغذية المطبخ بنجاح", "Kitchen supply network test passed"),
+          actor: tx("مشرف موقع ب", "Site Supervisor B"),
           status: st("completed"),
         },
       },
@@ -370,8 +361,8 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           date: dt("2026-10-20"),
           project: pl("PV-PR-203"),
-          title: tx("توريد دفعة حجر مدخل (تجريبي)", "Entrance stone batch delivered (preview)"),
-          actor: tx("مشرف موقع أ", "Preview Supervisor A"),
+          title: tx("توريد دفعة حجر مدخل", "Entrance stone batch delivered"),
+          actor: tx("مشرف موقع أ", "Site Supervisor A"),
           status: st("completed"),
         },
       },
@@ -435,7 +426,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
           project: pl("PV-PR-201"),
           title: tx("ضبط منسوب غطاء صرف الحمام", "Adjust drain cover level"),
           severity: pr("high"),
-          assignee: tx("مشرف موقع أ", "Preview Supervisor A"),
+          assignee: tx("مشرف موقع أ", "Site Supervisor A"),
           status: st("in_progress"),
         },
       },
@@ -446,7 +437,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
           project: pl("PV-PR-201"),
           title: tx("خدش بسطح حجر المدخل", "Entrance stone scratch"),
           severity: pr("normal"),
-          assignee: tx("مشرف موقع أ", "Preview Supervisor A"),
+          assignee: tx("مشرف موقع أ", "Site Supervisor A"),
           status: st("open"),
         },
       },
@@ -457,7 +448,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
           project: pl("PV-PR-203"),
           title: tx("معالجة فاصل حجر عند السور", "Treat stone joint at boundary"),
           severity: pr("normal"),
-          assignee: tx("مشرف موقع ب", "Preview Supervisor B"),
+          assignee: tx("مشرف موقع ب", "Site Supervisor B"),
           status: st("open"),
         },
       },
@@ -468,7 +459,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
           project: pl("PV-PR-201"),
           title: tx("دهان بقعة خلف وحدة تخزين", "Paint patch behind storage"),
           severity: pr("normal"),
-          assignee: tx("مشرف موقع أ", "Preview Supervisor A"),
+          assignee: tx("مشرف موقع أ", "Site Supervisor A"),
           status: st("resolved"),
         },
       },
@@ -486,7 +477,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
       {
         id: "dc1",
         cells: {
-          title: tx("BOQ تشطيب داخلي — نسخة معتمدة (تجريبي)", "Approved interior BOQ (preview)"),
+          title: tx("BOQ تشطيب داخلي — نسخة معتمدة", "Approved interior BOQ"),
           project: pl("PV-PR-201"),
           type: tx("مقايسة", "BOQ"),
           size: pl("PDF · 1.2 MB"),
@@ -496,10 +487,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
       {
         id: "dc2",
         cells: {
-          title: tx(
-            "صور توثيق تأسيسات قبل الإغلاق (تجريبي)",
-            "Pre-closing rough-in photos (preview)",
-          ),
+          title: tx("صور توثيق تأسيسات قبل الإغلاق", "Pre-closing rough-in photos"),
           project: pl("PV-PR-201"),
           type: tx("توثيق مصوّر", "Photo record"),
           size: pl("ZIP · 18 MB"),
@@ -509,7 +497,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
       {
         id: "dc3",
         cells: {
-          title: tx("اعتماد خامة حجر المدخل (تجريبي)", "Entrance stone approval (preview)"),
+          title: tx("اعتماد خامة حجر المدخل", "Entrance stone approval"),
           project: pl("PV-PR-203"),
           type: tx("محضر اعتماد", "Approval"),
           size: pl("PDF · 340 KB"),
@@ -519,7 +507,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
       {
         id: "dc4",
         cells: {
-          title: tx("مخطط توزيع مطبخ معتمد (تجريبي)", "Approved kitchen layout (preview)"),
+          title: tx("مخطط توزيع مطبخ معتمد", "Approved kitchen layout"),
           project: pl("PV-PR-202"),
           type: tx("مخطط", "Drawing"),
           size: pl("PDF · 860 KB"),
@@ -543,10 +531,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           week: pl("W42"),
           project: pl("PV-PR-201"),
-          title: tx(
-            "تقرير أسبوعي — بدء الدهانات (تجريبي)",
-            "Weekly report — paints started (preview)",
-          ),
+          title: tx("تقرير أسبوعي — بدء الدهانات", "Weekly report — paints started"),
           progress: pg(62),
           date: dt("2026-10-18"),
           status: st("sent"),
@@ -557,10 +542,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           week: pl("W41"),
           project: pl("PV-PR-201"),
-          title: tx(
-            "تقرير أسبوعي — إنهاء الأرضيات (تجريبي)",
-            "Weekly report — flooring complete (preview)",
-          ),
+          title: tx("تقرير أسبوعي — إنهاء الأرضيات", "Weekly report — flooring complete"),
           progress: pg(55),
           date: dt("2026-10-11"),
           status: st("sent"),
@@ -571,10 +553,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           week: pl("W42"),
           project: pl("PV-PR-203"),
-          title: tx(
-            "تقرير أسبوعي — أعمال المدخل (تجريبي)",
-            "Weekly report — entrance works (preview)",
-          ),
+          title: tx("تقرير أسبوعي — أعمال المدخل", "Weekly report — entrance works"),
           progress: pg(85),
           date: dt("2026-10-19"),
           status: st("pending"),
@@ -637,7 +616,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           ref: pl("PV-HO-04"),
           project: pl("PV-PR-204"),
-          customer: tx("عميل معاينة ٠٣", "Preview Client 03"),
+          customer: tx("العميل ٠٣", "Client 03"),
           date: dt("2026-10-02"),
           status: st("handed_over"),
         },
@@ -647,7 +626,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           ref: pl("PV-HO-05"),
           project: pl("PV-PR-203"),
-          customer: tx("عميل معاينة ٠٤", "Preview Client 04"),
+          customer: tx("العميل ٠٤", "Client 04"),
           date: dt("2026-11-02"),
           status: st("pending"),
         },
@@ -668,10 +647,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           ref: pl("PV-WR-02"),
           project: pl("PV-PR-204"),
-          title: tx(
-            "طلب صيانة: ضبط إغلاق باب خشبي (تجريبي)",
-            "Maintenance: wooden door closing (preview)",
-          ),
+          title: tx("طلب صيانة: ضبط إغلاق باب خشبي", "Maintenance: wooden door closing"),
           date: dt("2026-10-16"),
           status: st("in_progress"),
         },
@@ -681,10 +657,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         cells: {
           ref: pl("PV-WR-01"),
           project: pl("PV-PR-204"),
-          title: tx(
-            "متابعة ما بعد التسليم — ٣٠ يومًا (تجريبي)",
-            "30-day post-handover follow-up (preview)",
-          ),
+          title: tx("متابعة ما بعد التسليم — ٣٠ يومًا", "30-day post-handover follow-up"),
           date: dt("2026-10-09"),
           status: st("resolved"),
         },
@@ -744,7 +717,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "a1",
         cells: {
           date: dt("2026-10-21"),
-          actor: tx("مشرف موقع أ", "Preview Supervisor A"),
+          actor: tx("مشرف موقع أ", "Site Supervisor A"),
           action: tx("تحديث نسبة إنجاز مرحلة الدهانات", "Updated paint-milestone progress"),
           entity: pl("PV-PR-201"),
           status: st("completed"),
@@ -754,7 +727,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "a2",
         cells: {
           date: dt("2026-10-20"),
-          actor: tx("منسق معاينة أ", "Preview Coordinator A"),
+          actor: tx("منسّق أ", "Coordinator A"),
           action: tx("تغيير حالة طلب إلى: تم التواصل", "Changed request status to Contacted"),
           entity: pl("PV-RQ-1002"),
           status: st("completed"),
@@ -764,7 +737,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "a3",
         cells: {
           date: dt("2026-10-19"),
-          actor: tx("مدير مشاريع ج", "Preview PM C"),
+          actor: tx("مدير مشاريع ج", "Project Manager C"),
           action: tx("اعتماد تقرير أسبوعي", "Approved weekly report"),
           entity: pl("PV-PR-201 · W42"),
           status: st("completed"),
@@ -774,7 +747,7 @@ const basePreviewModuleTables: Partial<Record<DashboardModuleKey, PreviewModuleT
         id: "a4",
         cells: {
           date: dt("2026-10-18"),
-          actor: tx("مهندس معاينات ب", "Preview Inspector B"),
+          actor: tx("مهندس معاينات ب", "Inspection Engineer B"),
           action: tx("جدولة معاينة جديدة", "Scheduled a new inspection"),
           entity: pl("PV-IN-41"),
           status: st("completed"),
@@ -908,14 +881,11 @@ export function countPreviewModuleStatus(module: DashboardModuleKey, status: str
   );
 }
 
-/** Portal list datasets (synthetic). */
+/** Portal list datasets. */
 export const previewPortalQuotations = [
   {
     id: "PV-QT-74",
-    title: t(
-      "عرض سعر التشطيب الداخلي المعتمد (تجريبي)",
-      "Approved interior finishing quotation (preview)",
-    ),
+    title: t("عرض سعر التشطيب الداخلي المعتمد", "Approved interior finishing quotation"),
     amount: 395000,
     date: "2026-10-06",
     status: "approved",
@@ -923,10 +893,7 @@ export const previewPortalQuotations = [
   },
   {
     id: "PV-CO-03",
-    title: t(
-      "أمر تغيير: إضافة حجر للمدخل (تجريبي)",
-      "Change order: entrance stone addition (preview)",
-    ),
+    title: t("أمر تغيير: إضافة حجر للمدخل", "Change order: entrance stone addition"),
     amount: 24000,
     date: "2026-10-17",
     status: "pending",
@@ -961,21 +928,21 @@ export const previewPortalReports = [
 export const previewPortalDocuments = [
   {
     id: "dc1",
-    title: t("BOQ التشطيب الداخلي المعتمد (تجريبي)", "Approved interior BOQ (preview)"),
+    title: t("BOQ التشطيب الداخلي المعتمد", "Approved interior BOQ"),
     type: "PDF",
     meta: "1.2 MB",
     date: "2026-10-06",
   },
   {
     id: "dc2",
-    title: t("صور توثيق التأسيسات قبل الإغلاق (تجريبي)", "Rough-in documentation photos (preview)"),
+    title: t("صور توثيق التأسيسات قبل الإغلاق", "Rough-in documentation photos"),
     type: "ZIP",
     meta: "18 MB",
     date: "2026-09-28",
   },
   {
     id: "dc5",
-    title: t("محضر اعتماد خامات الدهانات (تجريبي)", "Paint materials approval record (preview)"),
+    title: t("محضر اعتماد خامات الدهانات", "Paint materials approval record"),
     type: "PDF",
     meta: "210 KB",
     date: "2026-10-09",

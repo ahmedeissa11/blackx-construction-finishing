@@ -134,13 +134,11 @@ export function DataTable({
   appDict,
   table,
   moduleKey,
-  previewLimit,
 }: {
   locale: Locale;
   appDict: AppDictionary;
   table: PreviewModuleTable;
   moduleKey: DashboardModuleKey;
-  previewLimit?: string;
 }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -196,8 +194,8 @@ export function DataTable({
   }
 
   return (
-    <div className="panel">
-      <div className="panel-head">
+    <div className="panel data-table-board">
+      <div className="panel-head data-table-toolbar-shell">
         <div className="toolbar" style={{ flex: 1 }}>
           <div className="search-box">
             <span className="search-icon" aria-hidden="true">
@@ -410,15 +408,6 @@ export function DataTable({
                 <p>{appDict.dashboard.noLinkedRecords}</p>
               )}
             </RecordDetailSection>
-
-            {previewLimit ? (
-              <RecordDetailSection
-                title={appDict.previewUnavailableTitle}
-                labelledBy="selected-record-limit-title"
-              >
-                <p>{previewLimit}</p>
-              </RecordDetailSection>
-            ) : null}
           </div>
         ) : null}
       </InfoDialog>
@@ -428,7 +417,7 @@ export function DataTable({
         closeLabel={appDict.close}
         onClose={() => setAddDialogOpen(false)}
       >
-        <p>{previewLimit ?? appDict.previewUnavailableText}</p>
+        <p>{appDict.previewUnavailableText}</p>
       </InfoDialog>
     </div>
   );

@@ -47,18 +47,35 @@
   --shadow-pop: 0 12px 40px rgba(43, 41, 38, 0.18);
 
   /* Admin design system */
+  --admin-canvas: #ede7dc;
+  --admin-canvas-soft: #f5f1ea;
   --admin-surface: var(--color-white);
   --admin-surface-muted: #faf7f1;
   --admin-surface-raised: #fffefa;
+  --admin-surface-dark: #252721;
+  --admin-surface-dark-2: #31352c;
   --admin-border: var(--color-line);
   --admin-border-strong: #cfc4b2;
-  --admin-radius: 12px;
+  --admin-border-soft: #ece3d2;
+  --admin-accent: var(--color-sage-deep);
+  --admin-accent-soft: var(--color-sage-soft);
+  --admin-radius: 14px;
+  --admin-radius-sm: 10px;
   --admin-shadow: 0 1px 2px rgba(58, 56, 53, 0.05), 0 10px 28px rgba(58, 56, 53, 0.05);
+  --admin-shadow-soft: 0 1px 2px rgba(58, 56, 53, 0.04);
   --admin-page-title: clamp(1.45rem, 2vw, 1.75rem);
   --admin-section-title: 1.08rem;
   --admin-card-title: 1rem;
   --admin-label: 0.8rem;
   --admin-number: 1.9rem;
+  --admin-sidebar-width: 288px;
+  --admin-content-max: 1580px;
+  --admin-space-1: 6px;
+  --admin-space-2: 10px;
+  --admin-space-3: 14px;
+  --admin-space-4: 18px;
+  --admin-space-5: 24px;
+  --admin-space-6: 32px;
 
   --container: 1240px;
   --header-h: 68px;

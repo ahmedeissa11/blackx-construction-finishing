@@ -10,7 +10,7 @@ import { getService } from "@/content/services";
 import { formatNumber } from "@/lib/format";
 import { siteHref } from "@/config/navigation";
 import { PageHero } from "@/components/site/PageHero";
-import { Arrow, CtaBand, PreviewTag } from "@/components/ui/Pieces";
+import { Arrow, CtaBand } from "@/components/ui/Pieces";
 
 export const dynamicParams = false;
 
@@ -74,7 +74,6 @@ export default async function ArticleDetailPage({
               marginBlockEnd: 28,
             }}
           >
-            {article.preview ? <PreviewTag label={dict.common.previewContent} /> : null}
             <span style={{ color: "var(--color-muted)", fontSize: "0.9rem" }}>
               {formatNumber(article.readingMinutes, locale)} {dict.common.minRead}
             </span>
@@ -138,7 +137,6 @@ export default async function ArticleDetailPage({
                     <Link className="text-link" href={siteHref(locale, `articles/${a.slug}`)}>
                       {pick(a.title, locale)}
                       <Arrow />
-                      {a.preview ? <PreviewTag label={dict.common.previewContent} /> : null}
                     </Link>
                   </li>
                 ))}

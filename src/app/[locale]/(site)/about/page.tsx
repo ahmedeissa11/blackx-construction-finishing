@@ -6,6 +6,7 @@ import { getDictionary } from "@/content/dictionary";
 import { siteHref } from "@/config/navigation";
 import { PageHero } from "@/components/site/PageHero";
 import { CtaBand, SectionHead } from "@/components/ui/Pieces";
+import { GlyphIcon } from "@/components/ui/GlyphIcon";
 
 export async function generateMetadata({
   params,
@@ -76,7 +77,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
                     aria-hidden="true"
                     style={{ width: 34, height: 34, margin: 0 }}
                   >
-                    {VALUE_ICONS[i]}
+                    <GlyphIcon icon={VALUE_ICONS[i] ?? "▦"} />
                   </span>
                   {value.title}
                 </h3>

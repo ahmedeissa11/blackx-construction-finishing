@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Locale } from "@/lib/i18n";
 import type { Dictionary } from "@/content/dictionary";
 import { siteHref } from "@/config/navigation";
+import { GlyphIcon } from "@/components/ui/GlyphIcon";
 
 export function SectionHead({
   eyebrow,
@@ -73,7 +74,7 @@ export function EmptyState({
   return (
     <div className="empty-state">
       <div className="es-icon" aria-hidden="true">
-        {icon}
+        <GlyphIcon icon={icon} />
       </div>
       <h2>{title}</h2>
       <p>{text}</p>
@@ -84,8 +85,4 @@ export function EmptyState({
       ) : null}
     </div>
   );
-}
-
-export function PreviewTag({ label }: { label: string }) {
-  return <span className="preview-tag">◐ {label}</span>;
 }

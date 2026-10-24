@@ -294,7 +294,7 @@ describe("form validation", () => {
         validatePortalProfileForm({
           name: "Preview Client",
           phone: "0100 000 1006",
-          email: "preview-client@example.com",
+          email: "client06@example.com",
         }),
       ),
     ).toBe(false);
@@ -753,7 +753,7 @@ describe("admin preview operations", () => {
     expect(audit.every((item) => item.status === "completed" && item.links.length === 2)).toBe(
       true,
     );
-    expect(audit[1]?.actor).toMatchObject({ en: "Preview Coordinator A" });
+    expect(audit[1]?.actor).toMatchObject({ en: "Coordinator A" });
   });
 
   it("builds a record-level overview action queue from explicit preview signals", () => {
@@ -875,7 +875,7 @@ describe("admin preview operations", () => {
     expect(
       validateAdminRequestAssignment({
         status: "inspection_done",
-        assignee: "Preview Inspector B",
+        assignee: "Inspection Engineer B",
       }),
     ).toEqual({});
     expect(validateAdminRequestAssignment({ status: "new", assignee: "" })).toEqual({});
@@ -895,7 +895,7 @@ describe("admin preview operations", () => {
         currentStatus: "new",
         currentAssignee: "",
         draftStatus: "new",
-        draftAssignee: "Preview Coordinator A",
+        draftAssignee: "Coordinator A",
       }),
     ).toBe(true);
     expect(requiresAdminRequestConfirmation("approved")).toBe(true);

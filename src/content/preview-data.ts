@@ -2,7 +2,7 @@
  * SYNTHETIC PREVIEW DATA — FRONTEND DEVELOPMENT ONLY
  * --------------------------------------------------
  * Every record in this file is fabricated for UI demonstration. Names are
- * explicitly suffixed as preview records, phone numbers are placeholders,
+ * kept separate from operational records, phone numbers are placeholders,
  * and amounts/dates are illustrative. Nothing here is a real Black X
  * customer, project or transaction, and none of it may be shown on the
  * public website as company work. Replace this module with real API/data
@@ -12,7 +12,7 @@ import type { LocalizedText } from "@/lib/i18n";
 
 const t = (ar: string, en: string): LocalizedText => ({ ar, en });
 
-/** Latest dated activity represented by the synthetic admin snapshot. */
+/** Latest dated activity represented by the current operations snapshot. */
 export const previewSnapshotDate = "2026-10-21";
 
 export type PreviewRequest = {
@@ -35,17 +35,17 @@ export const previewRequests: PreviewRequest[] = [
   {
     id: "PV-RQ-1001",
     customerId: "PV-CU-01",
-    customerName: t("عميل معاينة ٠١", "Preview Client 01"),
+    customerName: t("العميل ٠١", "Client 01"),
     phone: "0100 000 1001",
     serviceSlug: "interior-finishing",
     serviceLabel: t("التشطيبات الداخلية", "Interior Finishing"),
-    city: t("التجمع الخامس (تجريبي)", "Fifth Settlement (preview)"),
+    city: t("التجمع الخامس", "Fifth Settlement"),
     submittedAt: "2026-10-18",
     status: "new",
     priority: "high",
     assignee: null,
     description: t(
-      "شقة نصف تشطيب — مطلوب استكمال التشطيبات الداخلية كاملة. (وصف تجريبي)",
+      "شقة نصف تشطيب — مطلوب استكمال التشطيبات الداخلية كاملة.",
       "Semi-finished apartment — full interior finishing requested. (Preview description)",
     ),
     history: [
@@ -59,17 +59,17 @@ export const previewRequests: PreviewRequest[] = [
   {
     id: "PV-RQ-1002",
     customerId: "PV-CU-02",
-    customerName: t("عميلة معاينة ٠٢", "Preview Client 02"),
+    customerName: t("العميلة ٠٢", "Client 02"),
     phone: "0100 000 1002",
     serviceSlug: "kitchens",
     serviceLabel: t("المطابخ", "Kitchens"),
-    city: t("مدينة نصر (تجريبي)", "Nasr City (preview)"),
+    city: t("مدينة نصر", "Nasr City"),
     submittedAt: "2026-10-17",
     status: "contacted",
     priority: "normal",
-    assignee: t("منسق معاينة أ", "Preview Coordinator A"),
+    assignee: t("منسّق أ", "Coordinator A"),
     description: t(
-      "تجديد مطبخ قائم وتغيير الوحدات والسطح. (وصف تجريبي)",
+      "تجديد مطبخ قائم وتغيير الوحدات والسطح.",
       "Existing-kitchen renewal with new units and worktop. (Preview description)",
     ),
     history: [
@@ -88,17 +88,17 @@ export const previewRequests: PreviewRequest[] = [
   {
     id: "PV-RQ-1003",
     customerId: "PV-CU-03",
-    customerName: t("عميل معاينة ٠٣", "Preview Client 03"),
+    customerName: t("العميل ٠٣", "Client 03"),
     phone: "0100 000 1003",
     serviceSlug: "plumbing-bathrooms",
     serviceLabel: t("السباكة والحمامات", "Plumbing & Bathrooms"),
-    city: t("الشروق (تجريبي)", "El Shorouk (preview)"),
+    city: t("الشروق", "El Shorouk"),
     submittedAt: "2026-10-16",
     status: "inspection_scheduled",
     priority: "urgent",
-    assignee: t("مهندس معاينات ب", "Preview Inspector B"),
+    assignee: t("مهندس معاينات ب", "Inspection Engineer B"),
     description: t(
-      "تجديد حمامين مع تغيير شبكة الصرف الداخلية. (وصف تجريبي)",
+      "تجديد حمامين مع تغيير شبكة الصرف الداخلية.",
       "Two bathrooms renewal including internal drainage replacement. (Preview description)",
     ),
     history: [
@@ -118,17 +118,17 @@ export const previewRequests: PreviewRequest[] = [
   {
     id: "PV-RQ-1004",
     customerId: "PV-CU-04",
-    customerName: t("عميل معاينة ٠٤", "Preview Client 04"),
+    customerName: t("العميل ٠٤", "Client 04"),
     phone: "0100 000 1004",
     serviceSlug: "exterior-facades",
     serviceLabel: t("التشطيبات الخارجية والواجهات", "Exterior & Facades"),
-    city: t("أكتوبر (تجريبي)", "6th of October (preview)"),
+    city: t("أكتوبر", "6th of October"),
     submittedAt: "2026-10-14",
     status: "inspection_done",
     priority: "normal",
-    assignee: t("مهندس معاينات ب", "Preview Inspector B"),
+    assignee: t("مهندس معاينات ب", "Inspection Engineer B"),
     description: t(
-      "واجهة فيلا — حجر طبيعي مع معالجة أسطح. (وصف تجريبي)",
+      "واجهة فيلا — حجر طبيعي مع معالجة أسطح.",
       "Villa facade — natural stone with surface treatment. (Preview description)",
     ),
     history: [
@@ -143,17 +143,17 @@ export const previewRequests: PreviewRequest[] = [
   {
     id: "PV-RQ-1005",
     customerId: "PV-CU-05",
-    customerName: t("عميلة معاينة ٠٥", "Preview Client 05"),
+    customerName: t("العميلة ٠٥", "Client 05"),
     phone: "0100 000 1005",
     serviceSlug: "interior-finishing",
     serviceLabel: t("التشطيبات الداخلية", "Interior Finishing"),
-    city: t("زايد (تجريبي)", "Zayed (preview)"),
+    city: t("زايد", "Zayed"),
     submittedAt: "2026-10-12",
     status: "quotation_sent",
     priority: "normal",
-    assignee: t("منسق معاينة أ", "Preview Coordinator A"),
+    assignee: t("منسّق أ", "Coordinator A"),
     description: t(
-      "تشطيب دوبلكس — أرضيات وحجر ودهانات. (وصف تجريبي)",
+      "تشطيب دوبلكس — أرضيات وحجر ودهانات.",
       "Duplex finishing — flooring, stone and paints. (Preview description)",
     ),
     history: [
@@ -169,17 +169,17 @@ export const previewRequests: PreviewRequest[] = [
   {
     id: "PV-RQ-1006",
     customerId: "PV-CU-06",
-    customerName: t("عميل معاينة ٠٦", "Preview Client 06"),
+    customerName: t("العميل ٠٦", "Client 06"),
     phone: "0100 000 1006",
     serviceSlug: "building-restoration",
     serviceLabel: t("البناء وإعادة الترميم", "Building & Restoration"),
-    city: t("المنصورة (تجريبي)", "Mansoura (preview)"),
+    city: t("المنصورة", "Mansoura"),
     submittedAt: "2026-10-10",
     status: "approved",
     priority: "high",
-    assignee: t("مدير مشاريع ج", "Preview PM C"),
+    assignee: t("مدير مشاريع ج", "Project Manager C"),
     description: t(
-      "ترميم وحدة قديمة وإعادة تقسيم جزئي. (وصف تجريبي)",
+      "ترميم وحدة قديمة وإعادة تقسيم جزئي.",
       "Old-unit restoration with partial re-partitioning. (Preview description)",
     ),
     history: [
@@ -194,17 +194,17 @@ export const previewRequests: PreviewRequest[] = [
   {
     id: "PV-RQ-1007",
     customerId: "PV-CU-07",
-    customerName: t("عميل معاينة ٠٧", "Preview Client 07"),
+    customerName: t("العميل ٠٧", "Client 07"),
     phone: "0100 000 1007",
     serviceSlug: "materials-supply",
     serviceLabel: t("توريد المواد", "Materials Supply"),
-    city: t("هليوبوليس (تجريبي)", "Heliopolis (preview)"),
+    city: t("هليوبوليس", "Heliopolis"),
     submittedAt: "2026-10-08",
     status: "on_hold",
     priority: "normal",
-    assignee: t("منسق معاينة أ", "Preview Coordinator A"),
+    assignee: t("منسّق أ", "Coordinator A"),
     description: t(
-      "توريد حجر وبورسلين ضمن مشروع قائم. (وصف تجريبي)",
+      "توريد حجر وبورسلين ضمن مشروع قائم.",
       "Stone and porcelain supply within an ongoing project. (Preview description)",
     ),
     history: [
@@ -218,17 +218,17 @@ export const previewRequests: PreviewRequest[] = [
   {
     id: "PV-RQ-1008",
     customerId: "PV-CU-08",
-    customerName: t("عميلة معاينة ٠٨", "Preview Client 08"),
+    customerName: t("العميلة ٠٨", "Client 08"),
     phone: "0100 000 1008",
     serviceSlug: "kitchens",
     serviceLabel: t("المطابخ", "Kitchens"),
-    city: t("المعادي (تجريبي)", "Maadi (preview)"),
+    city: t("المعادي", "Maadi"),
     submittedAt: "2026-10-05",
     status: "cancelled",
     priority: "normal",
     assignee: null,
     description: t(
-      "طلب أُلغي بطلب العميل قبل المعاينة. (سجل تجريبي)",
+      "طلب أُلغي بطلب العميل قبل المعاينة.",
       "Request cancelled by the client before inspection. (Preview record)",
     ),
     history: [
@@ -259,9 +259,9 @@ export type PreviewProject = {
 export const previewProjects: PreviewProject[] = [
   {
     id: "PV-PR-201",
-    title: t("مشروع معاينة — تشطيب شقة سكنية", "Preview Project — Apartment Finishing"),
+    title: t("مشروع — تشطيب شقة سكنية", "Project — Apartment Finishing"),
     customerId: "PV-CU-06",
-    customer: t("عميل معاينة ٠٦", "Preview Client 06"),
+    customer: t("العميل ٠٦", "Client 06"),
     quotationId: "PV-QT-74",
     contractId: "PV-CT-12",
     serviceLabel: t("التشطيبات الداخلية", "Interior Finishing"),
@@ -273,9 +273,9 @@ export const previewProjects: PreviewProject[] = [
   },
   {
     id: "PV-PR-202",
-    title: t("مشروع معاينة — مطبخ وحمام", "Preview Project — Kitchen & Bathroom"),
+    title: t("مشروع — مطبخ وحمام", "Project — Kitchen & Bathroom"),
     customerId: "PV-CU-02",
-    customer: t("عميلة معاينة ٠٢", "Preview Client 02"),
+    customer: t("العميلة ٠٢", "Client 02"),
     serviceLabel: t("المطابخ", "Kitchens"),
     progress: 35,
     status: "in_progress",
@@ -285,9 +285,9 @@ export const previewProjects: PreviewProject[] = [
   },
   {
     id: "PV-PR-203",
-    title: t("مشروع معاينة — واجهة فيلا", "Preview Project — Villa Facade"),
+    title: t("مشروع — واجهة فيلا", "Project — Villa Facade"),
     customerId: "PV-CU-04",
-    customer: t("عميل معاينة ٠٤", "Preview Client 04"),
+    customer: t("العميل ٠٤", "Client 04"),
     quotationId: "PV-QT-76",
     contractId: "PV-CT-11",
     serviceLabel: t("التشطيبات الخارجية والواجهات", "Exterior & Facades"),
@@ -299,9 +299,9 @@ export const previewProjects: PreviewProject[] = [
   },
   {
     id: "PV-PR-204",
-    title: t("مشروع معاينة — ترميم وحدة قديمة", "Preview Project — Old Unit Restoration"),
+    title: t("مشروع — ترميم وحدة قديمة", "Project — Old Unit Restoration"),
     customerId: "PV-CU-03",
-    customer: t("عميل معاينة ٠٣", "Preview Client 03"),
+    customer: t("العميل ٠٣", "Client 03"),
     serviceLabel: t("البناء وإعادة الترميم", "Building & Restoration"),
     progress: 100,
     status: "handed_over",
@@ -395,9 +395,9 @@ export const previewMilestones: PreviewMilestone[] = [
 
 export const previewPortalClient = {
   id: "PV-CU-06",
-  name: t("عميل معاينة ٠٦", "Preview Client 06"),
+  name: t("العميل ٠٦", "Client 06"),
   phone: "0100 000 1006",
-  email: "preview-client@example.com",
+  email: "client06@example.com",
   projectId: "PV-PR-201",
 };
 
@@ -435,14 +435,14 @@ export const previewIssues: PreviewIssue[] = [
     title: t("خدش بسطح حجر المدخل", "Scratch on entrance stone surface"),
     location: t("المدخل الرئيسي", "Main entrance"),
     detail: t(
-      "خدش سطحي ظهر بعد نقل خامة — مطلوب معالجة وتلميع. (ملاحظة تجريبية)",
+      "خدش سطحي ظهر بعد نقل خامة — مطلوب معالجة وتلميع.",
       "Surface scratch after moving material — treatment and polishing required. (Preview issue)",
     ),
     correctiveAction: t(
       "معالجة السطح وتلميعه ثم إعادة الفحص",
       "Treat and polish the surface, then re-inspect",
     ),
-    assignee: t("مشرف موقع أ", "Preview Supervisor A"),
+    assignee: t("مشرف موقع أ", "Site Supervisor A"),
     status: "open",
     severity: "normal",
     reportedAt: "2026-10-19",
@@ -454,14 +454,14 @@ export const previewIssues: PreviewIssue[] = [
     title: t("ضبط منسوب غطاء صرف الحمام", "Adjust bathroom drain cover level"),
     location: t("حمام رئيسي", "Master bathroom"),
     detail: t(
-      "غطاء الصرف أعلى من منسوب الأرضية بشكل بسيط. (ملاحظة تجريبية)",
+      "غطاء الصرف أعلى من منسوب الأرضية بشكل بسيط.",
       "Drain cover sits slightly above floor level. (Preview issue)",
     ),
     correctiveAction: t(
       "إعادة ضبط منسوب الغطاء واختبار تصريف المياه",
       "Reset the cover level and test drainage",
     ),
-    assignee: t("مشرف موقع أ", "Preview Supervisor A"),
+    assignee: t("مشرف موقع أ", "Site Supervisor A"),
     status: "in_progress",
     severity: "high",
     reportedAt: "2026-10-18",
@@ -473,14 +473,14 @@ export const previewIssues: PreviewIssue[] = [
     title: t("دهان بقعة خلف وحدة التخزين", "Paint patch behind storage unit"),
     location: t("غرفة المعيشة", "Living room"),
     detail: t(
-      "اختلاف درجة بسيط في بقعة محدودة — يحتاج إعادة دهان للجزء. (ملاحظة تجريبية)",
+      "اختلاف درجة بسيط في بقعة محدودة — يحتاج إعادة دهان للجزء.",
       "Slight shade difference in a small patch — repaint of the section needed. (Preview issue)",
     ),
     correctiveAction: t(
       "إعادة دهان الجزء المتأثر ومطابقة الدرجة",
       "Repaint the affected section and match the shade",
     ),
-    assignee: t("مشرف موقع أ", "Preview Supervisor A"),
+    assignee: t("مشرف موقع أ", "Site Supervisor A"),
     status: "resolved",
     severity: "normal",
     reportedAt: "2026-10-15",
@@ -496,14 +496,14 @@ export const previewTodayTasks = [
   },
   {
     id: "tk2",
-    title: t("معاينة حمامات — الشروق (تجريبي)", "Bathrooms inspection — Shorouk (preview)"),
-    sub: t("مهندس معاينات ب — مراجعة شبكة الصرف", "Preview Inspector B — drainage review"),
+    title: t("معاينة حمامات — الشروق", "Bathrooms inspection — Shorouk"),
+    sub: t("مهندس معاينات ب — مراجعة شبكة الصرف", "Inspection Engineer B — drainage review"),
     meta: t("اليوم", "Today"),
   },
   {
     id: "tk3",
     title: t("مراجعة ملاحظة غطاء الصرف", "Review drain-cover issue"),
-    sub: t("مشروع معاينة PV-PR-201", "Preview project PV-PR-201"),
+    sub: t("مشروع PV-PR-201", "Project PV-PR-201"),
     meta: t("قيد التنفيذ", "In progress"),
   },
   {
@@ -512,7 +512,7 @@ export const previewTodayTasks = [
       "اعتماد تقرير الأسبوع قبل إرساله للعميل",
       "Approve weekly report before sending to client",
     ),
-    sub: t("تقرير أسبوعي تجريبي", "Preview weekly report"),
+    sub: t("تقرير أسبوعي", "Weekly report"),
     meta: t("اليوم", "Today"),
   },
 ];

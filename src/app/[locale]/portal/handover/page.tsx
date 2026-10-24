@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { resolveLocale } from "@/lib/locale-params";
 import { getAppDictionary } from "@/content/app-dictionary";
-import { DemoActionButton } from "@/components/portal/PortalPanels";
+import { UnavailableActionButton } from "@/components/portal/PortalPanels";
 
 export async function generateMetadata({
   params,
@@ -39,9 +39,7 @@ export default async function PortalHandover({ params }: { params: Promise<{ loc
       <div className="two-col" style={{ gridTemplateColumns: "1fr 1fr" }}>
         <section className="panel" aria-label={app.portal.nav.handover}>
           <div className="panel-head">
-            <h2>
-              {locale === "ar" ? "قائمة مراجعة التسليم (معاينة)" : "Handover checklist (preview)"}
-            </h2>
+            <h2>{locale === "ar" ? "قائمة مراجعة التسليم" : "Handover checklist"}</h2>
           </div>
           <div className="panel-body">
             <ul className="check-list">
@@ -56,8 +54,8 @@ export default async function PortalHandover({ params }: { params: Promise<{ loc
             </ul>
             <p style={{ color: "var(--color-muted)", fontSize: "0.9rem" }}>
               {locale === "ar"
-                ? "مشروعك الحالي لم يصل لمرحلة التسليم بعد في بيانات المعاينة — القائمة للاطلاع على خطوات الاستلام المتوقعة."
-                : "Your current preview project has not reached handover yet — this list shows the expected sign-off steps."}
+                ? "مشروعك الحالي لم يصل إلى مرحلة التسليم بعد — تعرض القائمة خطوات الاستلام المتوقعة عند اكتمال الأعمال."
+                : "Your current project has not reached handover yet — this list shows the expected sign-off steps when the works are complete."}
             </p>
           </div>
         </section>
@@ -68,16 +66,14 @@ export default async function PortalHandover({ params }: { params: Promise<{ loc
           <div className="panel-body" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <p style={{ color: "var(--color-muted)" }}>
               {locale === "ar"
-                ? "بعد التسليم، تُسجَّل طلبات الصيانة والضمان هنا وتُتابع حالتها. لا توجد طلبات مفتوحة عليك في بيانات المعاينة حاليًا."
-                : "After handover, warranty and maintenance tickets are recorded and tracked here. You have no open tickets in the preview data."}
+                ? "بعد التسليم، تُسجَّل طلبات الصيانة والضمان هنا وتُتابع حالتها. لا توجد طلبات مفتوحة مرتبطة بمشروعك حاليًا."
+                : "After handover, warranty and maintenance tickets are recorded and tracked here. No open tickets are linked to your project right now."}
             </p>
             <div>
-              <DemoActionButton
+              <UnavailableActionButton
                 locale={locale}
                 appDict={app}
-                label={
-                  locale === "ar" ? "فتح طلب صيانة (معاينة)" : "Open maintenance ticket (preview)"
-                }
+                label={locale === "ar" ? "فتح طلب صيانة" : "Open maintenance ticket"}
                 primary
               />
             </div>

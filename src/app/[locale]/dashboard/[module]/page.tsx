@@ -72,30 +72,19 @@ export default async function DashboardModulePage({
 
   const table = previewModuleTables[key];
   const lead = app.dashboard.moduleLead[key];
-  const previewLimit = app.dashboard.modulePreviewLimits[key];
+
+  if (isDomainBoardModule(key)) {
+    return <DomainBoard locale={locale} appDict={app} moduleKey={key} />;
+  }
 
   return (
     <>
-      <div>
-        <h2 style={{ fontSize: "1.45rem" }}>{app.dashboard.modules[key]}</h2>
-        {lead ? <p style={{ color: "var(--color-muted)" }}>{lead}</p> : null}
+      <div className="module-page-head">
+        <h2>{app.dashboard.modules[key]}</h2>
+        {lead ? <p>{lead}</p> : null}
       </div>
-      {previewLimit ? (
-        <div className="alert alert-info" role="note">
-          <span aria-hidden="true">ⓘ</span>
-          <p>{previewLimit}</p>
-        </div>
-      ) : null}
-      {isDomainBoardModule(key) ? (
-        <DomainBoard locale={locale} appDict={app} moduleKey={key} previewLimit={previewLimit} />
-      ) : table ? (
-        <DataTable
-          locale={locale}
-          appDict={app}
-          table={table}
-          moduleKey={key}
-          previewLimit={previewLimit}
-        />
+      {table ? (
+        <DataTable locale={locale} appDict={app} table={table} moduleKey={key} />
       ) : (
         <div className="empty-state">
           <h2>{app.dashboard.modules[key]}</h2>

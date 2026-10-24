@@ -22,13 +22,5 @@ export default async function DashboardRequests({
   const locale = await resolveLocale(params);
   await requireReviewAccess(locale);
   const app = getAppDictionary(locale);
-  return (
-    <>
-      <div>
-        <h2 style={{ fontSize: "1.45rem" }}>{app.dashboard.requestsTitle}</h2>
-        <p style={{ color: "var(--color-muted)" }}>{app.dashboard.requestsLead}</p>
-      </div>
-      <RequestsBoard locale={locale} appDict={app} initialRequests={previewRequests} />
-    </>
-  );
+  return <RequestsBoard locale={locale} appDict={app} initialRequests={previewRequests} />;
 }

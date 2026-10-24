@@ -13,7 +13,10 @@ export type RecordMetaItem = {
 
 export function StatusBadge({ appDict, status }: { appDict: AppDictionary; status?: string }) {
   if (!status) return null;
-  return <span className={statusBadgeClass(status)}>{appDict.status[status] ?? status}</span>;
+  const stageStateLabels = appDict.dashboard.operations.stageStates as Record<string, string>;
+  const label =
+    appDict.status[status] ?? stageStateLabels[status === "done" ? "complete" : status] ?? status;
+  return <span className={statusBadgeClass(status)}>{label}</span>;
 }
 
 export function PriorityBadge({

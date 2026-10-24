@@ -11,6 +11,7 @@ import { ProjectCard } from "@/components/site/ProjectCard";
 import { ServiceCard } from "@/components/site/ServiceCard";
 import { Accordion } from "@/components/ui/Accordion";
 import { Arrow, CtaBand, EmptyState, SectionHead } from "@/components/ui/Pieces";
+import { GlyphIcon } from "@/components/ui/GlyphIcon";
 
 export async function generateMetadata({
   params,
@@ -63,7 +64,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             {h.trust.map((item, i) => (
               <li className="trust-item" key={item.title}>
                 <span className="t-icon" aria-hidden="true">
-                  {TRUST_ICONS[i]}
+                  <GlyphIcon icon={TRUST_ICONS[i] ?? "▦"} />
                 </span>
                 <span>
                   <strong>{item.title}</strong>

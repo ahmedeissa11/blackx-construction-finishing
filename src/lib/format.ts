@@ -16,7 +16,7 @@ export function formatNumber(value: number, locale: Locale): string {
   return new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-GB").format(value);
 }
 
-/** Preview-only currency formatting used with synthetic dashboard/portal data. */
+/** Currency formatting used by dashboard and portal records. */
 export function formatMoney(value: number, locale: Locale): string {
   const amount = formatNumber(value, locale);
   return locale === "ar" ? `${amount} ج.م` : `EGP ${amount}`;

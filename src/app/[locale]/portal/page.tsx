@@ -36,7 +36,7 @@ export default async function PortalOverview({ params }: { params: Promise<{ loc
 
   return (
     <>
-      <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+      <div className="portal-welcome">
         <span className="avatar" aria-hidden="true">
           {initials(pick(previewPortalClient.name, locale))}
         </span>
@@ -50,7 +50,7 @@ export default async function PortalOverview({ params }: { params: Promise<{ loc
         </div>
       </div>
 
-      <section className="panel" aria-label={p.currentProject}>
+      <section className="panel portal-current-project" aria-label={p.currentProject}>
         <div
           style={{ display: "grid", gridTemplateColumns: "300px 1fr" }}
           className="portal-hero-grid"
@@ -123,8 +123,8 @@ export default async function PortalOverview({ params }: { params: Promise<{ loc
         </div>
       </section>
 
-      <div className="two-col" style={{ gridTemplateColumns: "1fr 1fr" }}>
-        <section className="panel" aria-label={p.latestReport}>
+      <div className="two-col portal-summary-grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <section className="panel portal-summary-panel" aria-label={p.latestReport}>
           <div className="panel-head">
             <h2>{p.latestReport}</h2>
             <Link href={portalHref(locale, "reports")} className="btn btn-ghost btn-sm">
@@ -140,7 +140,7 @@ export default async function PortalOverview({ params }: { params: Promise<{ loc
             </p>
           </div>
         </section>
-        <section className="panel" aria-label={p.openIssuesCount}>
+        <section className="panel portal-summary-panel" aria-label={p.openIssuesCount}>
           <div className="panel-head">
             <h2>{p.openIssuesCount}</h2>
             <Link href={portalHref(locale, "issues")} className="btn btn-ghost btn-sm">
