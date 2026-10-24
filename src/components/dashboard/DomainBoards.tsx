@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ComponentProps, type ReactNode } from "react";
 import type { Locale, LocalizedText } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
-import { statusBadgeClass } from "@/content/app-dictionary";
 import type { PreviewModuleRow } from "@/content/preview-modules";
 import { dashboardHref, dashboardModules } from "@/config/navigation";
 import {
@@ -30,8 +29,16 @@ import {
   getPreviewWarrantyItems,
   type PreviewLinkedRecord,
 } from "@/lib/admin-preview";
-import { clampPercent, formatDate, formatMoney, formatNumber, formatPercent } from "@/lib/format";
+import { formatDate, formatMoney, formatNumber } from "@/lib/format";
 import { InfoDialog } from "@/components/ui/ConfirmDialog";
+import {
+  PriorityBadge,
+  ProgressMeter,
+  RecordCard,
+  RecordEmptyState,
+  StatusBadge,
+  type RecordMetaItem,
+} from "@/components/dashboard/RecordUI";
 
 export type DomainBoardModuleKey =
   | "customers"
@@ -60,48 +67,30 @@ function rowLabel(row: PreviewModuleRow, key: string, locale: Locale): string {
   return localized(getPreviewRowText(row, key), locale);
 }
 
-function StatusBadge({ appDict, status }: { appDict: AppDictionary; status?: string }) {
-  if (!status) return null;
-  return <span className={statusBadgeClass(status)}>{appDict.status[status] ?? status}</span>;
+function meta(
+  label: string,
+  value: ReactNode,
+  options?: Pick<RecordMetaItem, "wide" | "dir">,
+): RecordMetaItem {
+  return { label, value, ...options };
 }
 
-function PriorityBadge({ appDict, priority }: { appDict: AppDictionary; priority?: string }) {
-  if (!priority) return null;
-  const className =
-    priority === "urgent"
-      ? "badge badge-urgent"
-      : priority === "high"
-        ? "badge badge-progress"
-        : "badge badge-neutral";
-  return <span className={className}>{appDict.priority[priority] ?? priority}</span>;
-}
-
-function ProgressView({
-  appDict,
-  locale,
-  value,
-}: {
+type DomainRecordCardProps = Omit<
+  ComponentProps<typeof RecordCard>,
+  "showDetailsLabel" | "hideDetailsLabel" | "detailsTitle"
+> & {
   appDict: AppDictionary;
-  locale: Locale;
-  value?: number;
-}) {
-  if (value === undefined) return null;
-  const progress = clampPercent(value);
-  const label = `${appDict.dashboard.cols.progress}: ${formatPercent(progress, locale)}`;
+};
+
+function DomainRecordCard({ appDict, relationshipsLabel, ...props }: DomainRecordCardProps) {
   return (
-    <span className="progress-row">
-      <span
-        className="progress"
-        role="progressbar"
-        aria-label={label}
-        aria-valuenow={progress}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <span style={{ width: `${progress}%` }} />
-      </span>
-      <span style={{ fontWeight: 600 }}>{formatPercent(progress, locale)}</span>
-    </span>
+    <RecordCard
+      {...props}
+      relationshipsLabel={relationshipsLabel ?? appDict.dashboard.linkedRecords}
+      showDetailsLabel={appDict.showDetails}
+      hideDetailsLabel={appDict.hideDetails}
+      detailsTitle={appDict.recordMoreDetails}
+    />
   );
 }
 
@@ -132,7 +121,7 @@ function LinkedRecordLinks({
       {links.map((record) => (
         <Link
           key={`${record.kind}-${record.id}`}
-          className="btn btn-ghost btn-sm"
+          className="record-chip-link"
           href={linkedRecordHref(locale, record)}
           aria-label={`${appDict.dashboard.operations.openRelated}: ${record.id}`}
         >
@@ -150,6 +139,7 @@ function BoardShell({
   stats,
   controls,
   children,
+  layout = "grid",
 }: {
   locale: Locale;
   title: string;
@@ -157,6 +147,7 @@ function BoardShell({
   stats: Array<{ label: string; value: number }>;
   controls?: ReactNode;
   children: ReactNode;
+  layout?: "grid" | "list";
 }) {
   return (
     <section className="panel domain-board">
@@ -175,17 +166,10 @@ function BoardShell({
         ))}
       </div>
       {controls}
-      <div className="domain-card-grid">{children}</div>
+      <div className={layout === "list" ? "domain-record-list" : "domain-card-grid"}>
+        {children}
+      </div>
     </section>
-  );
-}
-
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="domain-field">
-      <dt>{label}</dt>
-      <dd>{children}</dd>
-    </div>
   );
 }
 
@@ -312,13 +296,15 @@ function OversightControls({
 
 function OversightEmpty({ appDict, onClear }: { appDict: AppDictionary; onClear: () => void }) {
   return (
-    <div className="domain-empty">
-      <p aria-hidden="true">⌕</p>
-      <p>{appDict.noResults}</p>
-      <button type="button" className="btn btn-outline btn-sm" onClick={onClear}>
-        {appDict.clearFilters}
-      </button>
-    </div>
+    <RecordEmptyState
+      action={
+        <button type="button" className="btn btn-outline btn-sm" onClick={onClear}>
+          {appDict.clearFilters}
+        </button>
+      }
+    >
+      {appDict.noResults}
+    </RecordEmptyState>
   );
 }
 
@@ -392,49 +378,54 @@ function NotificationsBoard({
     >
       {filtered.length > 0 ? (
         filtered.map((item) => (
-          <article
-            className={item.requiresReview ? "domain-card domain-card-blocker" : "domain-card"}
+          <DomainRecordCard
+            appDict={appDict}
+            className={item.requiresReview ? "domain-card-blocker" : undefined}
             key={item.row.id}
+            kind={item.requiresReview ? operations.needsAttention : undefined}
+            title={rowLabel(item.row, "title", locale)}
+            reference={
+              item.entityReference ? (
+                <>
+                  {cols.entity} · <span dir="ltr">{item.entityReference}</span>
+                </>
+              ) : undefined
+            }
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.date, item.date ? formatDate(item.date, locale) : operations.notRecorded, {
+                wide: !item.entityReference,
+              }),
+              ...(item.entityReference ? [] : [meta(cols.entity, operations.notRecorded)]),
+            ]}
+            detailItems={[
+              meta(domain.deliveryChannel, operations.notRecorded),
+              meta(domain.recipient, operations.notRecorded),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              <>
+                <UnavailableButton
+                  label={domain.actions.markNotificationReviewed}
+                  message={domain.markNotificationReviewedUnavailable}
+                  onUnavailable={onUnavailable}
+                />
+                <UnavailableButton
+                  label={domain.actions.resendNotification}
+                  message={domain.resendNotificationUnavailable}
+                  onUnavailable={onUnavailable}
+                />
+              </>
+            }
           >
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {item.entityReference ?? item.row.id}
-                </p>
-                <h3>{rowLabel(item.row, "title", locale)}</h3>
-                {item.requiresReview ? (
-                  <p className="domain-blocker-label">{operations.needsAttention}</p>
-                ) : null}
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.entity}>
-                <span dir="ltr">{item.entityReference ?? operations.notRecorded}</span>
-              </Field>
-              <Field label={cols.date}>
-                {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-              </Field>
-              <Field label={domain.deliveryChannel}>{operations.notRecorded}</Field>
-              <Field label={domain.recipient}>{operations.notRecorded}</Field>
-            </dl>
             {item.requiresReview ? (
               <p className="domain-context-note">{domain.notificationReviewNote}</p>
             ) : null}
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              <UnavailableButton
-                label={domain.actions.markNotificationReviewed}
-                message={domain.markNotificationReviewedUnavailable}
-                onUnavailable={onUnavailable}
-              />
-              <UnavailableButton
-                label={domain.actions.resendNotification}
-                message={domain.resendNotificationUnavailable}
-                onUnavailable={onUnavailable}
-              />
-            </div>
-          </article>
+          </DomainRecordCard>
         ))
       ) : (
         <OversightEmpty appDict={appDict} onClear={clearFilters} />
@@ -487,9 +478,19 @@ function AuditBoard({
     setStatusFilter("");
   }
 
+  const groupedByDate = useMemo(() => {
+    const groups = new Map<string, typeof filtered>();
+    for (const item of filtered) {
+      const key = item.date ?? "not-recorded";
+      groups.set(key, [...(groups.get(key) ?? []), item]);
+    }
+    return [...groups.entries()];
+  }, [filtered]);
+
   return (
     <BoardShell
       locale={locale}
+      layout="list"
       title={domain.auditTitle}
       intro={domain.auditIntro}
       stats={[
@@ -523,32 +524,51 @@ function AuditBoard({
       }
     >
       {filtered.length > 0 ? (
-        filtered.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {item.entityReference ?? item.row.id}
-                </p>
-                <h3>{localized(item.action, locale)}</h3>
+        groupedByDate.map(([dateKey, groupItems]) => {
+          const groupLabel =
+            dateKey === "not-recorded" ? operations.notRecorded : formatDate(dateKey, locale);
+          return (
+            <section className="activity-group" key={dateKey} aria-label={groupLabel}>
+              <h3 className="activity-group-title">
+                <span className="activity-date">{groupLabel}</span>
+              </h3>
+              <div className="activity-timeline">
+                {groupItems.map((item) => (
+                  <div className="activity-record" key={item.row.id}>
+                    <span className="activity-marker" aria-hidden="true">
+                      ✓
+                    </span>
+                    <DomainRecordCard
+                      appDict={appDict}
+                      title={localized(item.action, locale)}
+                      reference={
+                        <>
+                          {cols.entity} ·{" "}
+                          <span dir="ltr">{item.entityReference ?? item.row.id}</span>
+                        </>
+                      }
+                      badges={<StatusBadge appDict={appDict} status={item.status} />}
+                      summaryVariant="inline"
+                      summaryItems={[meta(cols.actor, localized(item.actor, locale))]}
+                      detailItems={[
+                        meta(cols.date, groupLabel),
+                        meta(
+                          appDict.dashboard.linkedRecords,
+                          formatNumber(item.links.length, locale),
+                        ),
+                      ]}
+                      relationships={
+                        item.links.length > 0 ? (
+                          <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+                        ) : undefined
+                      }
+                    />
+                  </div>
+                ))}
               </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.actor}>{localized(item.actor, locale)}</Field>
-              <Field label={cols.date}>
-                {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-              </Field>
-              <Field label={cols.entity}>
-                <span dir="ltr">{item.entityReference ?? operations.notRecorded}</span>
-              </Field>
-              <Field label={appDict.dashboard.linkedRecords}>
-                {formatNumber(item.links.length, locale)}
-              </Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-          </article>
-        ))
+            </section>
+          );
+        })
       ) : (
         <OversightEmpty appDict={appDict} onClear={clearFilters} />
       )}
@@ -613,77 +633,79 @@ export function DomainBoard({
           const latestRequest = item.context.latestRequest;
           const latestWorkflow = item.context.latestWorkflow;
           return (
-            <article className="domain-card" key={item.customerId}>
-              <header>
-                <div>
-                  <p className="domain-reference" dir="ltr">
-                    {item.customerId}
-                  </p>
-                  <h3>{rowLabel(item.row, "name", locale)}</h3>
-                </div>
-                <StatusBadge appDict={appDict} status={item.status} />
-              </header>
-              <dl className="domain-fields">
-                <Field label={cols.phone}>
-                  <span dir="ltr">{rowLabel(item.row, "phone", locale)}</span>
-                </Field>
-                <Field label={cols.city}>{rowLabel(item.row, "city", locale)}</Field>
-                <Field label={domain.recordedRequests}>
-                  {formatNumber(item.context.requests.length, locale)}
-                </Field>
-                <Field label={domain.recordedProjects}>
-                  {formatNumber(item.context.projects.length, locale)}
-                </Field>
-                <Field label={domain.latestRequest}>
-                  {latestRequest ? (
+            <DomainRecordCard
+              appDict={appDict}
+              key={item.customerId}
+              title={rowLabel(item.row, "name", locale)}
+              reference={<span dir="ltr">{item.customerId}</span>}
+              badges={<StatusBadge appDict={appDict} status={item.status} />}
+              summaryItems={[
+                meta(cols.phone, rowLabel(item.row, "phone", locale), { dir: "ltr" }),
+                meta(cols.city, rowLabel(item.row, "city", locale)),
+                meta(domain.recordedRequests, formatNumber(item.context.requests.length, locale)),
+                meta(domain.recordedProjects, formatNumber(item.context.projects.length, locale)),
+              ]}
+              detailItems={[
+                meta(
+                  domain.latestRequest,
+                  latestRequest ? (
                     <>
                       <span dir="ltr">{latestRequest.id}</span> ·{" "}
                       {formatDate(latestRequest.submittedAt, locale)}
                     </>
                   ) : (
                     operations.notRecorded
-                  )}
-                </Field>
-                <Field label={domain.customerNextStep}>
-                  {latestRequest && latestWorkflow
+                  ),
+                  { wide: true },
+                ),
+                meta(
+                  domain.customerNextStep,
+                  latestRequest && latestWorkflow
                     ? operations.nextActions[latestWorkflow.nextAction]
-                    : operations.notRecorded}
-                </Field>
-                <Field label={operations.needsAttention}>
-                  {latestWorkflow && latestWorkflow.blockers.length > 0
+                    : operations.notRecorded,
+                  { wide: true },
+                ),
+                meta(
+                  operations.needsAttention,
+                  latestWorkflow && latestWorkflow.blockers.length > 0
                     ? formatNumber(latestWorkflow.blockers.length, locale)
-                    : operations.noBlockers}
-                </Field>
-              </dl>
+                    : operations.noBlockers,
+                  { wide: true },
+                ),
+              ]}
+              relationships={
+                item.context.projects.length > 0 || item.links.length > 0 ? (
+                  <>
+                    {item.context.projects.map((project) => (
+                      <Link
+                        key={project.id}
+                        className="record-chip-link"
+                        href={projectWorkspaceHref(locale, project.id)}
+                        aria-label={`${appDict.dashboard.openProjectWorkspace}: ${project.id}`}
+                      >
+                        {appDict.dashboard.linkedKinds.project} ·{" "}
+                        <span dir="ltr">{project.id}</span>
+                      </Link>
+                    ))}
+                    <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+                  </>
+                ) : undefined
+              }
+              actions={unavailableButton(
+                domain.actions.editCustomer,
+                domain.editCustomerUnavailable,
+              )}
+            >
               {latestRequest ? (
                 <p className="domain-note">
-                  {localized(latestRequest.serviceLabel, locale)} ·{" "}
+                  {domain.latestRequest}: {localized(latestRequest.serviceLabel, locale)} ·{" "}
                   {appDict.status[latestRequest.status] ?? latestRequest.status}
                 </p>
               ) : null}
               {item.context.projects.length > 0 ? (
-                <>
-                  <p className="domain-context-note">{domain.customerContextNote}</p>
-                  <div className="domain-inline-list">
-                    {item.context.projects.map((project) => (
-                      <Link
-                        key={project.id}
-                        className="btn btn-ghost btn-sm"
-                        href={projectWorkspaceHref(locale, project.id)}
-                        aria-label={`${appDict.dashboard.openProjectWorkspace}: ${project.id}`}
-                      >
-                        {appDict.dashboard.openProjectWorkspace} ·{" "}
-                        <span dir="ltr">{project.id}</span>
-                      </Link>
-                    ))}
-                  </div>
-                </>
+                <p className="domain-context-note">{domain.customerContextNote}</p>
               ) : null}
-              <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-              <div className="domain-actions">
-                {unavailableButton(domain.actions.editCustomer, domain.editCustomerUnavailable)}
-              </div>
-            </article>
+            </DomainRecordCard>
           );
         })}
       </BoardShell>
@@ -707,30 +729,28 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {item.reference ?? item.row.id}
-                </p>
-                <h3>{rowLabel(item.row, "service", locale)}</h3>
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.customer}>{rowLabel(item.row, "customer", locale)}</Field>
-              <Field label={cols.date}>
-                {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-              </Field>
-              <Field label={cols.assignee}>{rowLabel(item.row, "assignee", locale)}</Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {item.isUpcoming
+          <DomainRecordCard
+            appDict={appDict}
+            key={item.row.id}
+            title={rowLabel(item.row, "service", locale)}
+            reference={<span dir="ltr">{item.reference ?? item.row.id}</span>}
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.customer, rowLabel(item.row, "customer", locale), { wide: true }),
+              meta(cols.date, item.date ? formatDate(item.date, locale) : operations.notRecorded),
+              meta(cols.assignee, rowLabel(item.row, "assignee", locale)),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              item.isUpcoming
                 ? unavailableButton(domain.actions.completeInspection, domain.completeUnavailable)
-                : unavailableButton(domain.actions.scheduleInspection, domain.scheduleUnavailable)}
-            </div>
-          </article>
+                : unavailableButton(domain.actions.scheduleInspection, domain.scheduleUnavailable)
+            }
+          />
         ))}
       </BoardShell>
     );
@@ -757,36 +777,40 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {item.reference ?? item.row.id}
-                </p>
-                <h3>{rowLabel(item.row, "title", locale)}</h3>
-                <p className="domain-kind">{item.kind === "boq" ? domain.boq : domain.quotation}</p>
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.customer}>{rowLabel(item.row, "customer", locale)}</Field>
-              <Field label={domain.amount}>
-                {item.amount !== undefined
+          <DomainRecordCard
+            appDict={appDict}
+            key={item.row.id}
+            kind={item.kind === "boq" ? domain.boq : domain.quotation}
+            title={rowLabel(item.row, "title", locale)}
+            reference={<span dir="ltr">{item.reference ?? item.row.id}</span>}
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.customer, rowLabel(item.row, "customer", locale), { wide: true }),
+              meta(
+                domain.amount,
+                item.amount !== undefined
                   ? formatMoney(item.amount, locale)
-                  : operations.notRecorded}
-              </Field>
-              <Field label={cols.date}>
-                {rowLabel(item.row, "date", locale)
+                  : operations.notRecorded,
+              ),
+              meta(
+                cols.date,
+                rowLabel(item.row, "date", locale)
                   ? formatDate(rowLabel(item.row, "date", locale), locale)
-                  : operations.notRecorded}
-              </Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {unavailableButton(domain.actions.editBoq, domain.boqEditorUnavailable)}
-              {unavailableButton(domain.actions.sendQuotation, domain.sendUnavailable)}
-            </div>
-          </article>
+                  : operations.notRecorded,
+              ),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              <>
+                {unavailableButton(domain.actions.editBoq, domain.boqEditorUnavailable)}
+                {unavailableButton(domain.actions.sendQuotation, domain.sendUnavailable)}
+              </>
+            }
+          />
         ))}
       </BoardShell>
     );
@@ -816,39 +840,40 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {item.reference ?? item.row.id}
-                </p>
-                <h3>{rowLabel(item.row, "type", locale)}</h3>
-                <p className="domain-kind">
-                  {item.kind === "changeOrder" ? domain.changeOrder : domain.contract}
-                </p>
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.project}>{rowLabel(item.row, "project", locale)}</Field>
-              <Field label={domain.amount}>
-                {item.amount !== undefined
-                  ? formatMoney(item.amount, locale)
-                  : operations.notRecorded}
-              </Field>
-              <Field label={cols.date}>
-                {rowLabel(item.row, "date", locale)
+          <DomainRecordCard
+            appDict={appDict}
+            key={item.row.id}
+            kind={item.kind === "changeOrder" ? domain.changeOrder : domain.contract}
+            title={rowLabel(item.row, "type", locale)}
+            reference={<span dir="ltr">{item.reference ?? item.row.id}</span>}
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.project, rowLabel(item.row, "project", locale), { dir: "ltr" }),
+              meta(
+                cols.date,
+                rowLabel(item.row, "date", locale)
                   ? formatDate(rowLabel(item.row, "date", locale), locale)
-                  : operations.notRecorded}
-              </Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {item.kind === "changeOrder"
+                  : operations.notRecorded,
+              ),
+              meta(
+                domain.amount,
+                item.amount !== undefined
+                  ? formatMoney(item.amount, locale)
+                  : operations.notRecorded,
+                { wide: true },
+              ),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              item.kind === "changeOrder"
                 ? unavailableButton(domain.actions.approveChangeOrder, domain.approveUnavailable)
-                : unavailableButton(domain.actions.manageContract, domain.signUnavailable)}
-            </div>
-          </article>
+                : unavailableButton(domain.actions.manageContract, domain.signUnavailable)
+            }
+          />
         ))}
       </BoardShell>
     );
@@ -889,68 +914,77 @@ export function DomainBoard({
                 ? projectActions.handoverPending
                 : projectActions.handoverNotScheduled;
           return (
-            <article
-              className={
-                item.operations.blockerRows.length > 0
-                  ? "domain-card domain-card-blocker"
-                  : "domain-card"
-              }
+            <DomainRecordCard
+              appDict={appDict}
+              className={item.operations.blockerRows.length > 0 ? "domain-card-blocker" : undefined}
               key={item.project.id}
-            >
-              <header>
-                <div>
-                  <p className="domain-reference" dir="ltr">
-                    {item.project.id}
-                  </p>
-                  <h3>{localized(item.project.title, locale)}</h3>
-                  <p className="domain-kind">{localized(item.project.serviceLabel, locale)}</p>
-                </div>
-                <StatusBadge appDict={appDict} status={item.project.status} />
-              </header>
-              <dl className="domain-fields">
-                <Field label={cols.customer}>{localized(item.project.customer, locale)}</Field>
-                <Field label={cols.updated}>{formatDate(item.project.updatedAt, locale)}</Field>
-                <Field label={cols.progress}>
-                  <ProgressView appDict={appDict} locale={locale} value={item.project.progress} />
-                </Field>
-                <Field label={cols.milestone}>
-                  {localized(item.project.currentMilestone, locale)}
-                </Field>
-                <Field label={projectActions.nextMilestone}>
-                  {item.operations.nextMilestone
+              kind={localized(item.project.serviceLabel, locale)}
+              title={localized(item.project.title, locale)}
+              reference={<span dir="ltr">{item.project.id}</span>}
+              badges={<StatusBadge appDict={appDict} status={item.project.status} />}
+              summaryItems={[
+                meta(cols.customer, localized(item.project.customer, locale)),
+                meta(cols.updated, formatDate(item.project.updatedAt, locale)),
+                meta(
+                  cols.progress,
+                  <ProgressMeter appDict={appDict} locale={locale} value={item.project.progress} />,
+                  { wide: true },
+                ),
+                meta(
+                  projectActions.blockers,
+                  <>
+                    {formatNumber(item.operations.blockerRows.length, locale)}
+                    {blockerReferences.length > 0 ? (
+                      <span dir="ltr"> · {blockerReferences.join(" · ")}</span>
+                    ) : null}
+                  </>,
+                  { wide: blockerReferences.length > 0 },
+                ),
+                meta(
+                  projectActions.pendingReports,
+                  formatNumber(item.operations.pendingReports, locale),
+                ),
+              ]}
+              detailItems={[
+                meta(cols.milestone, localized(item.project.currentMilestone, locale), {
+                  wide: true,
+                }),
+                meta(
+                  projectActions.nextMilestone,
+                  item.operations.nextMilestone
                     ? localized(item.operations.nextMilestone.title, locale)
-                    : operations.notRecorded}
-                </Field>
-                <Field label={projectActions.latestProgress}>
-                  {item.operations.latestProgressRow
+                    : operations.notRecorded,
+                  { wide: true },
+                ),
+                meta(
+                  projectActions.latestProgress,
+                  item.operations.latestProgressRow
                     ? rowLabel(item.operations.latestProgressRow, "milestone", locale)
-                    : operations.notRecorded}
-                </Field>
-                <Field label={projectActions.blockers}>
-                  {formatNumber(item.operations.blockerRows.length, locale)}
-                  {blockerReferences.length > 0 ? (
-                    <span dir="ltr"> · {blockerReferences.join(" · ")}</span>
-                  ) : null}
-                </Field>
-                <Field label={projectActions.pendingReports}>
-                  {formatNumber(item.operations.pendingReports, locale)}
-                </Field>
-                <Field label={projectActions.handoverState}>{handoverLabel}</Field>
-              </dl>
-              <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-              <div className="domain-actions">
-                <Link
-                  className="btn btn-primary btn-sm"
-                  href={projectWorkspaceHref(locale, item.project.id)}
-                >
-                  {appDict.dashboard.openProjectWorkspace}
-                </Link>
-                {unavailableButton(
-                  domain.actions.editProjectPlan,
-                  domain.editProjectPlanUnavailable,
-                )}
-              </div>
-            </article>
+                    : operations.notRecorded,
+                  { wide: true },
+                ),
+                meta(projectActions.handoverState, handoverLabel, { wide: true }),
+              ]}
+              relationships={
+                item.links.length > 0 ? (
+                  <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+                ) : undefined
+              }
+              actions={
+                <>
+                  {unavailableButton(
+                    domain.actions.editProjectPlan,
+                    domain.editProjectPlanUnavailable,
+                  )}
+                  <Link
+                    className="btn btn-primary btn-sm"
+                    href={projectWorkspaceHref(locale, item.project.id)}
+                  >
+                    {appDict.dashboard.openProjectWorkspace}
+                  </Link>
+                </>
+              }
+            />
           );
         })}
       </BoardShell>
@@ -981,51 +1015,53 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article
-            className={
-              item.scheduleState === "overdue" ? "domain-card domain-card-blocker" : "domain-card"
-            }
+          <DomainRecordCard
+            appDict={appDict}
+            className={item.scheduleState === "overdue" ? "domain-card-blocker" : undefined}
             key={item.row.id}
-          >
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {item.projectId ?? rowLabel(item.row, "project", locale)}
-                </p>
-                <h3>{localized(item.title, locale)}</h3>
-                <p className="domain-kind">{domain.milestoneStates[item.scheduleState]}</p>
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.project}>
-                <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
-              </Field>
-              <Field label={cols.dueDate}>
-                {item.due ? formatDate(item.due, locale) : operations.notRecorded}
-              </Field>
-              <Field label={cols.progress}>
-                <ProgressView appDict={appDict} locale={locale} value={item.progress} />
-              </Field>
-              <Field label={cols.status}>
-                {item.status
-                  ? (appDict.status[item.status] ?? item.status)
-                  : operations.notRecorded}
-              </Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {item.projectId ? (
-                <Link
-                  className="btn btn-ghost btn-sm"
-                  href={projectWorkspaceHref(locale, item.projectId)}
-                >
-                  {appDict.dashboard.openProjectWorkspace}
-                </Link>
-              ) : null}
-              {unavailableButton(domain.actions.updateMilestone, domain.updateMilestoneUnavailable)}
-            </div>
-          </article>
+            kind={domain.milestoneStates[item.scheduleState]}
+            title={localized(item.title, locale)}
+            reference={
+              <>
+                {cols.project} ·{" "}
+                <span dir="ltr">{item.projectId ?? rowLabel(item.row, "project", locale)}</span>
+              </>
+            }
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.dueDate, item.due ? formatDate(item.due, locale) : operations.notRecorded),
+              meta(
+                cols.status,
+                item.status ? (appDict.status[item.status] ?? item.status) : operations.notRecorded,
+              ),
+              meta(
+                cols.progress,
+                <ProgressMeter appDict={appDict} locale={locale} value={item.progress} />,
+                { wide: true },
+              ),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              <>
+                {item.projectId ? (
+                  <Link
+                    className="btn btn-ghost btn-sm"
+                    href={projectWorkspaceHref(locale, item.projectId)}
+                  >
+                    {appDict.dashboard.openProjectWorkspace}
+                  </Link>
+                ) : null}
+                {unavailableButton(
+                  domain.actions.updateMilestone,
+                  domain.updateMilestoneUnavailable,
+                )}
+              </>
+            }
+          />
         ))}
       </BoardShell>
     );
@@ -1049,38 +1085,40 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference">
-                  {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-                </p>
-                <h3>{rowLabel(item.row, "title", locale)}</h3>
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.project}>
-                <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
-              </Field>
-              <Field label={cols.actor}>{rowLabel(item.row, "actor", locale)}</Field>
-              <Field label={cols.date}>
-                {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-              </Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {item.row.links?.projectId ? (
-                <Link
-                  className="btn btn-ghost btn-sm"
-                  href={projectWorkspaceHref(locale, item.row.links.projectId)}
-                >
-                  {appDict.dashboard.openProjectWorkspace}
-                </Link>
-              ) : null}
-              {unavailableButton(domain.actions.editDiaryEntry, domain.editDiaryUnavailable)}
-            </div>
-          </article>
+          <DomainRecordCard
+            appDict={appDict}
+            key={item.row.id}
+            kind={item.date ? formatDate(item.date, locale) : operations.notRecorded}
+            title={rowLabel(item.row, "title", locale)}
+            reference={
+              <>
+                {cols.project} · <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
+              </>
+            }
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.actor, rowLabel(item.row, "actor", locale)),
+              meta(cols.date, item.date ? formatDate(item.date, locale) : operations.notRecorded),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              <>
+                {item.row.links?.projectId ? (
+                  <Link
+                    className="btn btn-ghost btn-sm"
+                    href={projectWorkspaceHref(locale, item.row.links.projectId)}
+                  >
+                    {appDict.dashboard.openProjectWorkspace}
+                  </Link>
+                ) : null}
+                {unavailableButton(domain.actions.editDiaryEntry, domain.editDiaryUnavailable)}
+              </>
+            }
+          />
         ))}
       </BoardShell>
     );
@@ -1108,43 +1146,48 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {rowLabel(item.row, "project", locale)}
-                </p>
-                <h3>{rowLabel(item.row, "milestone", locale)}</h3>
-                <p className="domain-kind">
-                  {item.latestForProject ? domain.latestForProject : domain.earlierRecord}
-                </p>
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.project}>
-                <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
-              </Field>
-              <Field label={cols.date}>
-                {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-              </Field>
-              <Field label={cols.progress}>
-                <ProgressView appDict={appDict} locale={locale} value={item.progress} />
-              </Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {item.row.links?.projectId ? (
-                <Link
-                  className="btn btn-ghost btn-sm"
-                  href={projectWorkspaceHref(locale, item.row.links.projectId)}
-                >
-                  {appDict.dashboard.openProjectWorkspace}
-                </Link>
-              ) : null}
-              {unavailableButton(domain.actions.updateProgress, domain.updateProgressUnavailable)}
-            </div>
-          </article>
+          <DomainRecordCard
+            appDict={appDict}
+            key={item.row.id}
+            kind={item.latestForProject ? domain.latestForProject : domain.earlierRecord}
+            title={rowLabel(item.row, "milestone", locale)}
+            reference={
+              <>
+                {cols.project} · <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
+              </>
+            }
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.date, item.date ? formatDate(item.date, locale) : operations.notRecorded),
+              meta(
+                cols.status,
+                item.status ? (appDict.status[item.status] ?? item.status) : operations.notRecorded,
+              ),
+              meta(
+                cols.progress,
+                <ProgressMeter appDict={appDict} locale={locale} value={item.progress} />,
+                { wide: true },
+              ),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              <>
+                {item.row.links?.projectId ? (
+                  <Link
+                    className="btn btn-ghost btn-sm"
+                    href={projectWorkspaceHref(locale, item.row.links.projectId)}
+                  >
+                    {appDict.dashboard.openProjectWorkspace}
+                  </Link>
+                ) : null}
+                {unavailableButton(domain.actions.updateProgress, domain.updateProgressUnavailable)}
+              </>
+            }
+          />
         ))}
       </BoardShell>
     );
@@ -1172,47 +1215,50 @@ export function DomainBoard({
             ? localized(canonical.assignee, locale)
             : rowLabel(item.row, "assignee", locale);
           return (
-            <article
-              className={item.blocker ? "domain-card domain-card-blocker" : "domain-card"}
+            <DomainRecordCard
+              appDict={appDict}
+              className={item.blocker ? "domain-card-blocker" : undefined}
               key={`${item.moduleKey}-${item.row.id}`}
-            >
-              <header>
-                <div>
-                  <p className="domain-reference" dir="ltr">
-                    {item.reference ?? item.row.id}
-                  </p>
-                  <h3>{rowLabel(item.row, "title", locale)}</h3>
-                  {item.blocker ? <p className="domain-blocker-label">{domain.blocker}</p> : null}
-                </div>
-                <span className="domain-badges">
+              kind={item.blocker ? domain.blocker : undefined}
+              title={rowLabel(item.row, "title", locale)}
+              reference={<span dir="ltr">{item.reference ?? item.row.id}</span>}
+              badges={
+                <>
                   <PriorityBadge appDict={appDict} priority={item.severity} />
                   <StatusBadge appDict={appDict} status={item.status} />
-                </span>
-              </header>
-              <dl className="domain-fields">
-                <Field label={cols.project}>
-                  <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
-                </Field>
-                <Field label={cols.assignee}>{assignee || operations.notRecorded}</Field>
-                <Field label={cols.date}>
-                  {canonical ? formatDate(canonical.reportedAt, locale) : operations.notRecorded}
-                </Field>
-                <Field label={domain.correctiveAction}>
-                  {canonical
+                </>
+              }
+              summaryItems={[
+                meta(cols.project, rowLabel(item.row, "project", locale), { dir: "ltr" }),
+                meta(
+                  cols.date,
+                  canonical ? formatDate(canonical.reportedAt, locale) : operations.notRecorded,
+                ),
+                meta(cols.assignee, assignee || operations.notRecorded, { wide: true }),
+              ]}
+              detailItems={[
+                meta(
+                  domain.correctiveAction,
+                  canonical
                     ? localized(canonical.correctiveAction, locale)
-                    : operations.notRecorded}
-                </Field>
-                <Field label={domain.reportedBy}>{operations.notRecorded}</Field>
-                <Field label={domain.dueDate}>{operations.notRecorded}</Field>
-              </dl>
-              {canonical ? (
-                <p className="domain-note">{localized(canonical.detail, locale)}</p>
-              ) : null}
-              <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-              <div className="domain-actions">
-                {unavailableButton(domain.actions.closeFinding, domain.closeUnavailable)}
-              </div>
-            </article>
+                    : operations.notRecorded,
+                  { wide: true },
+                ),
+                meta(domain.reportedBy, operations.notRecorded),
+                meta(domain.dueDate, operations.notRecorded),
+              ]}
+              detailChildren={
+                canonical ? (
+                  <p className="domain-note">{localized(canonical.detail, locale)}</p>
+                ) : null
+              }
+              relationships={
+                item.links.length > 0 ? (
+                  <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+                ) : undefined
+              }
+              actions={unavailableButton(domain.actions.closeFinding, domain.closeUnavailable)}
+            />
           );
         })}
       </BoardShell>
@@ -1236,37 +1282,45 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {rowLabel(item.row, "week", locale)}
-                </p>
-                <h3>{rowLabel(item.row, "title", locale)}</h3>
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.project}>
-                <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
-              </Field>
-              <Field label={cols.date}>
-                {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-              </Field>
-              <Field label={cols.progress}>
-                <ProgressView
+          <DomainRecordCard
+            appDict={appDict}
+            key={item.row.id}
+            kind={<span dir="ltr">{rowLabel(item.row, "week", locale)}</span>}
+            title={rowLabel(item.row, "title", locale)}
+            reference={
+              <>
+                {cols.project} · <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
+              </>
+            }
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.date, item.date ? formatDate(item.date, locale) : operations.notRecorded),
+              meta(
+                cols.status,
+                item.status ? (appDict.status[item.status] ?? item.status) : operations.notRecorded,
+              ),
+              meta(
+                cols.progress,
+                <ProgressMeter
                   appDict={appDict}
                   locale={locale}
                   value={getPreviewRowProgress(item.row)}
-                />
-              </Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {unavailableButton(domain.actions.approveReport, domain.approveReportUnavailable)}
-              {unavailableButton(domain.actions.deliverReport, domain.deliverReportUnavailable)}
-            </div>
-          </article>
+                />,
+                { wide: true },
+              ),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              <>
+                {unavailableButton(domain.actions.approveReport, domain.approveReportUnavailable)}
+                {unavailableButton(domain.actions.deliverReport, domain.deliverReportUnavailable)}
+              </>
+            }
+          />
         ))}
       </BoardShell>
     );
@@ -1290,35 +1344,44 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {item.fileFormat ?? operations.notRecorded}
-                </p>
-                <h3>{rowLabel(item.row, "title", locale)}</h3>
-                <p className="domain-kind">{rowLabel(item.row, "type", locale)}</p>
-              </div>
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.project}>
-                <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
-              </Field>
-              <Field label={cols.type}>{rowLabel(item.row, "type", locale)}</Field>
-              <Field label={cols.size}>{rowLabel(item.row, "size", locale)}</Field>
-              <Field label={cols.updated}>
-                {item.updated ? formatDate(item.updated, locale) : operations.notRecorded}
-              </Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {unavailableButton(domain.actions.uploadDocument, domain.uploadDocumentUnavailable)}
-              {unavailableButton(
-                domain.actions.downloadDocument,
-                domain.downloadDocumentUnavailable,
-              )}
-            </div>
-          </article>
+          <DomainRecordCard
+            appDict={appDict}
+            key={item.row.id}
+            kind={rowLabel(item.row, "type", locale)}
+            title={rowLabel(item.row, "title", locale)}
+            reference={
+              <>
+                {cols.project} · <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
+              </>
+            }
+            badges={
+              <span className="badge badge-neutral">
+                {item.fileFormat ?? operations.notRecorded}
+              </span>
+            }
+            summaryItems={[
+              meta(cols.type, rowLabel(item.row, "type", locale)),
+              meta(
+                cols.updated,
+                item.updated ? formatDate(item.updated, locale) : operations.notRecorded,
+              ),
+            ]}
+            detailItems={[meta(cols.size, rowLabel(item.row, "size", locale), { dir: "ltr" })]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              <>
+                {unavailableButton(domain.actions.uploadDocument, domain.uploadDocumentUnavailable)}
+                {unavailableButton(
+                  domain.actions.downloadDocument,
+                  domain.downloadDocumentUnavailable,
+                )}
+              </>
+            }
+          />
         ))}
       </BoardShell>
     );
@@ -1357,71 +1420,76 @@ export function DomainBoard({
               return status === "open" || status === "in_progress" || status === "pending";
             }).length ?? 0;
           return (
-            <article className="domain-card" key={item.row.id}>
-              <header>
-                <div>
-                  <p className="domain-reference" dir="ltr">
-                    {item.reference ?? item.row.id}
-                  </p>
-                  <h3>
-                    {item.project
-                      ? localized(item.project.title, locale)
-                      : rowLabel(item.row, "project", locale)}
-                  </h3>
-                </div>
-                <StatusBadge appDict={appDict} status={item.status} />
-              </header>
-              <dl className="domain-fields">
-                <Field label={cols.project}>
-                  <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
-                </Field>
-                <Field label={cols.customer}>{rowLabel(item.row, "customer", locale)}</Field>
-                <Field label={cols.date}>
-                  {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-                </Field>
-                <Field label={cols.progress}>
-                  {item.project ? (
-                    <ProgressView appDict={appDict} locale={locale} value={item.project.progress} />
+            <DomainRecordCard
+              appDict={appDict}
+              key={item.row.id}
+              title={
+                item.project
+                  ? localized(item.project.title, locale)
+                  : rowLabel(item.row, "project", locale)
+              }
+              reference={<span dir="ltr">{item.reference ?? item.row.id}</span>}
+              badges={<StatusBadge appDict={appDict} status={item.status} />}
+              summaryItems={[
+                meta(cols.customer, rowLabel(item.row, "customer", locale)),
+                meta(cols.date, item.date ? formatDate(item.date, locale) : operations.notRecorded),
+                meta(cols.project, rowLabel(item.row, "project", locale), { dir: "ltr" }),
+                meta(
+                  cols.progress,
+                  item.project ? (
+                    <ProgressMeter
+                      appDict={appDict}
+                      locale={locale}
+                      value={item.project.progress}
+                    />
                   ) : (
                     operations.notRecorded
-                  )}
-                </Field>
-              </dl>
-              {item.operations ? (
-                <div className="domain-context-note">
-                  <strong>{domain.recordedSignals}</strong>
-                  <div>
-                    {projectActions.blockers}:{" "}
-                    {formatNumber(item.operations.blockerRows.length, locale)} ·{" "}
-                    {appDict.dashboard.statUnresolvedFindings}:{" "}
-                    {formatNumber(item.operations.unresolvedFindings, locale)} ·{" "}
-                    {projectActions.pendingReports}:{" "}
-                    {formatNumber(item.operations.pendingReports, locale)} ·{" "}
-                    {domain.activeAftercare}: {formatNumber(activeWarrantyCount, locale)}
+                  ),
+                ),
+              ]}
+              detailChildren={
+                item.operations ? (
+                  <div className="domain-context-note">
+                    <strong>{domain.recordedSignals}</strong>
+                    <div>
+                      {projectActions.blockers}:{" "}
+                      {formatNumber(item.operations.blockerRows.length, locale)} ·{" "}
+                      {appDict.dashboard.statUnresolvedFindings}:{" "}
+                      {formatNumber(item.operations.unresolvedFindings, locale)} ·{" "}
+                      {projectActions.pendingReports}:{" "}
+                      {formatNumber(item.operations.pendingReports, locale)} ·{" "}
+                      {domain.activeAftercare}: {formatNumber(activeWarrantyCount, locale)}
+                    </div>
                   </div>
-                </div>
-              ) : null}
-              <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-              <div className="domain-actions">
-                {item.project ? (
-                  <Link
-                    className="btn btn-ghost btn-sm"
-                    href={`${projectWorkspaceHref(locale, item.project.id)}#project-handover`}
-                  >
-                    {projectActions.reviewHandover}
-                  </Link>
-                ) : null}
-                {item.pending
-                  ? unavailableButton(
-                      domain.actions.completeHandover,
-                      domain.completeHandoverUnavailable,
-                    )
-                  : unavailableButton(
-                      domain.actions.scheduleHandover,
-                      domain.scheduleHandoverUnavailable,
-                    )}
-              </div>
-            </article>
+                ) : null
+              }
+              relationships={
+                item.links.length > 0 ? (
+                  <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+                ) : undefined
+              }
+              actions={
+                <>
+                  {item.project ? (
+                    <Link
+                      className="btn btn-ghost btn-sm"
+                      href={`${projectWorkspaceHref(locale, item.project.id)}#project-handover`}
+                    >
+                      {projectActions.reviewHandover}
+                    </Link>
+                  ) : null}
+                  {item.pending
+                    ? unavailableButton(
+                        domain.actions.completeHandover,
+                        domain.completeHandoverUnavailable,
+                      )
+                    : unavailableButton(
+                        domain.actions.scheduleHandover,
+                        domain.scheduleHandoverUnavailable,
+                      )}
+                </>
+              }
+            />
           );
         })}
       </BoardShell>
@@ -1447,44 +1515,47 @@ export function DomainBoard({
         ]}
       >
         {items.map((item) => (
-          <article className="domain-card" key={item.row.id}>
-            <header>
-              <div>
-                <p className="domain-reference" dir="ltr">
-                  {item.reference ?? item.row.id}
-                </p>
-                <h3>{rowLabel(item.row, "title", locale)}</h3>
-                {item.active ? <p className="domain-kind">{domain.activeAftercare}</p> : null}
-              </div>
-              <StatusBadge appDict={appDict} status={item.status} />
-            </header>
-            <dl className="domain-fields">
-              <Field label={cols.project}>
-                <span dir="ltr">{rowLabel(item.row, "project", locale)}</span>
-              </Field>
-              <Field label={cols.date}>
-                {item.date ? formatDate(item.date, locale) : operations.notRecorded}
-              </Field>
-              <Field label={cols.assignee}>{operations.notRecorded}</Field>
-              <Field label={domain.dueDate}>{operations.notRecorded}</Field>
-            </dl>
-            <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
-            <div className="domain-actions">
-              {item.row.links?.projectId ? (
-                <Link
-                  className="btn btn-ghost btn-sm"
-                  href={`${projectWorkspaceHref(locale, item.row.links.projectId)}#project-handover`}
-                >
-                  {operations.projectActions.reviewHandover}
-                </Link>
-              ) : null}
-              {unavailableButton(
-                domain.actions.scheduleWarrantyVisit,
-                domain.scheduleWarrantyVisitUnavailable,
-              )}
-              {unavailableButton(domain.actions.closeWarrantyItem, domain.closeWarrantyUnavailable)}
-            </div>
-          </article>
+          <DomainRecordCard
+            appDict={appDict}
+            key={item.row.id}
+            kind={item.active ? domain.activeAftercare : undefined}
+            title={rowLabel(item.row, "title", locale)}
+            reference={<span dir="ltr">{item.reference ?? item.row.id}</span>}
+            badges={<StatusBadge appDict={appDict} status={item.status} />}
+            summaryItems={[
+              meta(cols.project, rowLabel(item.row, "project", locale), { dir: "ltr" }),
+              meta(cols.date, item.date ? formatDate(item.date, locale) : operations.notRecorded),
+            ]}
+            detailItems={[
+              meta(cols.assignee, operations.notRecorded),
+              meta(domain.dueDate, operations.notRecorded),
+            ]}
+            relationships={
+              item.links.length > 0 ? (
+                <LinkedRecordLinks appDict={appDict} locale={locale} links={item.links} />
+              ) : undefined
+            }
+            actions={
+              <>
+                {item.row.links?.projectId ? (
+                  <Link
+                    className="btn btn-ghost btn-sm"
+                    href={`${projectWorkspaceHref(locale, item.row.links.projectId)}#project-handover`}
+                  >
+                    {operations.projectActions.reviewHandover}
+                  </Link>
+                ) : null}
+                {unavailableButton(
+                  domain.actions.scheduleWarrantyVisit,
+                  domain.scheduleWarrantyVisitUnavailable,
+                )}
+                {unavailableButton(
+                  domain.actions.closeWarrantyItem,
+                  domain.closeWarrantyUnavailable,
+                )}
+              </>
+            }
+          />
         ))}
       </BoardShell>
     );

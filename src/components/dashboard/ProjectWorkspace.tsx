@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import type { Locale, LocalizedText } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
-import { statusBadgeClass } from "@/content/app-dictionary";
 import { dashboardHref, type DashboardModuleKey } from "@/config/navigation";
 import {
   previewModuleTables,
@@ -19,13 +18,25 @@ import {
 } from "@/lib/admin-preview";
 import { clampPercent, formatDate, formatMoney, formatNumber, formatPercent } from "@/lib/format";
 import { Arrow } from "@/components/ui/Pieces";
+import {
+  PriorityBadge,
+  ProgressMeter,
+  RecordListItem,
+  RecordMetaList,
+  StatusBadge,
+  type RecordMetaItem,
+} from "@/components/dashboard/RecordUI";
 
 function localizedValue(value: LocalizedText | string, locale: Locale): string {
   return typeof value === "string" ? value : pick(value, locale);
 }
 
-function StatusBadge({ appDict, status }: { appDict: AppDictionary; status: string }) {
-  return <span className={statusBadgeClass(status)}>{appDict.status[status] ?? status}</span>;
+function meta(
+  label: string,
+  value: ReactNode,
+  options?: Pick<RecordMetaItem, "wide" | "dir">,
+): RecordMetaItem {
+  return { label, value, ...options };
 }
 
 function formatCell(cell: PreviewCell, locale: Locale, appDict: AppDictionary): string {
@@ -76,27 +87,67 @@ function ModuleRowsList({
 
   const cols = d.cols as Record<string, string>;
 
+  const summaryPriority = [
+    "date",
+    "dueDate",
+    "due",
+    "assignee",
+    "actor",
+    "customer",
+    "amount",
+    "progress",
+    "type",
+    "week",
+    "updated",
+    "size",
+  ];
+
   return (
-    <div className="list-rows">
+    <div className="record-list">
       {rows.map((row) => {
         const status = getPreviewRowStatus(row);
-        const details = (table?.columns ?? [])
-          .filter((column) => !["title", "project", "status"].includes(column.id))
-          .map((column) => {
+        const title = rowTitle(row, locale, appDict);
+        const reference = getPreviewRowReference(row);
+        const allItems = (table?.columns ?? [])
+          .filter((column) => !["title", "project", "status", "ref", "entity"].includes(column.id))
+          .flatMap((column) => {
             const cell = row.cells[column.id];
-            if (!cell) return null;
-            return `${cols[column.labelKey] ?? column.labelKey}: ${formatCell(cell, locale, appDict)}`;
+            if (!cell) return [];
+            return [
+              {
+                id: column.id,
+                item: meta(
+                  cols[column.labelKey] ?? column.labelKey,
+                  formatCell(cell, locale, appDict),
+                  { wide: ["milestone", "service", "customer"].includes(column.id) },
+                ),
+              },
+            ];
           })
-          .filter(Boolean)
-          .join(" · ");
+          .sort((a, b) => {
+            const aPriority = summaryPriority.indexOf(a.id);
+            const bPriority = summaryPriority.indexOf(b.id);
+            return (
+              (aPriority === -1 ? summaryPriority.length : aPriority) -
+              (bPriority === -1 ? summaryPriority.length : bPriority)
+            );
+          });
+        const summaryItems = allItems.slice(0, 3).map((entry) => entry.item);
+        const detailItems = allItems.slice(3).map((entry) => entry.item);
         return (
-          <div className="list-row" key={row.id} style={{ flexWrap: "wrap" }}>
-            <div className="lr-main" style={{ flex: "1 1 220px" }}>
-              <div className="lr-title">{rowTitle(row, locale, appDict)}</div>
-              {details ? <div className="lr-sub">{details}</div> : null}
-            </div>
-            {status ? <StatusBadge appDict={appDict} status={status} /> : null}
-          </div>
+          <RecordListItem
+            key={row.id}
+            title={title}
+            reference={
+              reference && reference !== title ? <span dir="ltr">{reference}</span> : undefined
+            }
+            summaryItems={summaryItems}
+            detailItems={detailItems}
+            badges={<StatusBadge appDict={appDict} status={status} />}
+            showDetailsLabel={appDict.showDetails}
+            hideDetailsLabel={appDict.hideDetails}
+            detailsTitle={appDict.recordMoreDetails}
+          />
         );
       })}
     </div>
@@ -187,6 +238,15 @@ export function ProjectWorkspace({
           <Arrow back /> {d.backToProjects}
         </Link>
         <h2 style={{ fontSize: "1.45rem", marginBlockStart: 10 }}>{pick(project.title, locale)}</h2>
+        <div className="project-detail-kicker">
+          <span dir="ltr">{project.id}</span>
+          <span aria-hidden="true">·</span>
+          <span>{pick(project.customer, locale)}</span>
+          <StatusBadge appDict={appDict} status={project.status} />
+          <span className="project-detail-progress">
+            {d.cols.progress} · {formatPercent(progress, locale)}
+          </span>
+        </div>
         <p style={{ color: "var(--color-muted)", maxWidth: 920 }}>{d.projectWorkspaceLead}</p>
       </div>
 
@@ -216,58 +276,43 @@ export function ProjectWorkspace({
 
       <WorkspacePanel id="project-overview" title={d.projectOverview}>
         <div className="panel-body">
-          <dl className="kv-grid">
-            <div className="kv">
-              <dt>{d.cols.reference}</dt>
-              <dd dir="ltr">{project.id}</dd>
-            </div>
-            <div className="kv">
-              <dt>{d.cols.customer}</dt>
-              <dd>
-                {pick(project.customer, locale)} · <span dir="ltr">{project.customerId}</span>
-              </dd>
-            </div>
-            <div className="kv">
-              <dt>{d.cols.service}</dt>
-              <dd>{pick(project.serviceLabel, locale)}</dd>
-            </div>
-            <div className="kv">
-              <dt>{d.cols.status}</dt>
-              <dd>
-                <StatusBadge appDict={appDict} status={project.status} />
-              </dd>
-            </div>
-            <div className="kv">
-              <dt>{d.cols.milestone}</dt>
-              <dd>{pick(project.currentMilestone, locale)}</dd>
-            </div>
-            <div className="kv">
-              <dt>{d.cols.updated}</dt>
-              <dd>{formatDate(project.updatedAt, locale)}</dd>
-            </div>
-            <div className="kv">
-              <dt>{d.statUnresolvedFindings}</dt>
-              <dd>{formatNumber(operations.unresolvedFindings, locale)}</dd>
-            </div>
-            <div className="kv">
-              <dt>{d.statPendingReports}</dt>
-              <dd>{formatNumber(operations.pendingReports, locale)}</dd>
-            </div>
-          </dl>
-          <div style={{ marginBlockStart: 20 }}>
-            <span className="progress-row">
-              <span
-                className="progress"
-                role="progressbar"
-                aria-label={`${d.cols.progress}: ${formatPercent(progress, locale)}`}
-                aria-valuenow={progress}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
-                <span style={{ width: `${progress}%` }} />
-              </span>
-              <strong>{formatPercent(progress, locale)}</strong>
-            </span>
+          <div className="record-detail-groups">
+            <section aria-labelledby="project-overview-basics-title">
+              <h4 id="project-overview-basics-title">{d.recordSections.overview}</h4>
+              <RecordMetaList
+                variant="detail"
+                items={[
+                  meta(d.cols.project, project.id, { dir: "ltr" }),
+                  meta(
+                    d.cols.customer,
+                    <>
+                      {pick(project.customer, locale)} · <span dir="ltr">{project.customerId}</span>
+                    </>,
+                  ),
+                  meta(d.cols.service, pick(project.serviceLabel, locale), { wide: true }),
+                  meta(d.cols.milestone, pick(project.currentMilestone, locale), { wide: true }),
+                ]}
+              />
+            </section>
+            <section aria-labelledby="project-overview-status-title">
+              <h4 id="project-overview-status-title">{d.recordSections.statusResponsibility}</h4>
+              <RecordMetaList
+                variant="detail"
+                items={[
+                  meta(d.cols.status, <StatusBadge appDict={appDict} status={project.status} />),
+                  meta(d.cols.updated, formatDate(project.updatedAt, locale)),
+                  meta(
+                    d.statUnresolvedFindings,
+                    formatNumber(operations.unresolvedFindings, locale),
+                  ),
+                  meta(d.statPendingReports, formatNumber(operations.pendingReports, locale)),
+                ]}
+              />
+            </section>
+          </div>
+          <div className="project-overview-progress">
+            <span>{d.cols.progress}</span>
+            <ProgressMeter appDict={appDict} locale={locale} value={progress} />
           </div>
         </div>
       </WorkspacePanel>
@@ -450,43 +495,35 @@ export function ProjectWorkspace({
             linkLabel={d.viewAll}
           >
             {operations.canonicalIssues.length > 0 ? (
-              <div className="list-rows">
+              <div className="record-list">
                 {operations.canonicalIssues.map((issue) => (
-                  <article className="list-row" key={issue.id} style={{ alignItems: "flex-start" }}>
-                    <span className="file-icon" aria-hidden="true">
-                      ⚠
-                    </span>
-                    <div className="lr-main">
-                      <div className="lr-title">
-                        {pick(issue.title, locale)} · <span dir="ltr">{issue.id}</span>
-                      </div>
-                      <div className="lr-sub">
-                        {d.cols.phase}: {pick(issue.phase, locale)} · {d.cols.location}:{" "}
-                        {pick(issue.location, locale)} · {d.cols.reported}:{" "}
-                        {formatDate(issue.reportedAt, locale)}
-                      </div>
-                      <p style={{ marginBlockStart: 8 }}>{pick(issue.detail, locale)}</p>
-                      <p style={{ marginBlockStart: 6 }}>
-                        <strong>{d.cols.correctiveAction}:</strong>{" "}
-                        {pick(issue.correctiveAction, locale)} · {d.cols.assignee}:{" "}
-                        {pick(issue.assignee, locale)}
-                      </p>
-                    </div>
-                    <span style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
-                      <span
-                        className={
-                          issue.severity === "urgent"
-                            ? "badge badge-urgent"
-                            : issue.severity === "high"
-                              ? "badge badge-progress"
-                              : "badge badge-neutral"
-                        }
-                      >
-                        {appDict.priority[issue.severity] ?? issue.severity}
-                      </span>
-                      <StatusBadge appDict={appDict} status={issue.status} />
-                    </span>
-                  </article>
+                  <RecordListItem
+                    key={issue.id}
+                    title={pick(issue.title, locale)}
+                    reference={<span dir="ltr">{issue.id}</span>}
+                    summaryItems={[
+                      meta(d.cols.phase, pick(issue.phase, locale)),
+                      meta(d.cols.location, pick(issue.location, locale)),
+                      meta(d.cols.reported, formatDate(issue.reportedAt, locale)),
+                    ]}
+                    detailItems={[
+                      meta(d.cols.correctiveAction, pick(issue.correctiveAction, locale), {
+                        wide: true,
+                      }),
+                      meta(d.cols.assignee, pick(issue.assignee, locale), { wide: true }),
+                    ]}
+                    badges={
+                      <>
+                        <PriorityBadge appDict={appDict} priority={issue.severity} />
+                        <StatusBadge appDict={appDict} status={issue.status} />
+                      </>
+                    }
+                    showDetailsLabel={appDict.showDetails}
+                    hideDetailsLabel={appDict.hideDetails}
+                    detailsTitle={appDict.recordMoreDetails}
+                  >
+                    <p className="record-list-note">{pick(issue.detail, locale)}</p>
+                  </RecordListItem>
                 ))}
               </div>
             ) : null}
@@ -523,21 +560,25 @@ export function ProjectWorkspace({
             </div>
             <SubsectionTitle>{d.projectCustomerRequests}</SubsectionTitle>
             {operations.customerRequests.length > 0 ? (
-              <div className="list-rows">
+              <div className="record-list">
                 {operations.customerRequests.map((request) => (
-                  <div className="list-row" key={request.id} style={{ flexWrap: "wrap" }}>
-                    <div className="lr-main" style={{ flex: "1 1 200px" }}>
-                      <div className="lr-title">
-                        <span dir="ltr">{request.id}</span> · {pick(request.serviceLabel, locale)}
-                      </div>
-                      <div className="lr-sub">
-                        {formatDate(request.submittedAt, locale)} · {pick(request.city, locale)} ·{" "}
-                        {d.cols.assignee}:{" "}
-                        {request.assignee ? pick(request.assignee, locale) : d.unassigned}
-                      </div>
-                    </div>
-                    <StatusBadge appDict={appDict} status={request.status} />
-                  </div>
+                  <RecordListItem
+                    key={request.id}
+                    title={pick(request.serviceLabel, locale)}
+                    reference={<span dir="ltr">{request.id}</span>}
+                    summaryItems={[
+                      meta(d.cols.date, formatDate(request.submittedAt, locale)),
+                      meta(d.cols.city, pick(request.city, locale)),
+                      meta(
+                        d.cols.assignee,
+                        request.assignee ? pick(request.assignee, locale) : d.unassigned,
+                      ),
+                    ]}
+                    badges={<StatusBadge appDict={appDict} status={request.status} />}
+                    showDetailsLabel={appDict.showDetails}
+                    hideDetailsLabel={appDict.hideDetails}
+                    detailsTitle={appDict.recordMoreDetails}
+                  />
                 ))}
               </div>
             ) : (

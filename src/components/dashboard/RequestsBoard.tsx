@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
-import { statusBadgeClass } from "@/content/app-dictionary";
 import type { PreviewRequest } from "@/content/preview-data";
 import type { PreviewCell, PreviewModuleRow } from "@/content/preview-modules";
 import { dashboardHref, dashboardModules, type DashboardModuleKey } from "@/config/navigation";
@@ -26,6 +25,16 @@ import {
   type AdminRequestAssignmentErrors,
 } from "@/lib/validation";
 import { ConfirmDialog, Toast } from "@/components/ui/ConfirmDialog";
+import {
+  PriorityBadge,
+  RecordCard,
+  RecordDetailSection,
+  RecordEmptyState,
+  RecordListItem,
+  RecordMetaList,
+  StatusBadge,
+  type RecordMetaItem,
+} from "@/components/dashboard/RecordUI";
 
 const STATUS_FLOW = [
   "new",
@@ -49,6 +58,14 @@ function moduleHref(locale: Locale, moduleKey: DashboardModuleKey): string {
     locale,
     dashboardModules.find((module) => module.key === moduleKey)?.segment ?? "",
   );
+}
+
+function meta(
+  label: string,
+  value: ReactNode,
+  options?: Pick<RecordMetaItem, "wide" | "dir">,
+): RecordMetaItem {
+  return { label, value, ...options };
 }
 
 function formatLinkedCell(
@@ -87,7 +104,7 @@ function LinkedModuleRows({
   href: string;
 }) {
   return (
-    <div className="list-rows">
+    <div className="record-list">
       {rows.map((row) => {
         const status = getPreviewRowStatus(row);
         const title =
@@ -96,32 +113,54 @@ function LinkedModuleRows({
           formatLinkedCell(row.cells.type, locale, appDict) ||
           getPreviewRowReference(row) ||
           row.id;
-        const detailParts = [
-          getPreviewRowReference(row),
-          getPreviewRowDate(row) ? formatDate(getPreviewRowDate(row)!, locale) : "",
-          formatLinkedCell(row.cells.assignee, locale, appDict),
-          formatLinkedCell(row.cells.amount, locale, appDict),
-          formatLinkedCell(row.cells.customer, locale, appDict),
-        ].filter(Boolean);
+        const reference = getPreviewRowReference(row);
+        const summaryItems = [
+          getPreviewRowDate(row)
+            ? meta(appDict.dashboard.cols.date, formatDate(getPreviewRowDate(row)!, locale))
+            : null,
+          formatLinkedCell(row.cells.assignee, locale, appDict)
+            ? meta(
+                appDict.dashboard.cols.assignee,
+                formatLinkedCell(row.cells.assignee, locale, appDict),
+              )
+            : null,
+          formatLinkedCell(row.cells.amount, locale, appDict)
+            ? meta(
+                appDict.dashboard.operations.domain.amount,
+                formatLinkedCell(row.cells.amount, locale, appDict),
+              )
+            : null,
+        ].filter((item): item is RecordMetaItem => Boolean(item));
+        const detailItems = [
+          formatLinkedCell(row.cells.customer, locale, appDict)
+            ? meta(
+                appDict.dashboard.cols.customer,
+                formatLinkedCell(row.cells.customer, locale, appDict),
+                { wide: true },
+              )
+            : null,
+        ].filter((item): item is RecordMetaItem => Boolean(item));
         return (
-          <div className="list-row" key={row.id} style={{ paddingInline: 0 }}>
-            <div className="lr-main">
-              <div className="lr-title">{title}</div>
-              {detailParts.length > 0 ? (
-                <div className="lr-sub">{detailParts.join(" · ")}</div>
-              ) : null}
-            </div>
-            {status ? (
-              <span className={statusBadgeClass(status)}>{appDict.status[status] ?? status}</span>
-            ) : null}
-            <Link
-              className="btn btn-ghost btn-sm"
-              href={href}
-              aria-label={`${appDict.view}: ${getPreviewRowReference(row) ?? row.id}`}
-            >
-              {appDict.view}
-            </Link>
-          </div>
+          <RecordListItem
+            key={row.id}
+            title={title}
+            reference={reference ? <span dir="ltr">{reference}</span> : undefined}
+            summaryItems={summaryItems}
+            detailItems={detailItems}
+            badges={<StatusBadge appDict={appDict} status={status} />}
+            actions={
+              <Link
+                className="btn btn-ghost btn-sm"
+                href={href}
+                aria-label={`${appDict.view}: ${reference ?? row.id}`}
+              >
+                {appDict.view}
+              </Link>
+            }
+            showDetailsLabel={appDict.showDetails}
+            hideDetailsLabel={appDict.hideDetails}
+            detailsTitle={appDict.recordMoreDetails}
+          />
         );
       })}
     </div>
@@ -197,6 +236,7 @@ export function RequestsBoard({
       })
     : false;
   const assigneeError = draftErrors.assignee ? appDict.validation[draftErrors.assignee] : undefined;
+  const assigneeRequired = ["inspection_scheduled", "inspection_done"].includes(draftStatus);
 
   function closeDetail() {
     setSelected(null);
@@ -353,8 +393,8 @@ export function RequestsBoard({
       >
         {formatNumber(filtered.length, locale)} {appDict.showingResults}
       </p>
-      <div className="table-wrap">
-        <table className="data data-card-table">
+      <div className="table-wrap requests-table-wrap">
+        <table className="data data-card-table requests-data-table">
           <caption className="sr-only">{appDict.dashboard.requestsTitle}</caption>
           <thead>
             <tr>
@@ -396,22 +436,10 @@ export function RequestsBoard({
                 <td data-label={cols.city}>{pick(r.city, locale)}</td>
                 <td data-label={cols.date}>{formatDate(r.submittedAt, locale)}</td>
                 <td data-label={cols.priority}>
-                  <span
-                    className={
-                      r.priority === "urgent"
-                        ? "badge badge-urgent"
-                        : r.priority === "high"
-                          ? "badge badge-progress"
-                          : "badge badge-neutral"
-                    }
-                  >
-                    {appDict.priority[r.priority]}
-                  </span>
+                  <PriorityBadge appDict={appDict} priority={r.priority} />
                 </td>
                 <td data-label={cols.status}>
-                  <span className={statusBadgeClass(r.status)}>
-                    {appDict.status[r.status] ?? r.status}
-                  </span>
+                  <StatusBadge appDict={appDict} status={r.status} />
                 </td>
                 <td data-label={appDict.dashboard.operations.nextStep} data-wide="true">
                   <span style={{ display: "block" }}>
@@ -452,29 +480,89 @@ export function RequestsBoard({
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 ? (
-          <div style={{ padding: "44px 24px", textAlign: "center", color: "var(--color-muted)" }}>
-            <p style={{ fontSize: "1.6rem", marginBlockEnd: 8 }} aria-hidden="true">
-              ⌕
-            </p>
-            <p>{appDict.noResults}</p>
-            {hasFilters ? (
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                style={{ marginBlockStart: 14 }}
-                onClick={() => {
-                  setQuery("");
-                  setStatusFilter("");
-                  setServiceFilter("");
-                }}
-              >
-                {appDict.clearFilters}
-              </button>
-            ) : null}
-          </div>
-        ) : null}
       </div>
+
+      <div className="requests-mobile-list" aria-label={appDict.dashboard.requestsTitle}>
+        {filtered.map((r) => {
+          const workflow = getPreviewRequestWorkflow(r);
+          return (
+            <RecordCard
+              key={r.id}
+              title={pick(r.customerName, locale)}
+              reference={<span dir="ltr">{r.id}</span>}
+              badges={
+                <>
+                  <PriorityBadge appDict={appDict} priority={r.priority} />
+                  <StatusBadge appDict={appDict} status={r.status} />
+                </>
+              }
+              summaryItems={[
+                meta(cols.service, pick(r.serviceLabel, locale), { wide: true }),
+                meta(cols.date, formatDate(r.submittedAt, locale)),
+                meta(cols.city, pick(r.city, locale)),
+                meta(
+                  cols.assignee,
+                  r.assignee ? pick(r.assignee, locale) : appDict.dashboard.unassigned,
+                ),
+                meta(
+                  appDict.dashboard.operations.nextStep,
+                  appDict.dashboard.operations.nextActions[workflow.nextAction],
+                  { wide: true },
+                ),
+              ]}
+              detailItems={[
+                meta(cols.customer, r.customerId, { dir: "ltr" }),
+                meta(cols.phone, r.phone, { dir: "ltr" }),
+                meta(
+                  appDict.dashboard.operations.needsAttention,
+                  workflow.blockers.length > 0
+                    ? formatNumber(workflow.blockers.length, locale)
+                    : appDict.dashboard.operations.noBlockers,
+                  { wide: true },
+                ),
+              ]}
+              actions={
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => openDetail(r)}
+                  aria-haspopup="dialog"
+                  aria-label={`${appDict.view}: ${r.id}`}
+                >
+                  {appDict.view}
+                </button>
+              }
+              showDetailsLabel={appDict.showDetails}
+              hideDetailsLabel={appDict.hideDetails}
+              detailsTitle={appDict.recordMoreDetails}
+            />
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="requests-empty-wrap">
+          <RecordEmptyState
+            action={
+              hasFilters ? (
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => {
+                    setQuery("");
+                    setStatusFilter("");
+                    setServiceFilter("");
+                  }}
+                >
+                  {appDict.clearFilters}
+                </button>
+              ) : undefined
+            }
+          >
+            {appDict.noResults}
+          </RecordEmptyState>
+        </div>
+      ) : null}
 
       <dialog
         ref={dialogRef}
@@ -486,9 +574,18 @@ export function RequestsBoard({
         {selected ? (
           <>
             <div className="dialog-head">
-              <h2 id="req-dialog-title">
-                {appDict.dashboard.requestDetailTitle} · <span dir="ltr">{selected.id}</span>
-              </h2>
+              <div>
+                <h2 id="req-dialog-title">
+                  {appDict.dashboard.requestDetailTitle} · <span dir="ltr">{selected.id}</span>
+                </h2>
+                <div
+                  className="record-card-badges"
+                  style={{ justifyContent: "flex-start", marginBlockStart: 8, maxWidth: "none" }}
+                >
+                  <StatusBadge appDict={appDict} status={selected.status} />
+                  <PriorityBadge appDict={appDict} priority={selected.priority} />
+                </div>
+              </div>
               <button
                 type="button"
                 className="icon-btn"
@@ -502,42 +599,46 @@ export function RequestsBoard({
               className="dialog-body"
               style={{ display: "flex", flexDirection: "column", gap: 20 }}
             >
-              <dl className="kv-grid">
-                <div className="kv">
-                  <dt>{cols.customer}</dt>
-                  <dd>
-                    {pick(selected.customerName, locale)} ·{" "}
-                    <span dir="ltr">{selected.customerId}</span>
-                  </dd>
-                </div>
-                <div className="kv">
-                  <dt>{cols.phone}</dt>
-                  <dd dir="ltr" style={{ textAlign: "end" }}>
-                    {selected.phone}
-                  </dd>
-                </div>
-                <div className="kv">
-                  <dt>{cols.service}</dt>
-                  <dd>{pick(selected.serviceLabel, locale)}</dd>
-                </div>
-                <div className="kv">
-                  <dt>{cols.city}</dt>
-                  <dd>{pick(selected.city, locale)}</dd>
-                </div>
-                <div className="kv">
-                  <dt>{cols.date}</dt>
-                  <dd>{formatDate(selected.submittedAt, locale)}</dd>
-                </div>
-                <div className="kv">
-                  <dt>{cols.priority}</dt>
-                  <dd>{appDict.priority[selected.priority]}</dd>
-                </div>
-              </dl>
-              <p style={{ color: "var(--color-ink)" }}>{pick(selected.description, locale)}</p>
-              <div>
-                <h3 style={{ fontSize: "0.95rem", marginBlockEnd: 12 }}>
-                  {appDict.dashboard.detailLabels.history}
-                </h3>
+              <RecordDetailSection
+                title={appDict.dashboard.recordSections.overview}
+                labelledBy="request-overview-title"
+              >
+                <RecordMetaList
+                  variant="detail"
+                  items={[
+                    meta(
+                      cols.customer,
+                      <>
+                        {pick(selected.customerName, locale)} ·{" "}
+                        <span dir="ltr">{selected.customerId}</span>
+                      </>,
+                      { wide: true },
+                    ),
+                    meta(cols.phone, selected.phone, { dir: "ltr" }),
+                    meta(cols.city, pick(selected.city, locale)),
+                    meta(cols.service, pick(selected.serviceLabel, locale), { wide: true }),
+                    meta(cols.date, formatDate(selected.submittedAt, locale)),
+                    meta(
+                      cols.assignee,
+                      selected.assignee
+                        ? pick(selected.assignee, locale)
+                        : appDict.dashboard.unassigned,
+                    ),
+                  ]}
+                />
+              </RecordDetailSection>
+
+              <RecordDetailSection
+                title={appDict.dashboard.recordSections.requestDescription}
+                labelledBy="request-description-title"
+              >
+                <p style={{ color: "var(--color-ink)" }}>{pick(selected.description, locale)}</p>
+              </RecordDetailSection>
+
+              <RecordDetailSection
+                title={appDict.dashboard.detailLabels.history}
+                labelledBy="request-history-title"
+              >
                 <div className="timeline">
                   {selected.history.map((h, i) => (
                     <div className="timeline-item done" key={`${h.at}-${i}`}>
@@ -553,16 +654,13 @@ export function RequestsBoard({
                     </div>
                   ))}
                 </div>
-              </div>
+              </RecordDetailSection>
               {selectedWorkflow ? (
-                <section
-                  className="request-workflow"
-                  aria-labelledby="request-workflow-title"
-                  style={{ marginBlockStart: 0, paddingBlockStart: 0, borderBlockStart: 0 }}
+                <RecordDetailSection
+                  title={appDict.dashboard.operations.workflowTitle}
+                  labelledBy="request-workflow-title"
+                  className="request-workflow-section"
                 >
-                  <h3 id="request-workflow-title" style={{ fontSize: "0.95rem" }}>
-                    {appDict.dashboard.operations.workflowTitle}
-                  </h3>
                   <ol className="request-workflow-steps">
                     {selectedWorkflow.stages.map((stage) => (
                       <li key={stage.key} data-state={stage.state}>
@@ -603,17 +701,14 @@ export function RequestsBoard({
                       {appDict.dashboard.operations.noBlockers}
                     </p>
                   )}
-                </section>
+                </RecordDetailSection>
               ) : null}
               {selectedContext ? (
                 <>
-                  <section aria-labelledby="request-linked-records-title">
-                    <h3
-                      id="request-linked-records-title"
-                      style={{ fontSize: "0.95rem", marginBlockEnd: 8 }}
-                    >
-                      {appDict.dashboard.linkedRequestRecords}
-                    </h3>
+                  <RecordDetailSection
+                    title={appDict.dashboard.linkedRequestRecords}
+                    labelledBy="request-linked-records-title"
+                  >
                     {selectedContext.inspections.length > 0 ? (
                       <>
                         <h4 style={{ fontSize: "0.9rem", marginBlock: "10px 4px" }}>
@@ -646,43 +741,40 @@ export function RequestsBoard({
                         {appDict.dashboard.noLinkedRequestRecords}
                       </p>
                     ) : null}
-                  </section>
+                  </RecordDetailSection>
 
-                  <section aria-labelledby="request-customer-records-title">
-                    <h3
-                      id="request-customer-records-title"
-                      style={{ fontSize: "0.95rem", marginBlockEnd: 8 }}
-                    >
-                      {appDict.dashboard.sameCustomerRecords}
-                    </h3>
-                    <p style={{ color: "var(--color-muted)", fontSize: "0.9rem" }}>
-                      {appDict.dashboard.sameCustomerRecordsNote}
-                    </p>
+                  <RecordDetailSection
+                    title={appDict.dashboard.sameCustomerRecords}
+                    description={appDict.dashboard.sameCustomerRecordsNote}
+                    labelledBy="request-customer-records-title"
+                  >
                     {selectedContext.customerProjects.length > 0 ? (
-                      <div className="list-rows">
+                      <div className="record-list">
                         {selectedContext.customerProjects.map((project) => (
-                          <div className="list-row" key={project.id} style={{ paddingInline: 0 }}>
-                            <div className="lr-main">
-                              <div className="lr-title">{pick(project.title, locale)}</div>
-                              <div className="lr-sub">
-                                <span dir="ltr">{project.id}</span> ·{" "}
-                                {pick(project.currentMilestone, locale)} ·{" "}
-                                {formatDate(project.updatedAt, locale)}
-                              </div>
-                            </div>
-                            <span className={statusBadgeClass(project.status)}>
-                              {appDict.status[project.status] ?? project.status}
-                            </span>
-                            <Link
-                              className="btn btn-outline btn-sm"
-                              href={dashboardHref(
-                                locale,
-                                `projects/${encodeURIComponent(project.id)}`,
-                              )}
-                            >
-                              {appDict.dashboard.openProjectWorkspace}
-                            </Link>
-                          </div>
+                          <RecordListItem
+                            key={project.id}
+                            title={pick(project.title, locale)}
+                            reference={<span dir="ltr">{project.id}</span>}
+                            summaryItems={[
+                              meta(cols.milestone, pick(project.currentMilestone, locale)),
+                              meta(cols.updated, formatDate(project.updatedAt, locale)),
+                            ]}
+                            badges={<StatusBadge appDict={appDict} status={project.status} />}
+                            actions={
+                              <Link
+                                className="btn btn-outline btn-sm"
+                                href={dashboardHref(
+                                  locale,
+                                  `projects/${encodeURIComponent(project.id)}`,
+                                )}
+                              >
+                                {appDict.dashboard.openProjectWorkspace}
+                              </Link>
+                            }
+                            showDetailsLabel={appDict.showDetails}
+                            hideDetailsLabel={appDict.hideDetails}
+                            detailsTitle={appDict.recordMoreDetails}
+                          />
                         ))}
                       </div>
                     ) : null}
@@ -705,53 +797,83 @@ export function RequestsBoard({
                         {appDict.dashboard.noSameCustomerRecords}
                       </p>
                     ) : null}
-                  </section>
+                  </RecordDetailSection>
                 </>
               ) : null}
-              <div className="form-grid">
-                <div className="field">
-                  <label className="form-label" htmlFor="req-status-select">
-                    {appDict.changeStatusPreview}
-                  </label>
-                  <select
-                    id="req-status-select"
-                    className="form-select"
-                    value={draftStatus}
-                    onChange={(e) => updateDraftStatus(e.target.value)}
-                  >
-                    {allowedDraftStatuses.map((s) => (
-                      <option key={s} value={s}>
-                        {appDict.status[s] ?? s}
-                      </option>
-                    ))}
-                  </select>
+              <fieldset className="form-section">
+                <legend>{appDict.dashboard.recordSections.previewUpdate}</legend>
+                <div className="form-grid">
+                  <div className="field">
+                    <label className="form-label" htmlFor="req-status-select">
+                      {appDict.changeStatusPreview}
+                      <span className="form-field-note form-field-note-required">
+                        {appDict.requiredField}
+                      </span>
+                    </label>
+                    <select
+                      id="req-status-select"
+                      className="form-select"
+                      value={draftStatus}
+                      onChange={(e) => updateDraftStatus(e.target.value)}
+                      required
+                      aria-required="true"
+                    >
+                      {allowedDraftStatuses.map((s) => (
+                        <option key={s} value={s}>
+                          {appDict.status[s] ?? s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label className="form-label" htmlFor="req-assignee-select">
+                      {appDict.assignPreview}
+                      <span
+                        className={
+                          assigneeRequired
+                            ? "form-field-note form-field-note-required"
+                            : "form-field-note"
+                        }
+                      >
+                        {assigneeRequired ? appDict.requiredField : appDict.validation.optional}
+                      </span>
+                    </label>
+                    <select
+                      id="req-assignee-select"
+                      className="form-select"
+                      value={draftAssignee}
+                      onChange={(e) => updateDraftAssignee(e.target.value)}
+                      required={assigneeRequired}
+                      aria-required={assigneeRequired}
+                      aria-invalid={assigneeError ? true : undefined}
+                      aria-describedby={
+                        assigneeError
+                          ? "req-assignee-error"
+                          : assigneeRequired
+                            ? "req-assignee-hint"
+                            : undefined
+                      }
+                    >
+                      <option value="">{appDict.dashboard.unassigned}</option>
+                      {ASSIGNEES.map((a) => (
+                        <option key={a.en} value={a[locale]}>
+                          {a[locale]}
+                        </option>
+                      ))}
+                    </select>
+                    {assigneeRequired && !assigneeError ? (
+                      <p className="field-hint" id="req-assignee-hint">
+                        {appDict.validation.assigneeRequired}
+                      </p>
+                    ) : null}
+                    {assigneeError ? (
+                      <p className="field-error" id="req-assignee-error" role="alert">
+                        {assigneeError}
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="field">
-                  <label className="form-label" htmlFor="req-assignee-select">
-                    {appDict.assignPreview}
-                  </label>
-                  <select
-                    id="req-assignee-select"
-                    className="form-select"
-                    value={draftAssignee}
-                    onChange={(e) => updateDraftAssignee(e.target.value)}
-                    aria-invalid={assigneeError ? true : undefined}
-                    aria-describedby={assigneeError ? "req-assignee-error" : undefined}
-                  >
-                    <option value="">{appDict.dashboard.unassigned}</option>
-                    {ASSIGNEES.map((a) => (
-                      <option key={a.en} value={a[locale]}>
-                        {a[locale]}
-                      </option>
-                    ))}
-                  </select>
-                  {assigneeError ? (
-                    <p className="field-error" id="req-assignee-error" role="alert">
-                      {assigneeError}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
+              </fieldset>
               {!hasDraftChanges ? (
                 <p
                   id="req-save-hint"

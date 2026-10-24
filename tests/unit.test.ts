@@ -449,11 +449,50 @@ describe("stylesheet wiring", () => {
     expect(appShell).toContain("onClick={() => closeDrawer(true)}");
     expect(appShell).toContain("onClick={() => setOpen(false)}");
     expect(appShell).toContain('className="shell-topbar-actions"');
-    for (const source of [overviewPage, requestsBoard, dataTable]) {
+    for (const source of [requestsBoard, dataTable]) {
       expect(source).toContain("data-card-table");
       expect(source).toContain("data-label=");
     }
+    expect(overviewPage).toContain("RecordListItem");
+    expect(overviewPage).not.toContain("data-card-table");
     expect(portalProjects).toContain("minmax(min(100%, 300px), 1fr)");
+  });
+
+  it("uses a shared premium record system with progressive details and a timeline activity log", () => {
+    const recordUi = fs.readFileSync(
+      path.join(root, "src/components/dashboard/RecordUI.tsx"),
+      "utf8",
+    );
+    const domainBoards = fs.readFileSync(
+      path.join(root, "src/components/dashboard/DomainBoards.tsx"),
+      "utf8",
+    );
+    const requestsBoard = fs.readFileSync(
+      path.join(root, "src/components/dashboard/RequestsBoard.tsx"),
+      "utf8",
+    );
+    const globalsCss = fs.readFileSync(path.join(root, "src/styles/globals.css"), "utf8");
+
+    expect(recordUi).toContain("export function RecordCard");
+    expect(recordUi).toContain("export function RecordListItem");
+    expect(recordUi).toContain("export function RecordMetaList");
+    expect(recordUi).toContain('summaryVariant?: "summary" | "inline"');
+    expect(recordUi).toContain("export function RecordDetailSection");
+    expect(recordUi).toContain('<details className="record-details">');
+    expect(domainBoards).toContain("function DomainRecordCard");
+    expect(domainBoards).toContain('layout="list"');
+    expect(domainBoards).toContain('className="activity-timeline"');
+    expect(domainBoards).toContain('summaryVariant="inline"');
+    expect(domainBoards).toContain("groupedByDate");
+    expect(domainBoards).not.toContain("domain-fields");
+    expect(requestsBoard).toContain('className="requests-mobile-list"');
+    expect(requestsBoard).toContain("RecordDetailSection");
+    expect(requestsBoard).toContain('className="form-section"');
+    expect(globalsCss).toContain(".record-meta-summary");
+    expect(globalsCss).toContain(".activity-record");
+    expect(globalsCss).toContain(".activity-record .record-meta-inline");
+    expect(globalsCss).toContain(".activity-record .record-relationships h4");
+    expect(globalsCss).toContain('td[data-mobile-priority="secondary"]');
   });
 });
 
