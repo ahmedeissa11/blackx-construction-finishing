@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
 import { dashboardHref } from "@/config/navigation";
-import { getExpansionOverview } from "@/lib/preview-expansion";
+import { getAgingBuckets, getExpansionOverview } from "@/lib/preview-expansion";
 import { formatMoney, formatNumber } from "@/lib/format";
+import { BarRows, Donut, StackedBar } from "@/components/ui/Viz";
 
 /**
  * Finance and customer-service summary on the Admin overview. Figures
@@ -14,7 +15,20 @@ import { formatMoney, formatNumber } from "@/lib/format";
  */
 export function OverviewExpansion({ locale, appDict }: { locale: Locale; appDict: AppDictionary }) {
   const cards = appDict.dashboard.expansion.overviewCards;
+  const agingLabels = appDict.dashboard.expansion.finance.aging;
   const summary = getExpansionOverview();
+  const aging = getAgingBuckets();
+
+  const duesBasis = summary.collectedTotal + summary.outstandingTotal;
+  const collectionRate = duesBasis > 0 ? Math.round((summary.collectedTotal / duesBasis) * 100) : 0;
+  const maxAgingAmount = Math.max(1, ...aging.map((bucket) => bucket.amount));
+  const agingTones = {
+    current: "ok",
+    d1_30: "warn",
+    d31_60: "warn",
+    d61_90: "danger",
+    d90plus: "danger",
+  } as const;
 
   const items: Array<{ label: string; value: string; href: string }> = [
     {
@@ -68,6 +82,44 @@ export function OverviewExpansion({ locale, appDict }: { locale: Locale; appDict
       </div>
       <div className="panel-body">
         <p style={{ color: "var(--color-muted)", maxWidth: 980 }}>{cards.asOfNote}</p>
+        <div className="viz-finance-grid">
+          <div className="viz-finance-donut">
+            <Donut value={collectionRate} locale={locale} label={cards.collectionRate} />
+            <StackedBar
+              ariaLabel={cards.title}
+              segments={[
+                {
+                  key: "collected",
+                  label: cards.collected,
+                  valueLabel: formatMoney(summary.collectedTotal, locale),
+                  ratio: duesBasis > 0 ? summary.collectedTotal / duesBasis : 0,
+                  tone: "ok",
+                },
+                {
+                  key: "outstanding",
+                  label: cards.outstanding,
+                  valueLabel: formatMoney(summary.outstandingTotal, locale),
+                  ratio: duesBasis > 0 ? summary.outstandingTotal / duesBasis : 0,
+                  tone: "warn",
+                },
+              ]}
+            />
+          </div>
+          <div className="viz-finance-aging">
+            <h4 className="viz-subtitle">{agingLabels.title}</h4>
+            <BarRows
+              ariaLabel={agingLabels.title}
+              items={aging.map((bucket) => ({
+                key: bucket.key,
+                label: `${agingLabels[bucket.key]} · ${formatNumber(bucket.count, locale)}`,
+                valueLabel: formatMoney(bucket.amount, locale),
+                ratio: bucket.amount / maxAgingAmount,
+                tone: agingTones[bucket.key],
+              }))}
+            />
+            <p className="viz-note">{agingLabels.asOfNote}</p>
+          </div>
+        </div>
         <div className="domain-stats overview-expansion-stats" role="list">
           {items.map((item) => (
             <Link

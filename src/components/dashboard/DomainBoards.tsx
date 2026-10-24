@@ -38,6 +38,7 @@ import {
   StatusBadge,
   type RecordMetaItem,
 } from "@/components/dashboard/RecordUI";
+import { DocBadge } from "@/components/ui/Viz";
 import {
   ContractDetailBlock,
   HandoverDetailBlock,
@@ -494,6 +495,7 @@ function DocumentsBoard({
                 kind={x.documentCategories[item.category] ?? item.category}
                 title={pick(item.title, locale)}
                 reference={<span dir="ltr">{item.reference}</span>}
+                leading={<DocBadge format={item.format} />}
                 badges={
                   <span className="badge badge-neutral">
                     {item.format ?? operations.notRecorded}

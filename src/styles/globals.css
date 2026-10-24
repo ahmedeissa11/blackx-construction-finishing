@@ -5221,3 +5221,459 @@ html[dir="rtl"] .record-meta-item {
     gap: 6px;
   }
 }
+
+/* =========================================================================
+   PREMIUM VISUAL TRANSFORMATION v3 — data viz, identity covers, depth.
+   Appended layer: builds on the v2 design system without removing it.
+   ========================================================================= */
+
+/* ---- Viz primitives ---- */
+.viz-donut {
+  position: relative;
+  flex: none;
+}
+.viz-donut svg {
+  display: block;
+}
+.viz-donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 14px;
+}
+.viz-donut-center strong {
+  font-size: 1.28rem;
+  line-height: 1.1;
+  color: var(--color-charcoal);
+}
+.viz-donut-center span {
+  font-size: 0.68rem;
+  color: var(--color-muted);
+  line-height: 1.3;
+}
+.viz-subtitle {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-charcoal);
+  margin: 0 0 10px;
+}
+.viz-note {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  margin: 8px 0 0;
+}
+.viz-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.viz-bar-row {
+  display: grid;
+  grid-template-columns: minmax(118px, 1fr) 1.6fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+.viz-bar-label {
+  color: var(--color-muted);
+  line-height: 1.35;
+}
+.viz-bar-track {
+  height: 9px;
+  border-radius: 99px;
+  background: var(--viz-track);
+  overflow: hidden;
+  display: block;
+}
+.viz-bar-track > span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+}
+.viz-bar-value {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.viz-bar-track.viz-tone-ok > span,
+.viz-stacked-track > span.viz-tone-ok,
+.viz-legend-dot.viz-tone-ok {
+  background: var(--viz-ok);
+}
+.viz-bar-track.viz-tone-warn > span,
+.viz-stacked-track > span.viz-tone-warn,
+.viz-legend-dot.viz-tone-warn {
+  background: var(--viz-warn);
+}
+.viz-bar-track.viz-tone-danger > span,
+.viz-stacked-track > span.viz-tone-danger,
+.viz-legend-dot.viz-tone-danger {
+  background: var(--viz-danger);
+}
+.viz-bar-track.viz-tone-neutral > span,
+.viz-stacked-track > span.viz-tone-neutral,
+.viz-legend-dot.viz-tone-neutral {
+  background: var(--viz-neutral);
+}
+.viz-stacked-track {
+  display: flex;
+  height: 14px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: var(--viz-track);
+}
+.viz-stacked-track > span {
+  display: block;
+  height: 100%;
+}
+.viz-stacked-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+.viz-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.viz-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.viz-finance-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.9fr) 1.3fr;
+  gap: 20px 28px;
+  align-items: start;
+  margin: 14px 0 18px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(176, 141, 87, 0.12), transparent 14rem),
+    linear-gradient(150deg, #fffefa, #f4efe3);
+  border: 1px solid var(--admin-border-soft, #e3dcc9);
+  border-radius: 16px;
+}
+.viz-finance-donut {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.viz-finance-donut .viz-stacked {
+  width: 100%;
+}
+.viz-board-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 16px;
+  margin: 16px 0 6px;
+}
+.viz-board-block {
+  padding: 16px 18px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(107, 127, 94, 0.1), transparent 12rem), #fffefa;
+  border: 1px solid var(--admin-border-soft, #e3dcc9);
+  border-radius: 14px;
+}
+
+/* ---- Avatars & document badges ---- */
+.viz-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #fff;
+  flex: none;
+  box-shadow: inset 0 -8px 16px rgba(0, 0, 0, 0.18);
+}
+.viz-avatar-olive {
+  background: linear-gradient(140deg, #71855f, #4e6142);
+}
+.viz-avatar-brass {
+  background: linear-gradient(140deg, #c3a06a, #97753f);
+}
+.viz-avatar-slate {
+  background: linear-gradient(140deg, #6d7a86, #46525d);
+}
+.viz-avatar-clay {
+  background: linear-gradient(140deg, #b27a5e, #8a5741);
+}
+.viz-avatar-sage {
+  background: linear-gradient(140deg, #93a58a, #66795e);
+}
+.viz-avatar-ink {
+  background: linear-gradient(140deg, #3d4038, #22241f);
+}
+.record-card-leading,
+.record-list-leading {
+  flex: none;
+}
+.record-card-head {
+  align-items: flex-start;
+}
+.viz-doc {
+  width: 44px;
+  height: 52px;
+  border-radius: 8px 8px 8px 14px;
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 8px;
+  border: 1.5px solid;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  flex: none;
+  background: #fffefa;
+}
+.viz-doc-pdf {
+  color: #a13b32;
+  border-color: #d9a49e;
+  background: linear-gradient(160deg, #fff5f3, #f9e3df);
+}
+.viz-doc-doc {
+  color: #34557d;
+  border-color: #a5bed9;
+  background: linear-gradient(160deg, #f2f7fd, #dde9f5);
+}
+.viz-doc-sheet {
+  color: #3c6b47;
+  border-color: #a3c4a9;
+  background: linear-gradient(160deg, #f2f9f3, #ddefdf);
+}
+.viz-doc-image {
+  color: #7a5a23;
+  border-color: #d3bc8d;
+  background: linear-gradient(160deg, #fdf7ea, #f3e6c8);
+}
+.viz-doc-file {
+  color: #5d6058;
+  border-color: #c6c8bd;
+  background: linear-gradient(160deg, #fbfaf6, #edebdf);
+}
+
+/* ---- Milestone stepper (portal) ---- */
+.viz-stepper {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding: 6px 2px 2px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.viz-step {
+  position: relative;
+  flex: 1 0 138px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+.viz-step::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  inset-inline: calc(-50% + 18px) calc(50% + 18px);
+  height: 3px;
+  border-radius: 99px;
+  background: var(--viz-track);
+}
+.viz-step:first-child::before {
+  display: none;
+}
+.viz-step-done::before,
+.viz-step-current::before {
+  background: var(--viz-ok);
+}
+.viz-step-dot {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  border: 2.5px solid var(--viz-track);
+  background: #fffefa;
+  color: var(--color-muted);
+}
+.viz-step-done .viz-step-dot {
+  background: var(--viz-ok);
+  border-color: var(--viz-ok);
+  color: #fff;
+}
+.viz-step-current .viz-step-dot {
+  border-color: var(--viz-accent);
+  color: var(--viz-accent);
+  box-shadow: 0 0 0 5px rgba(107, 127, 94, 0.16);
+}
+.viz-step-title {
+  display: block;
+  font-weight: 700;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: var(--color-charcoal);
+}
+.viz-step-upcoming .viz-step-title {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+.viz-step-meta {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--color-muted);
+}
+
+/* ---- Hero progress compositions ---- */
+.portal-hero-progress,
+.viz-hero-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.portal-hero-progress-main,
+.viz-hero-progress-main {
+  flex: 1;
+  min-width: 0;
+}
+.project-command-progress.viz-hero-progress .viz-donut-center strong {
+  color: #f3efe2;
+}
+.project-command-progress.viz-hero-progress .viz-donut-center span {
+  color: rgba(243, 239, 226, 0.75);
+}
+.project-command-progress .viz-donut svg circle:first-child {
+  stroke: rgba(243, 239, 226, 0.22);
+}
+
+/* ---- Premium surfaces & identity depth ---- */
+.dashboard-intro {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(176, 141, 87, 0.16), transparent 16rem),
+    linear-gradient(135deg, #22261f 0%, #2e352a 55%, #3c4636 100%) !important;
+  box-shadow: 0 18px 40px rgba(28, 32, 24, 0.22);
+}
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 3.5px;
+  background: linear-gradient(90deg, var(--viz-accent), var(--bx-brass));
+  opacity: 0.85;
+}
+.panel {
+  box-shadow: 0 6px 22px rgba(38, 42, 33, 0.05);
+}
+.panel-head h3,
+.panel-head h2 {
+  position: relative;
+}
+.record-card:hover,
+.domain-stat:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 10px 26px rgba(38, 42, 33, 0.09);
+}
+.record-card,
+.domain-stat {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .record-card,
+  .domain-stat,
+  .viz-bar-track > span,
+  .viz-stacked-track > span {
+    transition: none;
+  }
+  .record-card:hover,
+  .domain-stat:hover {
+    transform: none;
+  }
+}
+.project-command-header {
+  background:
+    radial-gradient(circle at 85% 0%, rgba(176, 141, 87, 0.18), transparent 18rem),
+    repeating-linear-gradient(-45deg, transparent 0 46px, rgba(243, 239, 226, 0.025) 46px 47px),
+    linear-gradient(150deg, #23281f, #333d2c 60%, #3f4a36);
+}
+.portal-current-project {
+  overflow: hidden;
+  box-shadow: 0 14px 34px rgba(38, 42, 33, 0.1);
+}
+.portal-welcome .avatar {
+  background: linear-gradient(140deg, #71855f, #46563c);
+  box-shadow: 0 8px 20px rgba(70, 86, 60, 0.35);
+}
+.eyebrow {
+  color: var(--bx-brass);
+}
+.btn-primary {
+  box-shadow: 0 8px 18px rgba(58, 68, 50, 0.25);
+}
+.btn-primary:hover {
+  box-shadow: 0 10px 22px rgba(58, 68, 50, 0.32);
+}
+.wf-table tbody tr:nth-child(even) td {
+  background: rgba(243, 238, 226, 0.45);
+}
+.shell-nav a[aria-current="page"] {
+  box-shadow: inset 3.5px 0 0 var(--bx-brass);
+}
+html[dir="rtl"] .shell-nav a[aria-current="page"] {
+  box-shadow: inset -3.5px 0 0 var(--bx-brass);
+}
+:focus-visible {
+  outline: 2.5px solid var(--bx-brass);
+  outline-offset: 2px;
+}
+
+/* ---- Viz responsive ---- */
+@media (max-width: 860px) {
+  .viz-finance-grid {
+    grid-template-columns: 1fr;
+  }
+  .viz-bar-row {
+    grid-template-columns: minmax(96px, 1fr) 1.2fr auto;
+    font-size: 0.74rem;
+  }
+  .portal-hero-progress,
+  .viz-hero-progress {
+    gap: 12px;
+  }
+  .viz-donut-center strong {
+    font-size: 1.05rem;
+  }
+}
+@media (max-width: 430px) {
+  .viz-step {
+    flex-basis: 116px;
+  }
+  .viz-finance-grid,
+  .viz-board-block {
+    padding: 14px;
+  }
+}

@@ -121,3 +121,16 @@
   --ds-chip-bg: #f3ecdc;
   --ds-num-font: "Inter Variable", Inter, "Cairo Variable", Cairo, sans-serif;
 }
+
+/* Premium transformation v3 tokens */
+:root {
+  --bx-brass: #b08d57;
+  --bx-brass-soft: #d8c49c;
+  --bx-ink-deep: #16181a;
+  --viz-accent: #6b7f5e;
+  --viz-track: #e6e0d2;
+  --viz-ok: #5f7d4f;
+  --viz-warn: #c08a2e;
+  --viz-danger: #b04a3f;
+  --viz-neutral: #8a8f85;
+}

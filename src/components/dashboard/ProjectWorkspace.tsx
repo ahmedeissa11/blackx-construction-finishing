@@ -46,6 +46,7 @@ import {
   StatusBadge,
   type RecordMetaItem,
 } from "@/components/dashboard/RecordUI";
+import { Donut } from "@/components/ui/Viz";
 
 function localizedValue(value: LocalizedText | string, locale: Locale): string {
   return typeof value === "string" ? value : pick(value, locale);
@@ -277,16 +278,19 @@ export function ProjectWorkspace({
             <span>{pick(project.serviceLabel, locale)}</span>
           </div>
           <p className="project-command-lead">{d.projectWorkspaceLead}</p>
-          <div className="project-command-progress">
-            <span>
-              {d.cols.progress} · {formatPercent(progress, locale)}
-            </span>
-            <ProgressMeter
-              appDict={appDict}
-              locale={locale}
-              value={progress}
-              label={`${pick(project.title, locale)} · ${d.cols.progress}`}
-            />
+          <div className="project-command-progress viz-hero-progress">
+            <Donut value={progress} locale={locale} label={d.cols.progress} size={92} />
+            <div className="viz-hero-progress-main">
+              <span>
+                {d.cols.progress} · {formatPercent(progress, locale)}
+              </span>
+              <ProgressMeter
+                appDict={appDict}
+                locale={locale}
+                value={progress}
+                label={`${pick(project.title, locale)} · ${d.cols.progress}`}
+              />
+            </div>
           </div>
         </div>
         <dl className="project-command-metrics" aria-label={d.projectOverview}>

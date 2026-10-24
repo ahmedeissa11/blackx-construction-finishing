@@ -36,6 +36,7 @@ import {
   type RecordMetaItem,
 } from "@/components/dashboard/RecordUI";
 import { LinesTable } from "@/components/dashboard/RecordDetails";
+import { AvatarChip, BarRows, StackedBar } from "@/components/ui/Viz";
 
 export type ExpansionModuleKey = "engineers" | "finance" | "purchases" | "complaints" | "messages";
 
@@ -385,6 +386,7 @@ function EngineersBoard({ locale, appDict }: BoardProps) {
               kind={x.engineerRoles[item.engineer.role] ?? item.engineer.role}
               title={pick(item.engineer.name, locale)}
               reference={<span dir="ltr">{item.engineer.id}</span>}
+              leading={<AvatarChip name={pick(item.engineer.name, locale)} id={item.engineer.id} />}
               summaryItems={[
                 meta(appDict.dashboard.cols.phone, item.engineer.phone, { dir: "ltr" }),
                 meta(x.engineers.assignedRequests, formatNumber(item.requests.length, locale)),
@@ -1002,6 +1004,48 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
           </>
         }
       >
+        <div className="viz-board-strip">
+          <div className="viz-board-block">
+            <h3 className="viz-subtitle">{x.finance.totalDues}</h3>
+            <StackedBar
+              ariaLabel={x.finance.totalDues}
+              segments={[
+                {
+                  key: "collected",
+                  label: x.finance.totalCollected,
+                  valueLabel: formatMoney(totals.collected, locale),
+                  ratio: totals.dues > 0 ? totals.collected / totals.dues : 0,
+                  tone: "ok",
+                },
+                {
+                  key: "remaining",
+                  label: x.finance.totalRemaining,
+                  valueLabel: formatMoney(totals.remaining, locale),
+                  ratio: totals.dues > 0 ? totals.remaining / totals.dues : 0,
+                  tone: "warn",
+                },
+              ]}
+            />
+          </div>
+          <div className="viz-board-block">
+            <h3 className="viz-subtitle">{x.finance.aging.title}</h3>
+            <BarRows
+              ariaLabel={x.finance.aging.title}
+              items={aging.map((bucket) => ({
+                key: bucket.key,
+                label: `${x.finance.aging[bucket.key]} · ${formatNumber(bucket.count, locale)}`,
+                valueLabel: formatMoney(bucket.amount, locale),
+                ratio: bucket.amount / Math.max(1, ...aging.map((entry) => entry.amount)),
+                tone:
+                  bucket.key === "current"
+                    ? ("ok" as const)
+                    : bucket.key === "d61_90" || bucket.key === "d90plus"
+                      ? ("danger" as const)
+                      : ("warn" as const),
+              }))}
+            />
+          </div>
+        </div>
         {content}
       </BoardShell>
       <NoticeDialog appDict={appDict} notice={notice} onClose={() => setNotice(null)} />
