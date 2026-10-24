@@ -112,3 +112,12 @@
     --header-h: 60px;
   }
 }
+
+/* ===== Premium redesign tokens (2026) ===== */
+:root {
+  --ds-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ds-shadow-hover: 0 2px 4px rgba(58, 56, 53, 0.06), 0 14px 34px rgba(58, 56, 53, 0.09);
+  --ds-hairline: #e9e1d0;
+  --ds-chip-bg: #f3ecdc;
+  --ds-num-font: "Inter Variable", Inter, "Cairo Variable", Cairo, sans-serif;
+}

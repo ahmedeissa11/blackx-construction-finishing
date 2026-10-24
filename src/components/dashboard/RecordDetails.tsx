@@ -171,23 +171,14 @@ export function QuotationDetailBlock({
   return (
     <div className="wf-detail">
       <DetailGroup title={wf.boqTitle}>
-        <RecordMetaList
-          variant="detail"
-          items={[
-            ...detail.boqLines.map((line) =>
-              meta(
-                pick(line.label, locale),
-                <>
-                  {formatNumber(line.quantity, locale)} {pick(line.unit, locale)} ×{" "}
-                  {formatMoney(line.unitPrice, locale)} ={" "}
-                  {formatMoney(line.quantity * line.unitPrice, locale)}
-                </>,
-                { wide: true },
-              ),
-            ),
-            meta(wf.grossTotal, formatMoney(totals.gross, locale), { dir: "ltr" }),
-            meta(cols.discount, formatMoney(totals.discount, locale), { dir: "ltr" }),
-            meta(wf.netTotal, formatMoney(totals.net, locale), { dir: "ltr" }),
+        <LinesTable
+          locale={locale}
+          appDict={appDict}
+          lines={detail.boqLines}
+          footer={[
+            { label: wf.grossTotal, value: totals.gross },
+            { label: cols.discount, value: totals.discount },
+            { label: wf.netTotal, value: totals.net, strong: true },
           ]}
         />
       </DetailGroup>
@@ -312,6 +303,63 @@ export function ContractDetailBlock({
   );
 }
 
+/* ---------------- Line-items table (BOQ / purchase lines) ---------------- */
+
+export type LinesTableLine = {
+  label: LocalizedText;
+  quantity: number;
+  unit: LocalizedText;
+  unitPrice: number;
+};
+
+export function LinesTable({
+  locale,
+  appDict,
+  lines,
+  footer,
+}: BlockProps & {
+  lines: LinesTableLine[];
+  footer?: Array<{ label: string; value: number; strong?: boolean }>;
+}) {
+  const cols = appDict.dashboard.cols;
+  return (
+    <div className="wf-table-wrap">
+      <table className="wf-table">
+        <thead>
+          <tr>
+            <th>{cols.title}</th>
+            <th className="num">{cols.quantity}</th>
+            <th>{cols.unit}</th>
+            <th className="num">{cols.unitPrice}</th>
+            <th className="num">{cols.total}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lines.map((line) => (
+            <tr key={pick(line.label, locale)}>
+              <td>{pick(line.label, locale)}</td>
+              <td className="num">{formatNumber(line.quantity, locale)}</td>
+              <td>{pick(line.unit, locale)}</td>
+              <td className="num">{formatMoney(line.unitPrice, locale)}</td>
+              <td className="num">{formatMoney(line.quantity * line.unitPrice, locale)}</td>
+            </tr>
+          ))}
+        </tbody>
+        {footer && footer.length > 0 ? (
+          <tfoot>
+            {footer.map((row) => (
+              <tr key={row.label} className={row.strong ? "wf-total-net" : undefined}>
+                <td colSpan={4}>{row.label}</td>
+                <td className="num">{formatMoney(row.value, locale)}</td>
+              </tr>
+            ))}
+          </tfoot>
+        ) : null}
+      </table>
+    </div>
+  );
+}
+
 /* ---------------- Handover & warranty details ---------------- */
 
 export function HandoverDetailBlock({
@@ -336,16 +384,19 @@ export function HandoverDetailBlock({
         ]}
       />
       <DetailGroup title={life.checklistTitle}>
-        <RecordMetaList
-          variant="detail"
-          items={detail.checklist.map((item) =>
-            meta(
-              pick(item.label, locale),
-              item.state === "done" ? life.checklistDone : life.checklistPending,
-              { wide: true },
-            ),
-          )}
-        />
+        <ul className="wf-checklist">
+          {detail.checklist.map((item) => (
+            <li key={pick(item.label, locale)} data-state={item.state}>
+              <span className="wf-check-icon" aria-hidden="true">
+                {item.state === "done" ? "✓" : "•"}
+              </span>
+              <span className="wf-check-label">{pick(item.label, locale)}</span>
+              <span className="wf-check-state">
+                {item.state === "done" ? life.checklistDone : life.checklistPending}
+              </span>
+            </li>
+          ))}
+        </ul>
       </DetailGroup>
       <DetailGroup title={life.notesTitle}>
         {detail.notes.map((note) => (

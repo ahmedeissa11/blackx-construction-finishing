@@ -493,19 +493,26 @@ export function ProjectWorkspace({
                 <h4>
                   {`${expansion.phaseTypes[group.phase.type] ?? group.phase.type} — ${pick(group.phase.title, locale)}`}
                 </h4>
-                <RecordMetaList
-                  variant="detail"
-                  items={group.items.map((item) =>
-                    meta(
-                      pick(item.label, locale),
-                      <>
-                        {expansion.workflow.completedQty} {item.completedQty}/{item.plannedQty}{" "}
-                        {pick(item.unit, locale)} · {formatPercent(workItemProgress(item), locale)}
-                      </>,
-                      { wide: true },
-                    ),
-                  )}
-                />
+                <div>
+                  {group.items.map((item) => (
+                    <div key={item.id} className="wf-work-item">
+                      <div className="wf-work-item-head">
+                        <strong>{pick(item.label, locale)}</strong>
+                        <span className="wf-work-item-qty">
+                          {expansion.workflow.completedQty} {item.completedQty}/{item.plannedQty}{" "}
+                          {pick(item.unit, locale)} ·{" "}
+                          {formatPercent(workItemProgress(item), locale)}
+                        </span>
+                      </div>
+                      <ProgressMeter
+                        appDict={appDict}
+                        locale={locale}
+                        value={workItemProgress(item)}
+                        label={pick(item.label, locale)}
+                      />
+                    </div>
+                  ))}
+                </div>
                 {group.items
                   .filter((item) => item.evidence.length > 0)
                   .map((item) => (

@@ -35,6 +35,7 @@ import {
   StatusBadge,
   type RecordMetaItem,
 } from "@/components/dashboard/RecordUI";
+import { LinesTable } from "@/components/dashboard/RecordDetails";
 
 export type ExpansionModuleKey = "engineers" | "finance" | "purchases" | "complaints" | "messages";
 
@@ -1195,22 +1196,9 @@ function PurchasesBoard({ locale, appDict }: BoardProps) {
                   meta(cols.discount, formatMoney(purchase.discount, locale), { dir: "ltr" }),
                 ]}
                 detailChildren={
-                  <div>
+                  <div className="wf-detail-group">
                     <h4>{x.purchases.linesTitle}</h4>
-                    <RecordMetaList
-                      variant="detail"
-                      items={purchase.lines.map((line) =>
-                        meta(
-                          pick(line.label, locale),
-                          <>
-                            {formatNumber(line.quantity, locale)} {pick(line.unit, locale)} ×{" "}
-                            {formatMoney(line.unitPrice, locale)} ={" "}
-                            {formatMoney(line.quantity * line.unitPrice, locale)}
-                          </>,
-                          { wide: true },
-                        ),
-                      )}
-                    />
+                    <LinesTable locale={locale} appDict={appDict} lines={purchase.lines} />
                   </div>
                 }
               />
