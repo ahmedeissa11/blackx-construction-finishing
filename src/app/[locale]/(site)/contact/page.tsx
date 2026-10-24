@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { resolveLocale } from "@/lib/locale-params";
+import { localizedAlternates } from "@/lib/site-url";
 import { getDictionary } from "@/content/dictionary";
 import { siteHref } from "@/config/navigation";
 import { PageHero } from "@/components/site/PageHero";
@@ -15,7 +16,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
-  return { title: getDictionary(locale).contact.title };
+  return {
+    title: getDictionary(locale).contact.title,
+    alternates: localizedAlternates(locale, "contact"),
+  };
 }
 
 const CARD_ICONS = ["◎", "✉", "▥"];

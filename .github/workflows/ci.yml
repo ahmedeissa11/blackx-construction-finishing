@@ -1,0 +1,72 @@
+# BLACK X — CI quality pipeline (BX-107).
+#
+# Runs the repository's existing quality scripts on every push and pull
+# request. Each check is a separate step so failures are visible by
+# name; no step uses continue-on-error, so any real check failure fails
+# the job (and therefore the workflow run / PR check).
+#
+# Intentional boundaries:
+# - Uses npm + package-lock.json (`npm ci`) — the repo's existing
+#   package manager and lockfile. No new dependencies are installed
+#   beyond what the lockfile already pins.
+# - Node 22: current LTS matching @types/node ^22 and local
+#   development. Vercel's production runtime is configured separately
+#   (24.x project setting); aligning CI to it is a deliberate follow-up.
+#   Deployment remains with the existing Vercel integration. Nothing
+#   here deploys.
+# - The final `next build` step is required, not redundant: verified
+#   locally (2026-10-24) that a build-only failure class (Node-only API
+#   in an edge-runtime route) passes format/lint/typecheck/test yet
+#   fails `next build`. The build needs no env secrets for this app.
+# - `npm test` includes the adapter contract suite
+#   (tests/contract/*.test.ts) via the existing Vitest include pattern.
+#   Use `npm run test:contract` locally to select only that suite.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Format, lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies from lockfile
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Run tests (unit + contract)
+        run: npm test
+
+      - name: Production build
+        run: npm run build

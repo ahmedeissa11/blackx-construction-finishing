@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { locales, getDirection } from "@/lib/i18n";
 import { resolveLocale } from "@/lib/locale-params";
 import { getDictionary } from "@/content/dictionary";
+import { getSiteUrl } from "@/lib/site-url";
 import "@fontsource-variable/cairo";
 import "@fontsource-variable/inter";
 import "@/styles/globals.css";
@@ -20,12 +21,20 @@ export async function generateMetadata({
   const locale = await resolveLocale(params);
   const dict = getDictionary(locale);
   return {
+    metadataBase: new URL(getSiteUrl()),
     title: {
       default: `${dict.brand.full} | BLACK X`,
       template: "%s | BLACK X CONSTRUCTION & FINISHING",
     },
     description: dict.meta.siteDescription,
     icons: { icon: "/brand/blackx-logo.jpg" },
+    openGraph: {
+      type: "website",
+      siteName: "BLACK X CONSTRUCTION & FINISHING",
+      title: `${dict.brand.full} | BLACK X`,
+      description: dict.meta.siteDescription,
+      images: [{ url: "/brand/blackx-logo.jpg", alt: dict.brand.full }],
+    },
   };
 }
 

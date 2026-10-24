@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { pick } from "@/lib/i18n";
 import { resolveLocale } from "@/lib/locale-params";
+import { localizedAlternates } from "@/lib/site-url";
 import { getDictionary } from "@/content/dictionary";
 import { services } from "@/content/services";
 import { siteHref } from "@/config/navigation";
@@ -15,7 +16,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
-  return { title: getDictionary(locale).services.title };
+  return {
+    title: getDictionary(locale).services.title,
+    alternates: localizedAlternates(locale, "services"),
+  };
 }
 
 export default async function ServicesPage({ params }: { params: Promise<{ locale: string }> }) {

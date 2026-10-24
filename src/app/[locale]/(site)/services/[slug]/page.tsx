@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { pick, locales } from "@/lib/i18n";
 import { resolveLocale } from "@/lib/locale-params";
+import { localizedAlternates } from "@/lib/site-url";
 import { getDictionary } from "@/content/dictionary";
 import { getService, services } from "@/content/services";
 import { siteHref } from "@/config/navigation";
@@ -27,7 +28,11 @@ export async function generateMetadata({
   const locale = await resolveLocale(params);
   const service = getService(slug);
   if (!service) notFound();
-  return { title: pick(service.title, locale), description: pick(service.summary, locale) };
+  return {
+    title: pick(service.title, locale),
+    description: pick(service.summary, locale),
+    alternates: localizedAlternates(locale, `services/${slug}`),
+  };
 }
 
 export default async function ServiceDetailPage({

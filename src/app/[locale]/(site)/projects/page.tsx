@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { resolveLocale } from "@/lib/locale-params";
+import { localizedAlternates } from "@/lib/site-url";
 import { getDictionary } from "@/content/dictionary";
 import { publishedProjects } from "@/content/publications";
 import { siteHref } from "@/config/navigation";
@@ -13,7 +14,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
-  return { title: getDictionary(locale).projects.title };
+  return {
+    title: getDictionary(locale).projects.title,
+    alternates: localizedAlternates(locale, "projects"),
+  };
 }
 
 export default async function ProjectsPage({ params }: { params: Promise<{ locale: string }> }) {
