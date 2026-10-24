@@ -409,7 +409,7 @@ describe("stylesheet wiring", () => {
     expect(siteCss).toContain('html[dir="rtl"] .home-hero-media::after');
   });
 
-  it("keeps the admin shell responsive with a logical drawer, compact header, and card tables", () => {
+  it("keeps the admin shell responsive with a logical drawer, premium compact header, and card tables", () => {
     const appShell = fs.readFileSync(path.join(root, "src/components/ui/AppShell.tsx"), "utf8");
     const globalsCss = fs.readFileSync(path.join(root, "src/styles/globals.css"), "utf8");
     const overviewPage = fs.readFileSync(
@@ -440,7 +440,18 @@ describe("stylesheet wiring", () => {
     expect(globalsCss).toContain("padding: 16px 14px calc(44px + env(safe-area-inset-bottom));");
     expect(globalsCss).toContain(".executive-dashboard > *");
     expect(globalsCss).toContain("html:has(.shell)");
-    expect(globalsCss).toContain("scroll-padding-top: 72px;");
+    expect(globalsCss).toContain("scroll-padding-top: calc(80px + env(safe-area-inset-top));");
+    expect(globalsCss).toContain("scroll-padding-top: calc(136px + env(safe-area-inset-top));");
+    expect(globalsCss).toContain('grid-template-areas: "menu heading actions";');
+    expect(globalsCss).toContain("@media (max-width: 374px)");
+    expect(globalsCss).toContain('"actions actions";');
+    expect(globalsCss).toContain(".shell-topbar .shell-context");
+    expect(globalsCss).toContain(".shell-topbar .locale-switch a.current");
+    expect(globalsCss).toContain("background: var(--color-sage-deep);");
+    expect(globalsCss).toContain(".shell-signout-icon");
+    expect(globalsCss).toContain("env(safe-area-inset-left)");
+    expect(appShell).toContain("function LogoutIcon");
+    expect(appShell).toContain("<LogoutIcon />");
     expect(globalsCss).toContain("width: min(84vw, 300px);");
     expect(globalsCss).toContain('html[dir="rtl"] .shell-sidebar');
     expect(globalsCss).toContain("height: 100dvh;");
