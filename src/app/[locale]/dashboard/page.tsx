@@ -46,15 +46,17 @@ function Panel({
   title,
   href,
   linkLabel,
+  className,
   children,
 }: {
   title: string;
   href?: string;
   linkLabel?: string;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <section className="panel">
+    <section className={className ? `panel ${className}` : "panel"}>
       <div className="panel-head">
         <h3 style={{ fontSize: "1.05rem" }}>{title}</h3>
         {href && linkLabel ? (
@@ -119,20 +121,20 @@ export default async function DashboardOverview({
   const overview = getPreviewAdminOverview();
   const metrics = overview.metrics;
 
-  const stats = [
+  const primaryStats = [
+    {
+      label: d.statActiveProjects,
+      value: metrics.activeProjects,
+      note: d.statNotes.projects,
+      icon: "⬢",
+      href: moduleHref(locale, "projects"),
+    },
     {
       label: d.statNewRequests,
       value: metrics.newRequests,
       note: d.statNotes.requests,
       icon: "✉",
       href: moduleHref(locale, "requests"),
-    },
-    {
-      label: d.statInspectionsWeek,
-      value: metrics.upcomingInspections,
-      note: d.statNotes.inspections,
-      icon: "◎",
-      href: moduleHref(locale, "inspections"),
     },
     {
       label: d.statQuotationsDecision,
@@ -142,56 +144,65 @@ export default async function DashboardOverview({
       href: moduleHref(locale, "quotations"),
     },
     {
-      label: d.statPendingContracts,
-      value: metrics.pendingContracts,
-      note: d.statNotes.contracts,
-      icon: "▣",
-      href: moduleHref(locale, "contracts"),
-    },
-    {
-      label: d.statActiveProjects,
-      value: metrics.activeProjects,
-      note: d.statNotes.projects,
-      icon: "⬢",
-      href: moduleHref(locale, "projects"),
-    },
-    {
       label: d.statOverdueMilestones,
       value: metrics.overdueMilestones,
       note: d.statNotes.overdue,
       icon: "⚑",
       href: moduleHref(locale, "milestones"),
     },
+  ];
+
+  const secondaryStats = [
+    {
+      label: d.statInspectionsWeek,
+      value: metrics.upcomingInspections,
+      href: moduleHref(locale, "inspections"),
+    },
+    {
+      label: d.statPendingContracts,
+      value: metrics.pendingContracts,
+      href: moduleHref(locale, "contracts"),
+    },
     {
       label: d.statUnresolvedFindings,
       value: metrics.unresolvedFindings,
-      note: d.statNotes.findings,
-      icon: "⚠",
       href: moduleHref(locale, "issues"),
     },
     {
       label: d.statPendingReports,
       value: metrics.pendingReports,
-      note: d.statNotes.reports,
-      icon: "▥",
       href: moduleHref(locale, "reports"),
     },
   ];
 
-  const actionQueueItems = overview.actionQueue.slice(0, 10);
+  const actionQueueItems = overview.actionQueue.slice(0, 8);
+  const recentActivityItems = overview.recentActivityRows.slice(0, 5);
 
   return (
     <>
-      <div>
-        <h2 style={{ fontSize: "1.45rem" }}>{d.overviewTitle}</h2>
-        <p style={{ color: "var(--color-muted)" }}>{d.overviewLead}</p>
-        <p style={{ color: "var(--color-muted)", fontSize: "0.88rem", marginBlockStart: 6 }}>
-          {d.snapshotAsOf} {formatDate(overview.snapshotDate, locale)}
-        </p>
-      </div>
+      <section className="dashboard-intro" aria-labelledby="dashboard-overview-title">
+        <div className="dashboard-intro-copy">
+          <h2 id="dashboard-overview-title">{d.overviewTitle}</h2>
+          <p>{d.overviewLead}</p>
+          <p className="dashboard-snapshot">
+            {d.snapshotAsOf} {formatDate(overview.snapshotDate, locale)}
+          </p>
+        </div>
+        <div className="dashboard-intro-actions">
+          <Link className="btn btn-primary" href={moduleHref(locale, "requests")}>
+            {d.ownerActions.reviewRequests}
+          </Link>
+          <Link className="btn btn-outline" href={moduleHref(locale, "projects")}>
+            {d.ownerActions.viewProjects}
+          </Link>
+          <Link className="btn btn-ghost" href={moduleHref(locale, "notifications")}>
+            {d.ownerActions.viewAlerts}
+          </Link>
+        </div>
+      </section>
 
-      <div className="stat-grid">
-        {stats.map((stat) => (
+      <div className="stat-grid" aria-label={d.overviewTitle}>
+        {primaryStats.map((stat) => (
           <Link
             className="stat-card"
             key={stat.label}
@@ -208,131 +219,58 @@ export default async function DashboardOverview({
         ))}
       </div>
 
-      <Panel title={d.operationalFlowTitle}>
+      <Panel title={d.attentionTitle} className="dashboard-priority">
         <div className="panel-body" style={{ paddingBlockEnd: 0 }}>
-          <p style={{ color: "var(--color-muted)", maxWidth: 980 }}>{d.operationalFlowLead}</p>
+          <p style={{ color: "var(--color-muted)" }}>{d.operations.actionQueue.intro}</p>
+          <p
+            style={{
+              color: "var(--color-muted)",
+              fontSize: "0.86rem",
+              marginBlockStart: 8,
+            }}
+          >
+            {formatNumber(actionQueueItems.length, locale)} {app.showingResults} ·{" "}
+            {formatNumber(overview.actionQueue.length, locale)} {d.operations.actionQueue.total}
+          </p>
         </div>
-        <ol className="ops-flow">
-          {overview.operationalFlow.map((stage, index) => (
-            <li key={stage.key}>
-              <Link href={moduleHref(locale, stage.module)}>
-                <span className="ops-flow-index" aria-hidden="true">
-                  {formatNumber(index + 1, locale)}
-                </span>
-                <span>
-                  <span className="ops-flow-label">{d.operationalFlowStages[stage.key]}</span>
-                  <span className="ops-flow-count">
-                    {formatNumber(stage.count, locale)} {d.operationalFlowCount}
+        {actionQueueItems.length > 0 ? (
+          <div className="list-rows priority-list">
+            {actionQueueItems.map((item) => {
+              const title = localizedQueueText(item.title, locale);
+              return (
+                <div className="list-row action-queue-row priority-item" key={item.id}>
+                  <span className="file-icon" aria-hidden="true">
+                    {actionQueueIcon(item)}
                   </span>
-                </span>
-                <span style={{ marginInlineStart: "auto" }} aria-hidden="true">
-                  <Arrow />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ol>
+                  <div className="lr-main">
+                    <div className="lr-title">{title}</div>
+                    <div className="lr-sub">
+                      {actionQueueKindLabel(app, item)} · <span dir="ltr">{item.reference}</span>
+                      {item.date ? ` · ${formatDate(item.date, locale)}` : ""}
+                      {item.requestNextAction
+                        ? ` · ${d.operations.nextActions[item.requestNextAction]}`
+                        : ""}
+                    </div>
+                  </div>
+                  <StatusBadge app={app} status={item.status} />
+                  <Link
+                    href={dashboardHref(locale, item.dashboardSegment)}
+                    className="btn btn-ghost btn-sm"
+                    aria-label={`${d.operations.actionQueue.reviewRecord}: ${item.reference}`}
+                  >
+                    {d.operations.actionQueue.reviewRecord}
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyPanelText>{d.noAttentionItems}</EmptyPanelText>
+        )}
       </Panel>
 
       <div className="two-col">
         <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-          <Panel title={d.attentionTitle}>
-            <div className="panel-body" style={{ paddingBlockEnd: 0 }}>
-              <p style={{ color: "var(--color-muted)" }}>{d.operations.actionQueue.intro}</p>
-              <p
-                style={{
-                  color: "var(--color-muted)",
-                  fontSize: "0.86rem",
-                  marginBlockStart: 8,
-                }}
-              >
-                {formatNumber(actionQueueItems.length, locale)} {app.showingResults} ·{" "}
-                {formatNumber(overview.actionQueue.length, locale)} {d.operations.actionQueue.total}
-              </p>
-            </div>
-            {actionQueueItems.length > 0 ? (
-              <div className="list-rows">
-                {actionQueueItems.map((item) => {
-                  const title = localizedQueueText(item.title, locale);
-                  return (
-                    <div className="list-row action-queue-row" key={item.id}>
-                      <span className="file-icon" aria-hidden="true">
-                        {actionQueueIcon(item)}
-                      </span>
-                      <div className="lr-main">
-                        <div className="lr-title">{title}</div>
-                        <div className="lr-sub">
-                          {actionQueueKindLabel(app, item)} ·{" "}
-                          <span dir="ltr">{item.reference}</span>
-                          {item.date ? ` · ${formatDate(item.date, locale)}` : ""}
-                          {item.requestNextAction
-                            ? ` · ${d.operations.nextActions[item.requestNextAction]}`
-                            : ""}
-                        </div>
-                      </div>
-                      <StatusBadge app={app} status={item.status} />
-                      <Link
-                        href={dashboardHref(locale, item.dashboardSegment)}
-                        className="btn btn-ghost btn-sm"
-                        aria-label={`${d.operations.actionQueue.reviewRecord}: ${item.reference}`}
-                      >
-                        {app.view}
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <EmptyPanelText>{d.noAttentionItems}</EmptyPanelText>
-            )}
-          </Panel>
-
-          <Panel
-            title={d.recentRequestsTitle}
-            href={moduleHref(locale, "requests")}
-            linkLabel={d.viewAll}
-          >
-            <div className="table-wrap">
-              <table className="data" style={{ minWidth: 620 }}>
-                <thead>
-                  <tr>
-                    <th scope="col">{d.cols.reference}</th>
-                    <th scope="col">{d.cols.customer}</th>
-                    <th scope="col">{d.cols.service}</th>
-                    <th scope="col">{d.cols.date}</th>
-                    <th scope="col">{d.cols.status}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {overview.recentRequests.map((request) => (
-                    <tr key={request.id}>
-                      <td>
-                        <span dir="ltr" style={{ fontWeight: 700 }}>
-                          {request.id}
-                        </span>
-                      </td>
-                      <td>
-                        {pick(request.customerName, locale)}
-                        <br />
-                        <span
-                          dir="ltr"
-                          style={{ color: "var(--color-muted)", fontSize: "0.82rem" }}
-                        >
-                          {request.customerId}
-                        </span>
-                      </td>
-                      <td>{pick(request.serviceLabel, locale)}</td>
-                      <td>{formatDate(request.submittedAt, locale)}</td>
-                      <td>
-                        <StatusBadge app={app} status={request.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Panel>
-
           <Panel
             title={d.activeProjectsTitle}
             href={moduleHref(locale, "projects")}
@@ -344,12 +282,12 @@ export default async function DashboardOverview({
                 const title = pick(project.title, locale);
                 return (
                   <div className="list-row" key={project.id} style={{ flexWrap: "wrap" }}>
-                    <div className="lr-main" style={{ minWidth: 220 }}>
+                    <div className="lr-main" style={{ flex: "1 1 220px" }}>
                       <div className="lr-title">{title}</div>
                       <div className="lr-sub">
-                        <span dir="ltr">{project.id}</span> ·{" "}
-                        {pick(project.currentMilestone, locale)} ·{" "}
-                        {formatDate(project.updatedAt, locale)}
+                        {pick(project.customer, locale)} · {pick(project.currentMilestone, locale)}{" "}
+                        · {formatDate(project.updatedAt, locale)} ·{" "}
+                        <span dir="ltr">{project.id}</span>
                       </div>
                     </div>
                     <span className="progress-row" style={{ flex: "1 1 180px" }}>
@@ -375,6 +313,51 @@ export default async function DashboardOverview({
                   </div>
                 );
               })}
+            </div>
+          </Panel>
+          <Panel
+            title={d.recentRequestsTitle}
+            href={moduleHref(locale, "requests")}
+            linkLabel={d.viewAll}
+          >
+            <div className="table-wrap">
+              <table className="data data-card-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{d.cols.reference}</th>
+                    <th scope="col">{d.cols.customer}</th>
+                    <th scope="col">{d.cols.service}</th>
+                    <th scope="col">{d.cols.date}</th>
+                    <th scope="col">{d.cols.status}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {overview.recentRequests.map((request) => (
+                    <tr key={request.id}>
+                      <td data-label={d.cols.reference}>
+                        <span dir="ltr" style={{ fontWeight: 700 }}>
+                          {request.id}
+                        </span>
+                      </td>
+                      <td data-label={d.cols.customer} data-wide="true">
+                        {pick(request.customerName, locale)}
+                        <br />
+                        <span
+                          dir="ltr"
+                          style={{ color: "var(--color-muted)", fontSize: "0.82rem" }}
+                        >
+                          {request.customerId}
+                        </span>
+                      </td>
+                      <td data-label={d.cols.service}>{pick(request.serviceLabel, locale)}</td>
+                      <td data-label={d.cols.date}>{formatDate(request.submittedAt, locale)}</td>
+                      <td data-label={d.cols.status}>
+                        <StatusBadge app={app} status={request.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </Panel>
         </div>
@@ -460,14 +443,25 @@ export default async function DashboardOverview({
             </div>
           </Panel>
 
+          <Panel title={d.secondaryMetricsTitle}>
+            <div className="secondary-metric-list">
+              {secondaryStats.map((stat) => (
+                <Link className="secondary-metric" key={stat.label} href={stat.href}>
+                  <span>{stat.label}</span>
+                  <strong>{formatNumber(stat.value, locale)}</strong>
+                </Link>
+              ))}
+            </div>
+          </Panel>
+
           <Panel
             title={d.recentActivityTitle}
             href={moduleHref(locale, "audit")}
             linkLabel={d.viewAll}
           >
-            {overview.recentActivityRows.length > 0 ? (
+            {recentActivityItems.length > 0 ? (
               <div className="list-rows">
-                {overview.recentActivityRows.map((row) => (
+                {recentActivityItems.map((row) => (
                   <div className="list-row" key={row.id}>
                     <span className="file-icon" aria-hidden="true">
                       ☰
@@ -490,6 +484,31 @@ export default async function DashboardOverview({
           </Panel>
         </div>
       </div>
+      <Panel title={d.operationalFlowTitle} className="dashboard-secondary-flow">
+        <div className="panel-body" style={{ paddingBlockEnd: 0 }}>
+          <p style={{ color: "var(--color-muted)", maxWidth: 980 }}>{d.operationalFlowLead}</p>
+        </div>
+        <ol className="ops-flow">
+          {overview.operationalFlow.map((stage, index) => (
+            <li key={stage.key}>
+              <Link href={moduleHref(locale, stage.module)}>
+                <span className="ops-flow-index" aria-hidden="true">
+                  {formatNumber(index + 1, locale)}
+                </span>
+                <span>
+                  <span className="ops-flow-label">{d.operationalFlowStages[stage.key]}</span>
+                  <span className="ops-flow-count">
+                    {formatNumber(stage.count, locale)} {d.operationalFlowCount}
+                  </span>
+                </span>
+                <span style={{ marginInlineStart: "auto" }} aria-hidden="true">
+                  <Arrow />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </Panel>
     </>
   );
 }

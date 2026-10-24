@@ -16,6 +16,8 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
   const [urlSuffix, setUrlSuffix] = useState("");
   const headerRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const drawerCloseRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setOpen(false);
@@ -34,6 +36,12 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
       documentElement.style.overflow = previousDocumentOverflow;
       body.style.overflow = previousBodyOverflow;
     };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(() => drawerCloseRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
   }, [open]);
 
   useEffect(() => {
@@ -62,9 +70,34 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
     if (!open) return;
 
     function onKey(e: KeyboardEvent) {
-      if (e.key !== "Escape") return;
-      setOpen(false);
-      menuButtonRef.current?.focus();
+      if (e.key === "Escape") {
+        setOpen(false);
+        window.requestAnimationFrame(() => menuButtonRef.current?.focus({ preventScroll: true }));
+        return;
+      }
+
+      if (e.key !== "Tab" || !drawerRef.current) return;
+      const drawerFocusable = Array.from(
+        drawerRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => !element.hidden && element.getClientRects().length > 0);
+      const focusable = drawerFocusable;
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!first || !last) return;
+      if (!focusable.includes(document.activeElement as HTMLElement)) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
 
     function onPointerDown(e: PointerEvent) {
@@ -91,6 +124,11 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
 
   function closeMenu() {
     setOpen(false);
+  }
+
+  function closeMenuAndReturnFocus() {
+    setOpen(false);
+    window.requestAnimationFrame(() => menuButtonRef.current?.focus({ preventScroll: true }));
   }
 
   function isActive(segment: string): boolean {
@@ -157,59 +195,69 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
         onPointerDown={closeMenu}
       />
       <div
+        ref={drawerRef}
         id="mobile-menu"
         className={`mobile-panel${open ? " open" : ""}`}
+        role="dialog"
+        aria-modal="false"
+        aria-label={dict.nav.menu}
         inert={!open}
         aria-hidden={!open}
       >
-        <div className="container">
-          <nav aria-label={dict.nav.menu}>
-            {siteNav.map((item) => (
-              <Link
-                key={item.key}
-                href={siteHref(locale, item.segment)}
-                className={isActive(item.segment) ? "active" : undefined}
-                aria-current={isActive(item.segment) ? "page" : undefined}
-                onClick={closeMenu}
-              >
-                {dict.nav[item.key]}
-              </Link>
-            ))}
+        <div className="mobile-drawer-head">
+          <BrandLockup locale={locale} dict={dict} dark onClick={closeMenu} />
+          <button
+            ref={drawerCloseRef}
+            type="button"
+            className="mobile-drawer-close"
+            aria-label={dict.nav.close}
+            onClick={closeMenuAndReturnFocus}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <nav aria-label={dict.nav.menu}>
+          {siteNav.map((item) => (
             <Link
-              href={siteHref(locale, "faqs")}
-              className={isActive("faqs") ? "active" : undefined}
-              aria-current={isActive("faqs") ? "page" : undefined}
+              key={item.key}
+              href={siteHref(locale, item.segment)}
+              className={isActive(item.segment) ? "active" : undefined}
+              aria-current={isActive(item.segment) ? "page" : undefined}
               onClick={closeMenu}
             >
-              {dict.nav.faqs}
+              {dict.nav[item.key]}
             </Link>
-          </nav>
-          <div className="mp-actions">
+          ))}
+          <Link
+            href={siteHref(locale, "faqs")}
+            className={isActive("faqs") ? "active" : undefined}
+            aria-current={isActive("faqs") ? "page" : undefined}
+            onClick={closeMenu}
+          >
+            {dict.nav.faqs}
+          </Link>
+        </nav>
+        <div className="mp-actions">
+          <Link href={siteHref(locale, "request")} className="btn btn-primary" onClick={closeMenu}>
+            {dict.nav.requestCta}
+          </Link>
+          <div className="mp-locale-switch" role="group" aria-label="Language / اللغة">
             <Link
-              href={siteHref(locale, "request")}
-              className="btn btn-primary"
+              href={buildLocaleSwitchHref(pathname, "ar", urlSuffix)}
+              className={locale === "ar" ? "current" : undefined}
+              aria-current={locale === "ar" ? "true" : undefined}
               onClick={closeMenu}
             >
-              {dict.nav.requestCta}
+              عربي
             </Link>
-            <div className="mp-locale-switch" role="group" aria-label="Language / اللغة">
-              <Link
-                href={buildLocaleSwitchHref(pathname, "ar", urlSuffix)}
-                className={locale === "ar" ? "current" : undefined}
-                aria-current={locale === "ar" ? "true" : undefined}
-                onClick={closeMenu}
-              >
-                عربي
-              </Link>
-              <Link
-                href={buildLocaleSwitchHref(pathname, "en", urlSuffix)}
-                className={locale === "en" ? "current" : undefined}
-                aria-current={locale === "en" ? "true" : undefined}
-                onClick={closeMenu}
-              >
-                English
-              </Link>
-            </div>
+            <Link
+              href={buildLocaleSwitchHref(pathname, "en", urlSuffix)}
+              className={locale === "en" ? "current" : undefined}
+              aria-current={locale === "en" ? "true" : undefined}
+              onClick={closeMenu}
+            >
+              English
+            </Link>
           </div>
         </div>
       </div>

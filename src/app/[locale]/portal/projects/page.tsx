@@ -27,7 +27,7 @@ export default async function PortalProjects({ params }: { params: Promise<{ loc
       <h2 style={{ fontSize: "1.45rem" }}>{app.portal.nav.myProjects}</h2>
       <div
         className="services-grid cols-3"
-        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}
+        style={{ gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 300px), 1fr))" }}
       >
         {mine.map((project) => (
           <Link

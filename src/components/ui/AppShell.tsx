@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { Locale } from "@/lib/i18n";
 import { buildLocaleSwitchHref } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
@@ -44,8 +44,60 @@ export function AppShell({
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
   const [urlSuffix, setUrlSuffix] = useState("");
+  const [compactNav, setCompactNav] = useState(false);
+  const [groupOverrides, setGroupOverrides] = useState<Record<string, boolean>>({});
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
+
+  const closeDrawer = useCallback((restoreFocus = false) => {
+    setOpen(false);
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => menuButtonRef.current?.focus({ preventScroll: true }));
+    }
+  }, []);
 
   useEffect(() => setOpen(false), [pathname]);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 960px)");
+    const syncCompactNav = () => setCompactNav(mobileQuery.matches);
+    syncCompactNav();
+    mobileQuery.addEventListener("change", syncCompactNav);
+    return () => mobileQuery.removeEventListener("change", syncCompactNav);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const mobileQuery = window.matchMedia("(max-width: 960px)");
+    if (!mobileQuery.matches) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusFrame = window.requestAnimationFrame(() => {
+      sidebarRef.current
+        ?.querySelector<HTMLElement>(".shell-nav a")
+        ?.focus({ preventScroll: true });
+    });
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDrawer(true);
+      }
+    }
+    function onViewportChange(event: MediaQueryListEvent) {
+      if (!event.matches) setOpen(false);
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    mobileQuery.addEventListener("change", onViewportChange);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+      mobileQuery.removeEventListener("change", onViewportChange);
+    };
+  }, [closeDrawer, open]);
 
   useEffect(() => {
     function syncUrlSuffix() {
@@ -79,6 +131,10 @@ export function AppShell({
     [],
   );
 
+  function toggleNavGroup(label: string, expanded: boolean) {
+    setGroupOverrides((current) => ({ ...current, [label]: !expanded }));
+  }
+
   return (
     <div className="shell">
       {open ? (
@@ -86,48 +142,88 @@ export function AppShell({
           type="button"
           className="shell-scrim"
           aria-label={appDict.close}
-          onClick={() => setOpen(false)}
+          onClick={() => closeDrawer(true)}
         />
       ) : null}
       <aside
+        ref={sidebarRef}
         id="app-sidebar"
         className={`shell-sidebar${open ? " open" : ""}`}
         aria-label={roleLabel}
+        inert={compactNav && !open}
+        aria-hidden={compactNav && !open}
       >
         <div className="shell-brand">
           <img src="/brand/blackx-logo.jpg" alt="BLACK X" width={46} height={46} />
-          <div>
+          <div className="shell-brand-copy">
             <div className="sb-name">BLACK X</div>
             <div className="sb-role">{roleLabel}</div>
           </div>
+          <button
+            type="button"
+            className="shell-drawer-close"
+            aria-label={appDict.close}
+            onClick={() => closeDrawer(true)}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
         </div>
         <nav className="shell-nav" aria-label={roleLabel}>
-          {navGroups.map((group, groupIndex) => (
-            <div
-              className="shell-nav-group"
-              key={`${group.label ?? "default"}-${groupIndex}`}
-              role={group.label ? "group" : undefined}
-              aria-label={group.label}
-            >
-              {group.label ? <p className="shell-nav-heading">{group.label}</p> : null}
-              {group.items.map((item) => (
-                <Link
-                  key={item.href + item.label}
-                  href={item.href}
-                  className={isActive(item.href) ? "active" : undefined}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                >
-                  <span className="nav-icon" aria-hidden="true">
-                    {item.icon}
-                  </span>
-                  <span>{item.label}</span>
-                  {typeof item.count === "number" && item.count > 0 ? (
-                    <span className="nav-count">{item.count}</span>
-                  ) : null}
-                </Link>
-              ))}
-            </div>
-          ))}
+          {navGroups.map((group, groupIndex) => {
+            const hasActiveItem = group.items.some((item) => isActive(item.href));
+            const expanded = group.label
+              ? (groupOverrides[group.label] ?? (!compactNav || hasActiveItem))
+              : true;
+            const visibleItems = expanded
+              ? group.items
+              : group.items.filter((item) => isActive(item.href));
+            const groupCount = group.items.reduce((total, item) => total + (item.count ?? 0), 0);
+            const groupPanelId = `shell-nav-group-${groupIndex}`;
+
+            return (
+              <div
+                className="shell-nav-group"
+                key={`${group.label ?? "default"}-${groupIndex}`}
+                role={group.label ? "group" : undefined}
+                aria-label={group.label}
+              >
+                {group.label ? (
+                  <button
+                    type="button"
+                    className="shell-nav-heading"
+                    aria-expanded={expanded}
+                    aria-controls={groupPanelId}
+                    onClick={() => toggleNavGroup(group.label!, expanded)}
+                  >
+                    <span>{group.label}</span>
+                    {groupCount > 0 ? <span className="nav-count">{groupCount}</span> : null}
+                    <span className="shell-nav-chevron" aria-hidden="true">
+                      {expanded ? "⌃" : "⌄"}
+                    </span>
+                  </button>
+                ) : null}
+                <div id={groupPanelId} className="shell-nav-items">
+                  {visibleItems.map((item) => (
+                    <Link
+                      key={item.href + item.label}
+                      href={item.href}
+                      className={isActive(item.href) ? "active" : undefined}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                      onClick={() => setOpen(false)}
+                    >
+                      <span className="nav-icon" aria-hidden="true">
+                        {item.icon}
+                      </span>
+                      <span className="nav-label">{item.label}</span>
+                      {typeof item.count === "number" && item.count > 0 ? (
+                        <span className="nav-count">{item.count}</span>
+                      ) : null}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </nav>
         <div className="shell-foot">
           <p style={{ marginBlockEnd: 10 }}>{appDict.authNote}</p>
@@ -145,24 +241,18 @@ export function AppShell({
         </div>
         <header className="shell-topbar">
           <button
+            ref={menuButtonRef}
             type="button"
             className="shell-menu-btn"
             aria-expanded={open}
             aria-controls="app-sidebar"
             aria-label={open ? appDict.close : appDict.menu}
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => (open ? closeDrawer(true) : setOpen(true))}
           >
             {open ? "✕" : "☰"}
           </button>
-          <h1>{title}</h1>
-          <span
-            style={{
-              marginInlineStart: "auto",
-              display: "inline-flex",
-              gap: 10,
-              alignItems: "center",
-            }}
-          >
+          <h1 className="shell-title">{title}</h1>
+          <span className="shell-topbar-actions">
             <span className="locale-switch" role="group" aria-label="Language / اللغة">
               <Link
                 href={buildLocaleSwitchHref(pathname, "ar", urlSuffix)}
@@ -182,7 +272,7 @@ export function AppShell({
             {showSignOut ? (
               <button
                 type="button"
-                className="btn btn-ghost btn-sm"
+                className="btn btn-ghost btn-sm shell-signout"
                 onClick={() => void signOut({ callbackUrl: `/${locale}/login` })}
               >
                 {appDict.signOut}

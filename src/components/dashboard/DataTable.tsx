@@ -193,14 +193,13 @@ export function DataTable({
             />
           </div>
           {statuses.length > 0 ? (
-            <>
-              <label className="sr-only" htmlFor="dt-status">
-                {appDict.allStatuses}
+            <div className="filter-field">
+              <label className="filter-label" htmlFor="dt-status">
+                {appDict.dashboard.cols.status}
               </label>
               <select
                 id="dt-status"
                 className="form-select"
-                style={{ width: "auto" }}
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -211,7 +210,7 @@ export function DataTable({
                   </option>
                 ))}
               </select>
-            </>
+            </div>
           ) : null}
           {hasFilters ? (
             <button type="button" className="btn btn-ghost btn-sm" onClick={clearFilters}>
@@ -235,7 +234,7 @@ export function DataTable({
         {formatNumber(filtered.length, locale)} {appDict.showingResults}
       </p>
       <div className="table-wrap">
-        <table className="data">
+        <table className="data data-card-table">
           <caption className="sr-only">{appDict.dashboard.modules[moduleKey]}</caption>
           <thead>
             <tr>
@@ -253,12 +252,12 @@ export function DataTable({
                 {table.columns.map((col) => {
                   const cell = row.cells[col.id];
                   return (
-                    <td key={col.id}>
+                    <td key={col.id} data-label={cols[col.labelKey] ?? col.labelKey}>
                       {cell ? <CellView cell={cell} locale={locale} appDict={appDict} /> : "—"}
                     </td>
                   );
                 })}
-                <td>
+                <td data-label={appDict.actions} data-wide="true">
                   <span style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
                     <button
                       type="button"

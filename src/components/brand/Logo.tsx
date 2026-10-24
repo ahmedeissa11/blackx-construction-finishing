@@ -11,13 +11,15 @@ export function BrandLockup({
   locale,
   dict,
   dark = false,
+  onClick,
 }: {
   locale: Locale;
   dict: Dictionary;
   dark?: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <Link href={`/${locale}`} className="brand" aria-label={dict.brand.full}>
+    <Link href={`/${locale}`} className="brand" aria-label={dict.brand.full} onClick={onClick}>
       <img
         src="/brand/blackx-logo.jpg"
         alt="BLACK X"

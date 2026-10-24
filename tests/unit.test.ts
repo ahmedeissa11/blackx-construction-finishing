@@ -350,7 +350,7 @@ describe("stylesheet wiring", () => {
     expect(siteCss).not.toContain("a:hover .arrow-icon");
   });
 
-  it("keeps public navigation integrated and the dark mobile panel inaccessible when closed", () => {
+  it("keeps public navigation integrated and the half-width glass drawer inaccessible when closed", () => {
     const header = fs.readFileSync(path.join(root, "src/components/site/SiteHeader.tsx"), "utf8");
     const tokens = fs.readFileSync(path.join(root, "src/styles/tokens.css"), "utf8");
     const siteCss = fs.readFileSync(path.join(root, "src/styles/site.css"), "utf8");
@@ -360,6 +360,8 @@ describe("stylesheet wiring", () => {
     expect(tokens).toContain("--mobile-nav-bg: #252722;");
     expect(tokens).toContain("--mobile-nav-bg-end: #353a30;");
     expect(tokens).toContain("--mobile-nav-duration: 300ms;");
+    expect(tokens).toContain("--public-drawer-bg:");
+    expect(tokens).toContain("--public-drawer-blur: 18px;");
     expect(tokens).not.toContain("--nav-glass:");
     expect(tokens).not.toContain("--nav-radius:");
     expect(siteCss).toContain('.site-header[data-scrolled="true"]');
@@ -370,8 +372,16 @@ describe("stylesheet wiring", () => {
     );
     expect(siteCss).toContain(".mobile-nav-scrim");
     expect(siteCss).toContain(".mobile-panel.open");
+    expect(siteCss).toContain("width: clamp(220px, 55vw, 340px);");
+    expect(siteCss).toContain("inset-inline-start: 0;");
+    expect(siteCss).toContain('html[dir="rtl"] .mobile-panel');
+    expect(siteCss).toContain('html[dir="ltr"] .mobile-panel');
+    expect(siteCss).toContain('html[dir="rtl"] .mobile-panel.open');
+    expect(siteCss).toContain('html[dir="ltr"] .mobile-panel.open');
+    expect(siteCss).toContain("backdrop-filter: blur(var(--public-drawer-blur))");
     expect(siteCss).toContain("var(--mobile-nav-duration)");
     expect(siteCss).toContain(".mp-locale-switch");
+    expect(siteCss).toContain('.site-header[data-menu-open="true"] .menu-btn');
     expect(siteCss).toContain("@media (prefers-reduced-motion: reduce)");
     expect(header).toContain("data-scrolled={scrolled}");
     expect(header).toContain("data-menu-open={open}");
@@ -381,8 +391,10 @@ describe("stylesheet wiring", () => {
     expect(header).toContain("body.style.overflow");
     expect(header).not.toContain(" hidden={!open}");
     expect(header).toContain('className="menu-icon"');
-    expect(header).not.toContain('role="dialog"');
-    expect(header).not.toContain("aria-modal");
+    expect(header).toContain('role="dialog"');
+    expect(header).toContain('aria-modal="false"');
+    expect(header).toContain('className="mobile-drawer-close"');
+    expect(header).toContain("menuButtonRef.current?.focus({ preventScroll: true })");
   });
 
   it("uses the existing villa image once as the decorative homepage hero background", () => {
@@ -395,6 +407,53 @@ describe("stylesheet wiring", () => {
     expect(siteCss).toContain(".home-hero-media img");
     expect(siteCss).toContain("object-fit: cover;");
     expect(siteCss).toContain('html[dir="rtl"] .home-hero-media::after');
+  });
+
+  it("keeps the admin shell responsive with a logical drawer, wrapped header, and card tables", () => {
+    const appShell = fs.readFileSync(path.join(root, "src/components/ui/AppShell.tsx"), "utf8");
+    const globalsCss = fs.readFileSync(path.join(root, "src/styles/globals.css"), "utf8");
+    const overviewPage = fs.readFileSync(
+      path.join(root, "src/app/[locale]/dashboard/page.tsx"),
+      "utf8",
+    );
+    const requestsBoard = fs.readFileSync(
+      path.join(root, "src/components/dashboard/RequestsBoard.tsx"),
+      "utf8",
+    );
+    const dataTable = fs.readFileSync(
+      path.join(root, "src/components/dashboard/DataTable.tsx"),
+      "utf8",
+    );
+    const portalProjects = fs.readFileSync(
+      path.join(root, "src/app/[locale]/portal/projects/page.tsx"),
+      "utf8",
+    );
+
+    expect(globalsCss).toContain("@media (max-width: 960px)");
+    expect(globalsCss).toContain("width: min(84vw, 300px);");
+    expect(globalsCss).toContain('html[dir="rtl"] .shell-sidebar');
+    expect(globalsCss).toContain("height: 100dvh;");
+    expect(globalsCss).toContain("overscroll-behavior: contain;");
+    expect(globalsCss).toContain(".shell-topbar-actions");
+    expect(globalsCss).toContain(".shell-topbar .locale-switch a");
+    expect(globalsCss).toContain("min-height: 44px;");
+    expect(globalsCss).toContain("grid-template-columns: repeat(2, minmax(0, 1fr));");
+    expect(globalsCss).toContain("@media (max-width: 359px)");
+    expect(globalsCss).not.toContain(
+      "@media (max-width: 520px) {\n  .stat-grid {\n    grid-template-columns: 1fr;",
+    );
+    expect(globalsCss).toContain("table.data.data-card-table");
+    expect(globalsCss).toContain("content: attr(data-label);");
+    expect(appShell).toContain('if (event.key === "Escape")');
+    expect(appShell).toContain('document.body.style.overflow = "hidden";');
+    expect(appShell).toContain("onClick={() => closeDrawer(true)}");
+    expect(appShell).toContain("onClick={() => setOpen(false)}");
+    expect(appShell).toContain('className="shell-topbar-actions"');
+    for (const source of [overviewPage, requestsBoard, dataTable]) {
+      expect(source).toContain("data-card-table");
+      expect(source).toContain("data-label=");
+    }
+    expect(portalProjects).toContain("minmax(min(100%, 300px), 1fr)");
   });
 });
 
@@ -526,8 +585,8 @@ describe("admin preview operations", () => {
     const groupedModules = dashboardNavGroups.flatMap((group) => group.modules);
     expect(groupedModules).toEqual(dashboardModules.map((dashboardModule) => dashboardModule.key));
     expect(new Set(groupedModules).size).toBe(groupedModules.length);
-    expect(getDashboardNavGroupKey("quality")).toBe("qualityReporting");
-    expect(getDashboardNavGroupKey("warranty")).toBe("documentsHandover");
+    expect(getDashboardNavGroupKey("quality")).toBe("qualityHandover");
+    expect(getDashboardNavGroupKey("warranty")).toBe("qualityHandover");
   });
 
   it("derives customer and project tables from canonical preview records", () => {
