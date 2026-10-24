@@ -11,6 +11,29 @@ import { dashboardHref, dashboardModules, type DashboardModuleKey } from "@/conf
 import { getLinkedPreviewRecords, type PreviewLinkedRecord } from "@/lib/admin-preview";
 import { clampPercent, formatDate, formatMoney, formatNumber, formatPercent } from "@/lib/format";
 import { InfoDialog } from "@/components/ui/ConfirmDialog";
+import {
+  RecordDetailSection,
+  RecordEmptyState,
+  RecordListItem,
+  RecordMetaList,
+  StatusBadge,
+} from "@/components/dashboard/RecordUI";
+
+const MOBILE_PRIMARY_COLUMNS = new Set([
+  "ref",
+  "reference",
+  "title",
+  "name",
+  "customer",
+  "project",
+  "service",
+  "date",
+  "dueDate",
+  "status",
+  "priority",
+  "progress",
+  "amount",
+]);
 
 function cellText(cell: PreviewCell, locale: Locale, appDict: AppDictionary): string {
   switch (cell.kind) {
@@ -252,12 +275,19 @@ export function DataTable({
                 {table.columns.map((col) => {
                   const cell = row.cells[col.id];
                   return (
-                    <td key={col.id} data-label={cols[col.labelKey] ?? col.labelKey}>
+                    <td
+                      key={col.id}
+                      data-label={cols[col.labelKey] ?? col.labelKey}
+                      data-column={col.id}
+                      data-mobile-priority={
+                        MOBILE_PRIMARY_COLUMNS.has(col.id) ? "primary" : "secondary"
+                      }
+                    >
                       {cell ? <CellView cell={cell} locale={locale} appDict={appDict} /> : "—"}
                     </td>
                   );
                 })}
-                <td data-label={appDict.actions} data-wide="true">
+                <td data-label={appDict.actions} data-wide="true" data-mobile-priority="primary">
                   <span style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
                     <button
                       type="button"
@@ -287,21 +317,18 @@ export function DataTable({
           </tbody>
         </table>
         {filtered.length === 0 ? (
-          <div style={{ padding: "44px 24px", textAlign: "center", color: "var(--color-muted)" }}>
-            <p style={{ fontSize: "1.6rem", marginBlockEnd: 8 }} aria-hidden="true">
-              ⌕
-            </p>
-            <p>{table.rows.length === 0 ? appDict.dashboard.genericEmpty : appDict.noResults}</p>
-            {table.rows.length > 0 ? (
-              <button
-                type="button"
-                className="btn btn-outline btn-sm"
-                style={{ marginBlockStart: 14 }}
-                onClick={clearFilters}
-              >
-                {appDict.clearFilters}
-              </button>
-            ) : null}
+          <div className="requests-empty-wrap" style={{ paddingBlockStart: 16 }}>
+            <RecordEmptyState
+              action={
+                table.rows.length > 0 ? (
+                  <button type="button" className="btn btn-outline btn-sm" onClick={clearFilters}>
+                    {appDict.clearFilters}
+                  </button>
+                ) : undefined
+              }
+            >
+              {table.rows.length === 0 ? appDict.dashboard.genericEmpty : appDict.noResults}
+            </RecordEmptyState>
           </div>
         ) : null}
       </div>
@@ -312,85 +339,87 @@ export function DataTable({
         onClose={() => setSelectedRow(null)}
       >
         {selectedRow ? (
-          <>
-            <dl className="kv-grid">
-              <div className="kv">
-                <dt>{appDict.recordId}</dt>
-                <dd dir="ltr">{rowBusinessReference(selectedRow)}</dd>
-              </div>
-              {table.columns
-                .filter((col) => col.id !== "ref")
-                .map((col) => {
-                  const cell = selectedRow.cells[col.id];
-                  return (
-                    <div className="kv" key={col.id}>
-                      <dt>{cols[col.labelKey] ?? col.labelKey}</dt>
-                      <dd>
-                        {cell ? <CellView cell={cell} locale={locale} appDict={appDict} /> : "—"}
-                      </dd>
-                    </div>
-                  );
-                })}
-            </dl>
-
-            <section
-              aria-labelledby="selected-record-links-title"
-              style={{
-                marginBlockStart: 22,
-                paddingBlockStart: 18,
-                borderBlockStart: "1px solid var(--color-line)",
-              }}
+          <div className="record-detail-stack">
+            <RecordDetailSection
+              title={appDict.dashboard.recordSections.overview}
+              labelledBy="selected-record-overview-title"
             >
-              <h3 id="selected-record-links-title">{appDict.dashboard.linkedRecords}</h3>
-              <p style={{ color: "var(--color-muted)" }}>{appDict.dashboard.linkedRecordsNote}</p>
+              <RecordMetaList
+                variant="detail"
+                items={[
+                  {
+                    label: appDict.recordId,
+                    value: rowBusinessReference(selectedRow),
+                    dir: "ltr",
+                  },
+                  ...table.columns
+                    .filter((col) => col.id !== "ref")
+                    .map((col) => {
+                      const cell = selectedRow.cells[col.id];
+                      return {
+                        label: cols[col.labelKey] ?? col.labelKey,
+                        value: cell ? (
+                          <CellView cell={cell} locale={locale} appDict={appDict} />
+                        ) : (
+                          "—"
+                        ),
+                        wide: ["title", "customer", "project"].includes(col.id),
+                      };
+                    }),
+                ]}
+              />
+            </RecordDetailSection>
+
+            <RecordDetailSection
+              title={appDict.dashboard.linkedRecords}
+              description={appDict.dashboard.linkedRecordsNote}
+              labelledBy="selected-record-links-title"
+            >
               {linkedRecords.length > 0 ? (
-                <div className="list-rows">
+                <div className="record-list">
                   {linkedRecords.map((record) => {
                     const title = linkedRecordTitle(record.title, locale);
                     return (
-                      <div className="list-row" key={`${record.kind}-${record.id}`}>
-                        <div className="lr-main">
-                          <div className="lr-title">
+                      <RecordListItem
+                        key={`${record.kind}-${record.id}`}
+                        title={title ?? appDict.dashboard.linkedKinds[record.kind]}
+                        reference={
+                          <>
                             {appDict.dashboard.linkedKinds[record.kind]} ·{" "}
                             <span dir="ltr">{record.id}</span>
-                          </div>
-                          {title ? <div className="lr-sub">{title}</div> : null}
-                        </div>
-                        {record.status ? (
-                          <span className={statusBadgeClass(record.status)}>
-                            {appDict.status[record.status] ?? record.status}
-                          </span>
-                        ) : null}
-                        <Link
-                          className="btn btn-ghost btn-sm"
-                          href={linkedRecordHref(locale, record)}
-                          aria-label={`${appDict.view}: ${record.id}`}
-                        >
-                          {appDict.view}
-                        </Link>
-                      </div>
+                          </>
+                        }
+                        badges={<StatusBadge appDict={appDict} status={record.status} />}
+                        actions={
+                          <Link
+                            className="btn btn-ghost btn-sm"
+                            href={linkedRecordHref(locale, record)}
+                            aria-label={`${appDict.view}: ${record.id}`}
+                          >
+                            {appDict.view}
+                          </Link>
+                        }
+                        showDetailsLabel={appDict.showDetails}
+                        hideDetailsLabel={appDict.hideDetails}
+                        detailsTitle={appDict.recordMoreDetails}
+                      />
                     );
                   })}
                 </div>
               ) : (
                 <p>{appDict.dashboard.noLinkedRecords}</p>
               )}
-            </section>
+            </RecordDetailSection>
 
             {previewLimit ? (
-              <section
-                aria-labelledby="selected-record-limit-title"
-                style={{
-                  marginBlockStart: 22,
-                  paddingBlockStart: 18,
-                  borderBlockStart: "1px solid var(--color-line)",
-                }}
+              <RecordDetailSection
+                title={appDict.previewUnavailableTitle}
+                labelledBy="selected-record-limit-title"
               >
-                <h3 id="selected-record-limit-title">{appDict.previewUnavailableTitle}</h3>
                 <p>{previewLimit}</p>
-              </section>
+              </RecordDetailSection>
             ) : null}
-          </>
+          </div>
         ) : null}
       </InfoDialog>
       <InfoDialog

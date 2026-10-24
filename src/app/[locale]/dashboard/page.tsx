@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import { requireReviewAccess } from "@/auth";
 import { resolveLocale } from "@/lib/locale-params";
-import { getAppDictionary, statusBadgeClass, type AppDictionary } from "@/content/app-dictionary";
+import { getAppDictionary, type AppDictionary } from "@/content/app-dictionary";
 import type { PreviewModuleRow } from "@/content/preview-modules";
 import {
   getPreviewAdminOverview,
@@ -17,6 +17,12 @@ import {
 import { clampPercent, formatDate, formatNumber, formatPercent } from "@/lib/format";
 import { dashboardHref, dashboardModules, type DashboardModuleKey } from "@/config/navigation";
 import { Arrow } from "@/components/ui/Pieces";
+import {
+  ProgressMeter,
+  RecordListItem,
+  StatusBadge,
+  type RecordMetaItem,
+} from "@/components/dashboard/RecordUI";
 
 export async function generateMetadata({
   params,
@@ -37,9 +43,12 @@ function cellLabel(row: PreviewModuleRow, key: string, locale: Locale): string {
   return typeof value === "string" ? value : pick(value, locale);
 }
 
-function StatusBadge({ app, status }: { app: AppDictionary; status?: string }) {
-  if (!status) return null;
-  return <span className={statusBadgeClass(status)}>{app.status[status] ?? status}</span>;
+function meta(
+  label: string,
+  value: ReactNode,
+  options?: Pick<RecordMetaItem, "wide" | "dir">,
+): RecordMetaItem {
+  return { label, value, ...options };
 }
 
 function Panel({
@@ -252,7 +261,7 @@ export default async function DashboardOverview({
                         : ""}
                     </div>
                   </div>
-                  <StatusBadge app={app} status={item.status} />
+                  <StatusBadge appDict={app} status={item.status} />
                   <Link
                     href={dashboardHref(locale, item.dashboardSegment)}
                     className="btn btn-ghost btn-sm"
@@ -276,41 +285,43 @@ export default async function DashboardOverview({
             href={moduleHref(locale, "projects")}
             linkLabel={d.viewAll}
           >
-            <div className="list-rows">
+            <div className="record-list">
               {overview.activeProjects.map((project) => {
                 const progress = clampPercent(project.progress);
                 const title = pick(project.title, locale);
                 return (
-                  <div className="list-row" key={project.id} style={{ flexWrap: "wrap" }}>
-                    <div className="lr-main" style={{ flex: "1 1 220px" }}>
-                      <div className="lr-title">{title}</div>
-                      <div className="lr-sub">
-                        {pick(project.customer, locale)} · {pick(project.currentMilestone, locale)}{" "}
-                        · {formatDate(project.updatedAt, locale)} ·{" "}
-                        <span dir="ltr">{project.id}</span>
-                      </div>
-                    </div>
-                    <span className="progress-row" style={{ flex: "1 1 180px" }}>
-                      <span
-                        className="progress"
-                        role="progressbar"
-                        aria-label={`${title}: ${formatPercent(progress, locale)}`}
-                        aria-valuenow={progress}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
+                  <RecordListItem
+                    key={project.id}
+                    title={title}
+                    reference={<span dir="ltr">{project.id}</span>}
+                    summaryItems={[
+                      meta(d.cols.customer, pick(project.customer, locale)),
+                      meta(d.cols.milestone, pick(project.currentMilestone, locale)),
+                      meta(d.cols.updated, formatDate(project.updatedAt, locale)),
+                    ]}
+                    badges={<StatusBadge appDict={app} status={project.status} />}
+                    actions={
+                      <Link
+                        className="btn btn-outline btn-sm"
+                        href={dashboardHref(locale, `projects/${encodeURIComponent(project.id)}`)}
                       >
-                        <span style={{ width: `${progress}%` }} />
-                      </span>
-                      <strong>{formatPercent(progress, locale)}</strong>
-                    </span>
-                    <StatusBadge app={app} status={project.status} />
-                    <Link
-                      className="btn btn-outline btn-sm"
-                      href={dashboardHref(locale, `projects/${encodeURIComponent(project.id)}`)}
-                    >
-                      {d.openProjectWorkspace}
-                    </Link>
-                  </div>
+                        {d.openProjectWorkspace}
+                      </Link>
+                    }
+                    showDetailsLabel={app.showDetails}
+                    hideDetailsLabel={app.hideDetails}
+                    detailsTitle={app.recordMoreDetails}
+                  >
+                    <div className="record-list-progress">
+                      <span>{d.cols.progress}</span>
+                      <ProgressMeter
+                        appDict={app}
+                        locale={locale}
+                        value={progress}
+                        label={`${title} · ${d.cols.progress}`}
+                      />
+                    </div>
+                  </RecordListItem>
                 );
               })}
             </div>
@@ -320,44 +331,23 @@ export default async function DashboardOverview({
             href={moduleHref(locale, "requests")}
             linkLabel={d.viewAll}
           >
-            <div className="table-wrap">
-              <table className="data data-card-table">
-                <thead>
-                  <tr>
-                    <th scope="col">{d.cols.reference}</th>
-                    <th scope="col">{d.cols.customer}</th>
-                    <th scope="col">{d.cols.service}</th>
-                    <th scope="col">{d.cols.date}</th>
-                    <th scope="col">{d.cols.status}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {overview.recentRequests.map((request) => (
-                    <tr key={request.id}>
-                      <td data-label={d.cols.reference}>
-                        <span dir="ltr" style={{ fontWeight: 700 }}>
-                          {request.id}
-                        </span>
-                      </td>
-                      <td data-label={d.cols.customer} data-wide="true">
-                        {pick(request.customerName, locale)}
-                        <br />
-                        <span
-                          dir="ltr"
-                          style={{ color: "var(--color-muted)", fontSize: "0.82rem" }}
-                        >
-                          {request.customerId}
-                        </span>
-                      </td>
-                      <td data-label={d.cols.service}>{pick(request.serviceLabel, locale)}</td>
-                      <td data-label={d.cols.date}>{formatDate(request.submittedAt, locale)}</td>
-                      <td data-label={d.cols.status}>
-                        <StatusBadge app={app} status={request.status} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="record-list">
+              {overview.recentRequests.map((request) => (
+                <RecordListItem
+                  key={request.id}
+                  title={pick(request.customerName, locale)}
+                  reference={<span dir="ltr">{request.id}</span>}
+                  summaryItems={[
+                    meta(d.cols.service, pick(request.serviceLabel, locale)),
+                    meta(d.cols.date, formatDate(request.submittedAt, locale)),
+                  ]}
+                  detailItems={[meta(d.cols.customer, request.customerId, { dir: "ltr" })]}
+                  badges={<StatusBadge appDict={app} status={request.status} />}
+                  showDetailsLabel={app.showDetails}
+                  hideDetailsLabel={app.hideDetails}
+                  detailsTitle={app.recordMoreDetails}
+                />
+              ))}
             </div>
           </Panel>
         </div>
@@ -369,24 +359,21 @@ export default async function DashboardOverview({
             linkLabel={d.viewAll}
           >
             {overview.upcomingInspectionRows.length > 0 ? (
-              <div className="list-rows">
+              <div className="record-list">
                 {overview.upcomingInspectionRows.map((row) => (
-                  <div className="list-row" key={row.id}>
-                    <span className="file-icon" aria-hidden="true">
-                      ◎
-                    </span>
-                    <div className="lr-main">
-                      <div className="lr-title">
-                        {cellLabel(row, "customer", locale)} · {cellLabel(row, "service", locale)}
-                      </div>
-                      <div className="lr-sub">
-                        <span dir="ltr">{getPreviewRowReference(row)}</span> ·{" "}
-                        {formatDate(getPreviewRowDate(row) ?? "", locale)} ·{" "}
-                        {cellLabel(row, "assignee", locale)}
-                      </div>
-                    </div>
-                    <StatusBadge app={app} status={getPreviewRowStatus(row)} />
-                  </div>
+                  <RecordListItem
+                    key={row.id}
+                    title={`${cellLabel(row, "customer", locale)} · ${cellLabel(row, "service", locale)}`}
+                    reference={<span dir="ltr">{getPreviewRowReference(row)}</span>}
+                    summaryItems={[
+                      meta(d.cols.date, formatDate(getPreviewRowDate(row) ?? "", locale)),
+                      meta(d.cols.assignee, cellLabel(row, "assignee", locale)),
+                    ]}
+                    badges={<StatusBadge appDict={app} status={getPreviewRowStatus(row)} />}
+                    showDetailsLabel={app.showDetails}
+                    hideDetailsLabel={app.hideDetails}
+                    detailsTitle={app.recordMoreDetails}
+                  />
                 ))}
               </div>
             ) : (
@@ -400,25 +387,31 @@ export default async function DashboardOverview({
             linkLabel={d.viewAll}
           >
             {overview.upcomingMilestoneRows.length > 0 ? (
-              <div className="list-rows">
+              <div className="record-list">
                 {overview.upcomingMilestoneRows.map((row) => {
                   const progressCell = row.cells.progress;
                   const progress = progressCell?.kind === "progress" ? progressCell.value : null;
                   return (
-                    <div className="list-row" key={row.id}>
-                      <span className="file-icon" aria-hidden="true">
-                        ⚑
-                      </span>
-                      <div className="lr-main">
-                        <div className="lr-title">{cellLabel(row, "milestone", locale)}</div>
-                        <div className="lr-sub">
-                          <span dir="ltr">{cellLabel(row, "project", locale)}</span> ·{" "}
-                          {d.cols.dueDate}: {formatDate(getPreviewRowDate(row) ?? "", locale)}
-                          {progress !== null ? ` · ${formatPercent(progress, locale)}` : ""}
-                        </div>
-                      </div>
-                      <StatusBadge app={app} status={getPreviewRowStatus(row)} />
-                    </div>
+                    <RecordListItem
+                      key={row.id}
+                      title={cellLabel(row, "milestone", locale)}
+                      reference={
+                        <>
+                          {d.cols.project} ·{" "}
+                          <span dir="ltr">{cellLabel(row, "project", locale)}</span>
+                        </>
+                      }
+                      summaryItems={[
+                        meta(d.cols.dueDate, formatDate(getPreviewRowDate(row) ?? "", locale)),
+                        ...(progress !== null
+                          ? [meta(d.cols.progress, formatPercent(progress, locale))]
+                          : []),
+                      ]}
+                      badges={<StatusBadge appDict={app} status={getPreviewRowStatus(row)} />}
+                      showDetailsLabel={app.showDetails}
+                      hideDetailsLabel={app.hideDetails}
+                      detailsTitle={app.recordMoreDetails}
+                    />
                   );
                 })}
               </div>
@@ -460,22 +453,25 @@ export default async function DashboardOverview({
             linkLabel={d.viewAll}
           >
             {recentActivityItems.length > 0 ? (
-              <div className="list-rows">
+              <div className="record-list">
                 {recentActivityItems.map((row) => (
-                  <div className="list-row" key={row.id}>
-                    <span className="file-icon" aria-hidden="true">
-                      ☰
-                    </span>
-                    <div className="lr-main">
-                      <div className="lr-title">{cellLabel(row, "action", locale)}</div>
-                      <div className="lr-sub">
-                        {cellLabel(row, "actor", locale)} ·{" "}
-                        <span dir="ltr">{cellLabel(row, "entity", locale)}</span> ·{" "}
-                        {formatDate(getPreviewRowDate(row) ?? "", locale)}
-                      </div>
-                    </div>
-                    <StatusBadge app={app} status={getPreviewRowStatus(row)} />
-                  </div>
+                  <RecordListItem
+                    key={row.id}
+                    title={cellLabel(row, "action", locale)}
+                    reference={
+                      <>
+                        {d.cols.entity} · <span dir="ltr">{cellLabel(row, "entity", locale)}</span>
+                      </>
+                    }
+                    summaryItems={[
+                      meta(d.cols.actor, cellLabel(row, "actor", locale)),
+                      meta(d.cols.date, formatDate(getPreviewRowDate(row) ?? "", locale)),
+                    ]}
+                    badges={<StatusBadge appDict={app} status={getPreviewRowStatus(row)} />}
+                    showDetailsLabel={app.showDetails}
+                    hideDetailsLabel={app.hideDetails}
+                    detailsTitle={app.recordMoreDetails}
+                  />
                 ))}
               </div>
             ) : (

@@ -4,7 +4,6 @@ import { useState } from "react";
 import type { Locale } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
-import { statusBadgeClass } from "@/content/app-dictionary";
 import { previewPortalQuotations } from "@/content/preview-modules";
 import {
   previewIssues,
@@ -21,6 +20,7 @@ import {
   type PortalProfileFormErrors,
 } from "@/lib/validation";
 import { ConfirmDialog, InfoDialog, Toast } from "@/components/ui/ConfirmDialog";
+import { RecordListItem, StatusBadge } from "@/components/dashboard/RecordUI";
 
 type PanelProps = { locale: Locale; appDict: AppDictionary };
 
@@ -34,40 +34,46 @@ export function QuotationsPanel({ locale, appDict }: PanelProps) {
 
   return (
     <div className="panel">
-      <div className="list-rows">
+      <div className="record-list">
         {items.map((q) => (
-          <div className="list-row" key={q.id}>
-            <span className="file-icon" aria-hidden="true">
-              ▤
-            </span>
-            <div className="lr-main">
-              <div className="lr-title">{pick(q.title, locale)}</div>
-              <div className="lr-sub">
-                <span dir="ltr">{q.id}</span> · {formatDate(q.date, locale)} ·{" "}
-                {pick(q.note, locale)}
-              </div>
-            </div>
-            <strong style={{ whiteSpace: "nowrap" }}>{formatMoney(q.amount, locale)}</strong>
-            <span className={statusBadgeClass(q.status)}>{appDict.status[q.status]}</span>
-            {q.status === "pending" ? (
-              <span style={{ display: "inline-flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => setPending({ id: q.id, action: "approved" })}
-                >
-                  {appDict.portal.approvePreview}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-outline btn-sm"
-                  onClick={() => setPending({ id: q.id, action: "review_requested" })}
-                >
-                  {appDict.portal.rejectPreview}
-                </button>
-              </span>
-            ) : null}
-          </div>
+          <RecordListItem
+            key={q.id}
+            title={pick(q.title, locale)}
+            reference={<span dir="ltr">{q.id}</span>}
+            summaryItems={[
+              { label: appDict.dashboard.cols.date, value: formatDate(q.date, locale) },
+              {
+                label: appDict.dashboard.operations.domain.amount,
+                value: formatMoney(q.amount, locale),
+              },
+            ]}
+            badges={<StatusBadge appDict={appDict} status={q.status} />}
+            actions={
+              q.status === "pending" ? (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => setPending({ id: q.id, action: "approved" })}
+                  >
+                    {appDict.portal.approvePreview}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setPending({ id: q.id, action: "review_requested" })}
+                  >
+                    {appDict.portal.rejectPreview}
+                  </button>
+                </>
+              ) : undefined
+            }
+            showDetailsLabel={appDict.showDetails}
+            hideDetailsLabel={appDict.hideDetails}
+            detailsTitle={appDict.recordMoreDetails}
+          >
+            <p className="record-list-note">{pick(q.note, locale)}</p>
+          </RecordListItem>
         ))}
       </div>
       <ConfirmDialog
@@ -169,23 +175,46 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
       <div className="panel">
-        <div className="list-rows">
+        <div className="record-list">
           {issues.map((issue) => (
-            <div className="list-row" key={issue.id}>
-              <span className="file-icon" aria-hidden="true">
-                ⚠
-              </span>
-              <div className="lr-main">
-                <div className="lr-title">{pick(issue.title, locale)}</div>
-                <div className="lr-sub">
-                  {pick(issue.location, locale)} · {formatDate(issue.reportedAt, locale)} —{" "}
-                  {pick(issue.detail, locale)}
-                </div>
-              </div>
-              <span className={statusBadgeClass(issue.status)}>
-                {appDict.status[issue.status] ?? issue.status}
-              </span>
-            </div>
+            <RecordListItem
+              key={issue.id}
+              title={pick(issue.title, locale)}
+              reference={<span dir="ltr">{issue.id}</span>}
+              summaryItems={[
+                {
+                  label: appDict.dashboard.cols.location,
+                  value: pick(issue.location, locale),
+                },
+                {
+                  label: appDict.dashboard.cols.reported,
+                  value: formatDate(issue.reportedAt, locale),
+                },
+              ]}
+              detailItems={[
+                {
+                  label: appDict.dashboard.cols.phase,
+                  value: pick(issue.phase, locale),
+                  wide: true,
+                },
+                {
+                  label: appDict.dashboard.cols.correctiveAction,
+                  value: pick(issue.correctiveAction, locale),
+                  wide: true,
+                },
+                {
+                  label: appDict.dashboard.cols.assignee,
+                  value: pick(issue.assignee, locale),
+                  wide: true,
+                },
+              ]}
+              badges={<StatusBadge appDict={appDict} status={issue.status} />}
+              showDetailsLabel={appDict.showDetails}
+              hideDetailsLabel={appDict.hideDetails}
+              detailsTitle={appDict.recordMoreDetails}
+            >
+              <p className="record-list-note">{pick(issue.detail, locale)}</p>
+            </RecordListItem>
           ))}
         </div>
       </div>
@@ -197,9 +226,9 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
           <div className="form-grid">
             <div className="field">
               <label className="form-label" htmlFor="issue-title">
-                {f.issueTitle}{" "}
-                <span className="req" aria-hidden="true">
-                  *
+                {f.issueTitle}
+                <span className="form-field-note form-field-note-required">
+                  {appDict.requiredField}
                 </span>
               </label>
               <input
@@ -220,7 +249,8 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
             </div>
             <div className="field">
               <label className="form-label" htmlFor="issue-location">
-                {f.issueLocation} ({v.optional})
+                {f.issueLocation}
+                <span className="form-field-note">{v.optional}</span>
               </label>
               <input
                 id="issue-location"
@@ -232,9 +262,9 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
             </div>
             <div className="field full">
               <label className="form-label" htmlFor="issue-detail">
-                {f.issueDetails}{" "}
-                <span className="req" aria-hidden="true">
-                  *
+                {f.issueDetails}
+                <span className="form-field-note form-field-note-required">
+                  {appDict.requiredField}
                 </span>
               </label>
               <textarea
@@ -245,8 +275,13 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
                 value={detail}
                 onChange={(e) => updateDetail(e.target.value)}
                 aria-invalid={Boolean(errors.detail)}
-                aria-describedby={errors.detail ? "issue-detail-err" : undefined}
+                aria-describedby={errors.detail ? "issue-detail-err" : "issue-detail-hint"}
               />
+              {!errors.detail ? (
+                <p className="field-hint" id="issue-detail-hint">
+                  {v.issueDetailsShort}
+                </p>
+              ) : null}
               {errFor("detail") ? (
                 <p className="field-error" id="issue-detail-err" role="alert">
                   <span aria-hidden="true">⚠</span> {errFor("detail")}
@@ -254,7 +289,7 @@ export function IssuesPanel({ locale, appDict }: PanelProps) {
               ) : null}
             </div>
           </div>
-          <div>
+          <div className="form-actions">
             <button type="submit" className="btn btn-primary">
               {appDict.portal.addIssuePreview}
             </button>
@@ -358,9 +393,9 @@ export function ProfilePanel({ locale, appDict }: PanelProps) {
         <div className="form-grid">
           <div className="field">
             <label className="form-label" htmlFor="pf-name">
-              {f.name}{" "}
-              <span className="req" aria-hidden="true">
-                *
+              {f.name}
+              <span className="form-field-note form-field-note-required">
+                {appDict.requiredField}
               </span>
             </label>
             <input
@@ -382,9 +417,9 @@ export function ProfilePanel({ locale, appDict }: PanelProps) {
           </div>
           <div className="field">
             <label className="form-label" htmlFor="pf-phone">
-              {f.phone}{" "}
-              <span className="req" aria-hidden="true">
-                *
+              {f.phone}
+              <span className="form-field-note form-field-note-required">
+                {appDict.requiredField}
               </span>
             </label>
             <input
@@ -408,9 +443,9 @@ export function ProfilePanel({ locale, appDict }: PanelProps) {
           </div>
           <div className="field full">
             <label className="form-label" htmlFor="pf-email">
-              {f.email}{" "}
-              <span className="req" aria-hidden="true">
-                *
+              {f.email}
+              <span className="form-field-note form-field-note-required">
+                {appDict.requiredField}
               </span>
             </label>
             <input
@@ -433,7 +468,7 @@ export function ProfilePanel({ locale, appDict }: PanelProps) {
             ) : null}
           </div>
         </div>
-        <div>
+        <div className="form-actions">
           <button type="submit" className="btn btn-primary">
             {appDict.savePreview}
           </button>
