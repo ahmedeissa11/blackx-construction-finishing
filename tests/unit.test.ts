@@ -409,7 +409,7 @@ describe("stylesheet wiring", () => {
     expect(siteCss).toContain('html[dir="rtl"] .home-hero-media::after');
   });
 
-  it("keeps the admin shell responsive with a logical drawer, wrapped header, and card tables", () => {
+  it("keeps the admin shell responsive with a logical drawer, compact header, and card tables", () => {
     const appShell = fs.readFileSync(path.join(root, "src/components/ui/AppShell.tsx"), "utf8");
     const globalsCss = fs.readFileSync(path.join(root, "src/styles/globals.css"), "utf8");
     const overviewPage = fs.readFileSync(
@@ -430,6 +430,17 @@ describe("stylesheet wiring", () => {
     );
 
     expect(globalsCss).toContain("@media (max-width: 960px)");
+    const sidebarTrack = "grid-template-columns: var(--admin-sidebar-width) minmax(0, 1fr);";
+    expect(globalsCss.split(sidebarTrack)).toHaveLength(2);
+    expect(globalsCss.indexOf(sidebarTrack)).toBeLessThan(
+      globalsCss.indexOf("@media (max-width: 960px)"),
+    );
+    expect(globalsCss).toContain(".list-rows.priority-list");
+    expect(globalsCss).toContain("grid-template-columns: 44px minmax(0, 1fr) auto;");
+    expect(globalsCss).toContain("padding: 16px 14px calc(44px + env(safe-area-inset-bottom));");
+    expect(globalsCss).toContain(".executive-dashboard > *");
+    expect(globalsCss).toContain("html:has(.shell)");
+    expect(globalsCss).toContain("scroll-padding-top: 72px;");
     expect(globalsCss).toContain("width: min(84vw, 300px);");
     expect(globalsCss).toContain('html[dir="rtl"] .shell-sidebar');
     expect(globalsCss).toContain("height: 100dvh;");
