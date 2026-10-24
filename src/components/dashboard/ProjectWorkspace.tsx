@@ -91,7 +91,7 @@ function ModuleRowsList({
           .join(" · ");
         return (
           <div className="list-row" key={row.id} style={{ flexWrap: "wrap" }}>
-            <div className="lr-main" style={{ minWidth: 220 }}>
+            <div className="lr-main" style={{ flex: "1 1 220px" }}>
               <div className="lr-title">{rowTitle(row, locale, appDict)}</div>
               {details ? <div className="lr-sub">{details}</div> : null}
             </div>
@@ -526,7 +526,7 @@ export function ProjectWorkspace({
               <div className="list-rows">
                 {operations.customerRequests.map((request) => (
                   <div className="list-row" key={request.id} style={{ flexWrap: "wrap" }}>
-                    <div className="lr-main" style={{ minWidth: 200 }}>
+                    <div className="lr-main" style={{ flex: "1 1 200px" }}>
                       <div className="lr-title">
                         <span dir="ltr">{request.id}</span> · {pick(request.serviceLabel, locale)}
                       </div>

@@ -277,14 +277,13 @@ function OversightControls({
           />
         </div>
         {statuses.length > 0 ? (
-          <>
-            <label className="sr-only" htmlFor={`${idPrefix}-status`}>
-              {appDict.allStatuses}
+          <div className="filter-field">
+            <label className="filter-label" htmlFor={`${idPrefix}-status`}>
+              {appDict.dashboard.cols.status}
             </label>
             <select
               id={`${idPrefix}-status`}
               className="form-select"
-              style={{ width: "auto" }}
               value={statusFilter}
               onChange={(event) => onStatusFilterChange(event.target.value)}
             >
@@ -295,7 +294,7 @@ function OversightControls({
                 </option>
               ))}
             </select>
-          </>
+          </div>
         ) : null}
         {hasFilters ? (
           <button type="button" className="btn btn-ghost btn-sm" onClick={onClear}>

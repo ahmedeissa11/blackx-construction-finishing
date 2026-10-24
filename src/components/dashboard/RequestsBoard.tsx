@@ -296,40 +296,42 @@ export function RequestsBoard({
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
-          <label className="sr-only" htmlFor="rq-status">
-            {appDict.allStatuses}
-          </label>
-          <select
-            id="rq-status"
-            className="form-select"
-            style={{ width: "auto" }}
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">{appDict.allStatuses}</option>
-            {STATUS_FLOW.map((s) => (
-              <option key={s} value={s}>
-                {appDict.status[s]}
-              </option>
-            ))}
-          </select>
-          <label className="sr-only" htmlFor="rq-service">
-            {appDict.allServicesFilter}
-          </label>
-          <select
-            id="rq-service"
-            className="form-select"
-            style={{ width: "auto" }}
-            value={serviceFilter}
-            onChange={(e) => setServiceFilter(e.target.value)}
-          >
-            <option value="">{appDict.allServicesFilter}</option>
-            {servicesPresent.map(([slug, label]) => (
-              <option key={slug} value={slug}>
-                {label}
-              </option>
-            ))}
-          </select>
+          <div className="filter-field">
+            <label className="filter-label" htmlFor="rq-status">
+              {appDict.dashboard.cols.status}
+            </label>
+            <select
+              id="rq-status"
+              className="form-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">{appDict.allStatuses}</option>
+              {STATUS_FLOW.map((s) => (
+                <option key={s} value={s}>
+                  {appDict.status[s]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="filter-field">
+            <label className="filter-label" htmlFor="rq-service">
+              {appDict.dashboard.cols.service}
+            </label>
+            <select
+              id="rq-service"
+              className="form-select"
+              value={serviceFilter}
+              onChange={(e) => setServiceFilter(e.target.value)}
+            >
+              <option value="">{appDict.allServicesFilter}</option>
+              {servicesPresent.map(([slug, label]) => (
+                <option key={slug} value={slug}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
           {hasFilters ? (
             <button
               type="button"
@@ -352,7 +354,7 @@ export function RequestsBoard({
         {formatNumber(filtered.length, locale)} {appDict.showingResults}
       </p>
       <div className="table-wrap">
-        <table className="data">
+        <table className="data data-card-table">
           <caption className="sr-only">{appDict.dashboard.requestsTitle}</caption>
           <thead>
             <tr>
@@ -363,6 +365,9 @@ export function RequestsBoard({
               <th scope="col">{cols.date}</th>
               <th scope="col">{cols.priority}</th>
               <th scope="col">{cols.status}</th>
+              <th scope="col">
+                <span className="sr-only">{appDict.dashboard.operations.nextStep}</span>
+              </th>
               <th scope="col">{cols.assignee}</th>
               <th scope="col">{appDict.actions}</th>
             </tr>
@@ -370,12 +375,12 @@ export function RequestsBoard({
           <tbody>
             {filtered.map((r) => (
               <tr key={r.id}>
-                <td>
+                <td data-label={cols.reference}>
                   <span dir="ltr" style={{ fontWeight: 700 }}>
                     {r.id}
                   </span>
                 </td>
-                <td>
+                <td data-label={cols.customer} data-wide="true">
                   <div style={{ fontWeight: 600 }}>{pick(r.customerName, locale)}</div>
                   <div dir="ltr" style={{ color: "var(--color-muted)", fontSize: "0.82rem" }}>
                     {r.customerId}
@@ -387,10 +392,10 @@ export function RequestsBoard({
                     {r.phone}
                   </div>
                 </td>
-                <td>{pick(r.serviceLabel, locale)}</td>
-                <td>{pick(r.city, locale)}</td>
-                <td>{formatDate(r.submittedAt, locale)}</td>
-                <td>
+                <td data-label={cols.service}>{pick(r.serviceLabel, locale)}</td>
+                <td data-label={cols.city}>{pick(r.city, locale)}</td>
+                <td data-label={cols.date}>{formatDate(r.submittedAt, locale)}</td>
+                <td data-label={cols.priority}>
                   <span
                     className={
                       r.priority === "urgent"
@@ -403,13 +408,13 @@ export function RequestsBoard({
                     {appDict.priority[r.priority]}
                   </span>
                 </td>
-                <td>
+                <td data-label={cols.status}>
                   <span className={statusBadgeClass(r.status)}>
                     {appDict.status[r.status] ?? r.status}
                   </span>
                 </td>
-                <td>
-                  <span style={{ display: "block", minWidth: 170 }}>
+                <td data-label={appDict.dashboard.operations.nextStep} data-wide="true">
+                  <span style={{ display: "block" }}>
                     {
                       appDict.dashboard.operations.nextActions[
                         getPreviewRequestWorkflow(r).nextAction
@@ -423,7 +428,7 @@ export function RequestsBoard({
                     </span>
                   ) : null}
                 </td>
-                <td>
+                <td data-label={cols.assignee}>
                   {r.assignee ? (
                     pick(r.assignee, locale)
                   ) : (
@@ -432,7 +437,7 @@ export function RequestsBoard({
                     </span>
                   )}
                 </td>
-                <td>
+                <td data-label={appDict.actions} data-wide="true">
                   <button
                     type="button"
                     className="btn btn-ghost btn-sm"

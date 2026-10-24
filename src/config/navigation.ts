@@ -41,6 +41,7 @@ export const dashboardModules: ReadonlyArray<{
   icon: string;
 }> = [
   { key: "overview", segment: "", icon: "▦" },
+  { key: "notifications", segment: "notifications", icon: "🔔" },
   { key: "customers", segment: "customers", icon: "◉" },
   { key: "requests", segment: "requests", icon: "✉" },
   { key: "inspections", segment: "inspections", icon: "◎" },
@@ -52,38 +53,32 @@ export const dashboardModules: ReadonlyArray<{
   { key: "progress", segment: "progress", icon: "↗" },
   { key: "issues", segment: "issues", icon: "⚠" },
   { key: "quality", segment: "quality", icon: "✓" },
-  { key: "reports", segment: "reports", icon: "▥" },
-  { key: "documents", segment: "documents", icon: "🗀" },
   { key: "handover", segment: "handover", icon: "🔑" },
   { key: "warranty", segment: "warranty", icon: "⛨" },
-  { key: "notifications", segment: "notifications", icon: "🔔" },
+  { key: "reports", segment: "reports", icon: "▥" },
+  { key: "documents", segment: "documents", icon: "🗀" },
   { key: "audit", segment: "audit", icon: "☰" },
 ];
 
 export type DashboardNavGroupKey =
-  | "overview"
-  | "intake"
-  | "commercial"
-  | "execution"
-  | "qualityReporting"
-  | "documentsHandover"
-  | "oversight";
+  "home" | "clientsSales" | "projectsExecution" | "qualityHandover" | "managementReports";
 
 export const dashboardNavGroups: ReadonlyArray<{
   key: DashboardNavGroupKey;
   modules: readonly DashboardModuleKey[];
 }> = [
-  { key: "overview", modules: ["overview"] },
-  { key: "intake", modules: ["customers", "requests", "inspections"] },
-  { key: "commercial", modules: ["quotations", "contracts"] },
-  { key: "execution", modules: ["projects", "milestones", "diary", "progress", "issues"] },
-  { key: "qualityReporting", modules: ["quality", "reports"] },
-  { key: "documentsHandover", modules: ["documents", "handover", "warranty"] },
-  { key: "oversight", modules: ["notifications", "audit"] },
+  { key: "home", modules: ["overview", "notifications"] },
+  {
+    key: "clientsSales",
+    modules: ["customers", "requests", "inspections", "quotations", "contracts"],
+  },
+  { key: "projectsExecution", modules: ["projects", "milestones", "diary", "progress"] },
+  { key: "qualityHandover", modules: ["issues", "quality", "handover", "warranty"] },
+  { key: "managementReports", modules: ["reports", "documents", "audit"] },
 ];
 
 export function getDashboardNavGroupKey(module: DashboardModuleKey): DashboardNavGroupKey {
-  return dashboardNavGroups.find((group) => group.modules.includes(module))?.key ?? "overview";
+  return dashboardNavGroups.find((group) => group.modules.includes(module))?.key ?? "home";
 }
 
 export function dashboardHref(locale: Locale, segment = ""): string {
