@@ -1,16 +1,16 @@
 # 0001 — Database-agnostic backend foundation (ports & adapters)
 
-| Field | Value |
-|---|---|
-| Status | accepted |
-| Date proposed | 2026-10-25 |
-| Date decided | 2026-10-25 |
-| Decider(s) | Company owner (task authorization "BLACK X — Database-Agnostic Backend Foundation", 2026-10-25) |
-| Recorded by | Engineering (Arena/ChatGPT), from the owner's written task instruction in the project workspace |
-| Resolves | — (resolves no PO/DB/TECH register item; explicitly leaves TBD-DB-01…10 and all TBD-PO items open) |
-| Unblocks | Real-adapter implementation by the database colleague against frozen ports; per-module frontend cutover planning |
-| Documents to revise | `docs/backend-architecture.md` (new), `docs/database-integration-contract.md` (new), `docs/openapi.json` (new), `docs/README.md` (index) — all in the same change |
-| Supersedes / superseded by | — |
+| Field                      | Value                                                                                                                                                             |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status                     | accepted                                                                                                                                                          |
+| Date proposed              | 2026-10-25                                                                                                                                                        |
+| Date decided               | 2026-10-25                                                                                                                                                        |
+| Decider(s)                 | Company owner (task authorization "BLACK X — Database-Agnostic Backend Foundation", 2026-10-25)                                                                   |
+| Recorded by                | Engineering (Arena/ChatGPT), from the owner's written task instruction in the project workspace                                                                   |
+| Resolves                   | — (resolves no PO/DB/TECH register item; explicitly leaves TBD-DB-01…10 and all TBD-PO items open)                                                                |
+| Unblocks                   | Real-adapter implementation by the database colleague against frozen ports; per-module frontend cutover planning                                                  |
+| Documents to revise        | `docs/backend-architecture.md` (new), `docs/database-integration-contract.md` (new), `docs/openapi.json` (new), `docs/README.md` (index) — all in the same change |
+| Supersedes / superseded by | —                                                                                                                                                                 |
 
 ## Context
 
@@ -101,3 +101,15 @@ existing Next.js application, generalizing the intake pattern:
 - Source documents: `docs/backend-architecture.md`,
   `docs/database-integration-contract.md`, `docs/api-contract-v1.md`
   §5/§8/§9/§10, `src/server/foundation/README.md`
+
+## Addendum (2026-10-25, commit `92657bd` — status unchanged)
+
+Follow-up alignment on the same draft PR #8: customer-detail `summary`
+implemented (contract §3.3), input naming frozen as `phone` (§1.5),
+domain-status lists made disjoint, foundation contract suite moved to
+a dedicated `FOUNDATION_CONTRACT_ADAPTER` env var, over-cap declared
+bodies refused before buffering. Suite: 254/254 green; implemented/
+read-only/planned surface otherwise exactly as recorded above. The
+feature-by-feature state and the wave plan that operationalizes this
+decision live in `docs/feature-implementation-matrix.md`. Still not
+merged; still authorizes no Production enablement.
