@@ -592,6 +592,26 @@ describe("content integrity", () => {
     expect(urls).toContain(`${getSiteUrl()}/ar/projects`);
   });
 
+  it("renders only published articles on the public articles listing page", () => {
+    const source = fs.readFileSync(
+      path.join(root, "src/app/[locale]/(site)/articles/page.tsx"),
+      "utf8",
+    );
+    expect(source).toContain("publishedArticles.length === 0");
+    expect(source).toContain("publishedArticles.map((article)");
+    expect(source).not.toContain("{articles.map((article)");
+  });
+
+  it("keeps unpublished articles out of the public article detail page", () => {
+    const source = fs.readFileSync(
+      path.join(root, "src/app/[locale]/(site)/articles/[slug]/page.tsx"),
+      "utf8",
+    );
+    expect(source).toContain("!publishedArticles.includes(article)");
+    expect(source).toContain("publishedArticles.map((a)");
+    expect(source).not.toContain("if (!article) notFound();");
+  });
+
   it("never publishes the placeholder example origin in the sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls.length).toBeGreaterThan(0);

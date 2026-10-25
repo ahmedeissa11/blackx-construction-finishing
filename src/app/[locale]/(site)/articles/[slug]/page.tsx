@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { pick, locales } from "@/lib/i18n";
 import { resolveLocale } from "@/lib/locale-params";
 import { getDictionary } from "@/content/dictionary";
-import { articles, getArticle } from "@/content/publications";
+import { publishedArticles, getArticle } from "@/content/publications";
 import { getService } from "@/content/services";
 import { formatNumber } from "@/lib/format";
 import { siteHref } from "@/config/navigation";
@@ -15,7 +15,7 @@ import { Arrow, CtaBand } from "@/components/ui/Pieces";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return locales.flatMap((locale) => articles.map((a) => ({ locale, slug: a.slug })));
+  return locales.flatMap((locale) => publishedArticles.map((a) => ({ locale, slug: a.slug })));
 }
 
 export async function generateMetadata({
@@ -26,11 +26,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const locale = await resolveLocale(params);
   const article = getArticle(slug);
-  if (!article) notFound();
+  if (!article || !publishedArticles.includes(article)) notFound();
   return {
     title: pick(article.title, locale),
     description: pick(article.excerpt, locale),
-    robots: article.preview ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -43,9 +42,9 @@ export default async function ArticleDetailPage({
   const locale = await resolveLocale(params);
   const dict = getDictionary(locale);
   const article = getArticle(slug);
-  if (!article) notFound();
+  if (!article || !publishedArticles.includes(article)) notFound();
 
-  const related = articles.filter((a) => a.slug !== slug);
+  const related = publishedArticles.filter((a) => a.slug !== slug);
   const relatedServices = article.relatedServiceSlugs
     .map((s) => getService(s))
     .filter((s): s is NonNullable<typeof s> => Boolean(s));
