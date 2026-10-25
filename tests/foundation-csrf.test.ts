@@ -287,3 +287,177 @@ describe("handleFoundationRoute — CSRF integration", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 });
+
+describe("getExpectedOrigins — comma-separated AUTH_URL", () => {
+  it("returns single origin list for single AUTH_URL", () => {
+    process.env.AUTH_URL = "https://app.example.com";
+    expect(getExpectedOrigins()).toEqual(["https://app.example.com"]);
+  });
+
+  it("returns multiple origins for comma-separated AUTH_URL", () => {
+    process.env.AUTH_URL =
+      "https://blackx-construction-finishing.vercel.app, https://blackx-construction-finishing-f58f26z4s-ahmedeissa11s-projects.vercel.app";
+    expect(getExpectedOrigins()).toEqual([
+      "https://blackx-construction-finishing.vercel.app",
+      "https://blackx-construction-finishing-f58f26z4s-ahmedeissa11s-projects.vercel.app",
+    ]);
+  });
+
+  it("strips trailing slashes from each origin", () => {
+    process.env.AUTH_URL = "https://app.example.com/, https://other.example.com/";
+    expect(getExpectedOrigins()).toEqual([
+      "https://app.example.com",
+      "https://other.example.com",
+    ]);
+  });
+
+  it("returns empty array when AUTH_URL is unset", () => {
+    delete process.env.AUTH_URL;
+    expect(getExpectedOrigins()).toEqual([]);
+  });
+
+  it("filters empty entries from comma-separated AUTH_URL", () => {
+    process.env.AUTH_URL = "https://app.example.com, , https://other.example.com";
+    expect(getExpectedOrigins()).toEqual([
+      "https://app.example.com",
+      "https://other.example.com",
+    ]);
+  });
+});
+
+describe("verifyOrigin — multiple trusted origins", () => {
+  const MULTI_ORIGIN_ENV = {
+    AUTH_SECRET: "test-secret-value-with-32-plus-chars",
+    ADMIN_OWNER_EMAIL: "owner@example.com",
+    ADMIN_OWNER_PASSWORD_HASH: "scrypt$16384$8$1$c2FsdA==$aGFzaA==",
+    DATA_ADAPTER: "fake",
+    NODE_ENV: "test",
+    AUTH_URL:
+      "https://app.example.com, https://preview.example.com",
+  };
+
+  beforeEach(() => {
+    setEnv(MULTI_ORIGIN_ENV);
+  });
+
+  it("accepts Origin matching first trusted origin", () => {
+    const req = requestWithHeaders("https://app.example.com/api/v1/admin/customers", "POST", {
+      origin: "https://app.example.com",
+    });
+    expect(verifyOrigin(req)).toBeNull();
+  });
+
+  it("accepts Origin matching second trusted origin", () => {
+    const req = requestWithHeaders("https://preview.example.com/api/v1/admin/customers", "POST", {
+      origin: "https://preview.example.com",
+    });
+    expect(verifyOrigin(req)).toBeNull();
+  });
+
+  it("rejects arbitrary Vercel preview subdomain not in AUTH_URL", () => {
+    const req = requestWithHeaders(
+      "https://blackx-construction-finishing-arbitrary-preview.vercel.app/api/v1/admin/customers",
+      "POST",
+      {
+        origin: "https://blackx-construction-finishing-arbitrary-preview.vercel.app",
+      },
+    );
+    const res = verifyOrigin(req);
+    expect(res).not.toBeNull();
+    expect(res!.status).toBe(403);
+    expect(JSON.parse(res!.text() as string).error.code).toBe("ORIGIN_MISMATCH");
+  });
+
+  it("rejects *.vercel.app wildcard-style origin not explicitly listed", () => {
+    const req = requestWithHeaders("https://any-preview.vercel.app/api/v1/admin/customers", "POST", {
+      origin: "https://any-preview.vercel.app",
+    });
+    const res = verifyOrigin(req);
+    expect(res).not.toBeNull();
+    expect(res!.status).toBe(403);
+    expect(JSON.parse(res!.text() as string).error.code).toBe("ORIGIN_MISMATCH");
+  });
+
+  it("rejects malicious Referer not in trusted origins", () => {
+    const req = requestWithHeaders("https://app.example.com/api/v1/admin/customers", "POST", {
+      origin: null,
+      referer: "https://evil.example.com/dashboard",
+    });
+    const res = verifyOrigin(req);
+    expect(res).not.toBeNull();
+    expect(res!.status).toBe(403);
+    expect(JSON.parse(res!.text() as string).error.code).toBe("ORIGIN_MISMATCH");
+  });
+
+  it("rejects Referer with subdomain of trusted origin not explicitly listed", () => {
+    const req = requestWithHeaders("https://app.example.com/api/v1/admin/customers", "POST", {
+      origin: null,
+      referer: "https://untrusted.app.example.com/dashboard",
+    });
+    const res = verifyOrigin(req);
+    expect(res).not.toBeNull();
+    expect(res!.status).toBe(403);
+    expect(JSON.parse(res!.text() as string).error.code).toBe("ORIGIN_MISMATCH");
+  });
+
+  it("accepts Referer matching second trusted origin", () => {
+    const req = requestWithHeaders("https://preview.example.com/api/v1/admin/customers", "POST", {
+      origin: null,
+      referer: "https://preview.example.com/dashboard",
+    });
+    expect(verifyOrigin(req)).toBeNull();
+  });
+
+  it("getExpectedOrigin returns first origin only for backward compatibility", () => {
+    expect(getExpectedOrigin()).toBe("https://app.example.com");
+  });
+});
+
+describe("handleFoundationRoute — multi-origin CSRF integration", () => {
+  const handler = vi.fn(() => Promise.resolve({ body: { ok: true }, status: 200 }));
+
+  beforeEach(() => {
+    handler.mockReset();
+    mockSession.value = OWNER_SESSION;
+    setEnv({
+      AUTH_SECRET: "test-secret-value-with-32-plus-chars",
+      ADMIN_OWNER_EMAIL: "owner@example.com",
+      ADMIN_OWNER_PASSWORD_HASH: "scrypt$16384$8$1$c2FsdA==$aGFzaA==",
+      DATA_ADAPTER: "fake",
+      NODE_ENV: "test",
+      AUTH_URL:
+        "https://app.example.com, https://preview.example.com",
+    });
+  });
+
+  it("POST from first trusted origin proceeds to handler", async () => {
+    const req = requestWithHeaders("https://app.example.com/api/v1/admin/customers", "POST", {
+      origin: "https://app.example.com",
+    });
+    const res = await handleFoundationRoute("/api/v1/admin/customers", handler, req);
+    expect(res.status).toBe(200);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("POST from second trusted origin proceeds to handler", async () => {
+    const req = requestWithHeaders("https://preview.example.com/api/v1/admin/customers", "POST", {
+      origin: "https://preview.example.com",
+    });
+    const res = await handleFoundationRoute("/api/v1/admin/customers", handler, req);
+    expect(res.status).toBe(200);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("POST from untrusted Vercel preview subdomain returns 403 without calling handler", async () => {
+    const req = requestWithHeaders(
+      "https://blackx-construction-finishing-arbitrary-preview.vercel.app/api/v1/admin/customers",
+      "POST",
+      {
+        origin: "https://blackx-construction-finishing-arbitrary-preview.vercel.app",
+      },
+    );
+    const res = await handleFoundationRoute("/api/v1/admin/customers", handler, req);
+    expect(res.status).toBe(403);
+    expect(handler).not.toHaveBeenCalled();
+  });
+});
