@@ -73,7 +73,10 @@ export function createWorkflowService(clock: Clock) {
     readonly from: RequestStatus;
     readonly to: RequestStatus;
     readonly note?: string;
-    readonly actor: { readonly actorId: string; readonly actorKind: "staff" | "customer" | "public" };
+    readonly actor: {
+      readonly actorId: string;
+      readonly actorKind: "staff" | "customer" | "public";
+    };
     /** Evidence-backed server side-effect (inspection/quotation/customer decision). */
     readonly evidenceBacked?: boolean;
     /** Last non-hold status to resume to when resuming from on_hold. */
@@ -177,10 +180,7 @@ export function createWorkflowService(clock: Clock) {
     // resumeTo (the last non-hold status). A mismatch is rejected.
     if (from === "on_hold" && resumeTo !== undefined) {
       if (!NON_HOLD_REQUEST_STATUSES.has(resumeTo)) {
-        return reject(
-          WorkflowReason.ILLEGAL_TRANSITION,
-          `Invalid resume target ${resumeTo}.`,
-        );
+        return reject(WorkflowReason.ILLEGAL_TRANSITION, `Invalid resume target ${resumeTo}.`);
       }
       if (to !== resumeTo) {
         return reject(
@@ -226,7 +226,10 @@ export function createWorkflowService(clock: Clock) {
     readonly from: ProjectStatus;
     readonly to: ProjectStatus;
     readonly note?: string;
-    readonly actor: { readonly actorId: string; readonly actorKind: "staff" | "customer" | "public" };
+    readonly actor: {
+      readonly actorId: string;
+      readonly actorKind: "staff" | "customer" | "public";
+    };
     readonly cancellationNote?: string;
   }): TransitionResult<ProjectStatus> {
     const { from, to, actor, cancellationNote } = input;
@@ -287,7 +290,10 @@ export function createWorkflowService(clock: Clock) {
     readonly from: MilestoneStatus;
     readonly to: MilestoneStatus;
     readonly progressPercent?: number;
-    readonly actor: { readonly actorId: string; readonly actorKind: "staff" | "customer" | "public" };
+    readonly actor: {
+      readonly actorId: string;
+      readonly actorKind: "staff" | "customer" | "public";
+    };
   }): TransitionResult<MilestoneStatus> {
     const { from, to, progressPercent, actor } = input;
 
@@ -339,7 +345,10 @@ export function createWorkflowService(clock: Clock) {
     readonly from: FindingStatus;
     readonly to: FindingStatus;
     readonly correctiveAction?: string;
-    readonly actor: { readonly actorId: string; readonly actorKind: "staff" | "customer" | "public" };
+    readonly actor: {
+      readonly actorId: string;
+      readonly actorKind: "staff" | "customer" | "public";
+    };
   }): TransitionResult<FindingStatus> {
     const { from, to, correctiveAction, actor } = input;
 
@@ -387,7 +396,10 @@ export function createWorkflowService(clock: Clock) {
   function report(input: {
     readonly from: ReportStatus;
     readonly to: ReportStatus;
-    readonly actor: { readonly actorId: string; readonly actorKind: "staff" | "customer" | "public" };
+    readonly actor: {
+      readonly actorId: string;
+      readonly actorKind: "staff" | "customer" | "public";
+    };
   }): TransitionResult<ReportStatus> {
     const { from, to, actor } = input;
 
@@ -422,7 +434,10 @@ export function createWorkflowService(clock: Clock) {
     readonly to: HandoverStatus;
     readonly allMandatoryChecklistItemsChecked: boolean;
     readonly customerAcknowledgement?: boolean;
-    readonly actor: { readonly actorId: string; readonly actorKind: "staff" | "customer" | "public" };
+    readonly actor: {
+      readonly actorId: string;
+      readonly actorKind: "staff" | "customer" | "public";
+    };
   }): TransitionResult<HandoverStatus> {
     const { from, to, allMandatoryChecklistItemsChecked, customerAcknowledgement, actor } = input;
 
@@ -465,7 +480,10 @@ export function createWorkflowService(clock: Clock) {
     readonly from: WarrantyStatus;
     readonly to: WarrantyStatus;
     readonly resolutionNote?: string;
-    readonly actor: { readonly actorId: string; readonly actorKind: "staff" | "customer" | "public" };
+    readonly actor: {
+      readonly actorId: string;
+      readonly actorKind: "staff" | "customer" | "public";
+    };
   }): TransitionResult<WarrantyStatus> {
     const { from, to, resolutionNote, actor } = input;
 
@@ -513,7 +531,10 @@ export function createWorkflowService(clock: Clock) {
   function contract(input: {
     readonly from: ContractStatus;
     readonly to: ContractStatus;
-    readonly actor: { readonly actorId: string; readonly actorKind: "staff" | "customer" | "public" };
+    readonly actor: {
+      readonly actorId: string;
+      readonly actorKind: "staff" | "customer" | "public";
+    };
   }): TransitionResult<ContractStatus> {
     const { from, to, actor } = input;
 

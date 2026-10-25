@@ -203,12 +203,8 @@ describe("workflow — project lifecycle (§4.4)", () => {
   const svc = createWorkflowService(clock);
 
   it("allows manual in_progress <-> on_hold", () => {
-    expect(svc.project({ from: "in_progress", to: "on_hold", actor }).kind).toBe(
-      "accepted",
-    );
-    expect(svc.project({ from: "on_hold", to: "in_progress", actor }).kind).toBe(
-      "accepted",
-    );
+    expect(svc.project({ from: "in_progress", to: "on_hold", actor }).kind).toBe("accepted");
+    expect(svc.project({ from: "on_hold", to: "in_progress", actor }).kind).toBe("accepted");
   });
 
   it("requires a cancellation note to cancel in_progress or on_hold", () => {
@@ -355,15 +351,9 @@ describe("workflow — project-phase records (§2.6)", () => {
 
   describe("report: draft -> pending -> approved -> sent, no return path", () => {
     it("advances forward only", () => {
-      expect(svc.report({ from: "draft", to: "pending", actor }).kind).toBe(
-        "accepted",
-      );
-      expect(svc.report({ from: "pending", to: "approved", actor }).kind).toBe(
-        "accepted",
-      );
-      expect(svc.report({ from: "approved", to: "sent", actor }).kind).toBe(
-        "accepted",
-      );
+      expect(svc.report({ from: "draft", to: "pending", actor }).kind).toBe("accepted");
+      expect(svc.report({ from: "pending", to: "approved", actor }).kind).toBe("accepted");
+      expect(svc.report({ from: "approved", to: "sent", actor }).kind).toBe("accepted");
     });
 
     it("rejects any backward or skip transition", () => {
@@ -389,9 +379,7 @@ describe("workflow — project-phase records (§2.6)", () => {
       });
       expect(incomplete.kind).toBe("rejected");
       if (incomplete.kind === "rejected") {
-        expect(incomplete.reasonCode).toBe(
-          WorkflowReason.PRECONDITION_FAILED,
-        );
+        expect(incomplete.reasonCode).toBe(WorkflowReason.PRECONDITION_FAILED);
       }
 
       const complete = svc.handover({
@@ -419,9 +407,7 @@ describe("workflow — project-phase records (§2.6)", () => {
       const noNote = svc.warranty({ from: "in_progress", to: "resolved", actor });
       expect(noNote.kind).toBe("rejected");
       if (noNote.kind === "rejected") {
-        expect(noNote.reasonCode).toBe(
-          WorkflowReason.REQUIRES_CORRECTIVE_ACTION,
-        );
+        expect(noNote.reasonCode).toBe(WorkflowReason.REQUIRES_CORRECTIVE_ACTION);
       }
 
       const resolved = svc.warranty({
@@ -444,12 +430,8 @@ describe("workflow — contract lifecycle (§4.3)", () => {
   const svc = createWorkflowService(clock);
 
   it("advances draft -> pending_signature -> signed", () => {
-    expect(svc.contract({ from: "draft", to: "pending_signature", actor }).kind).toBe(
-      "accepted",
-    );
-    expect(
-      svc.contract({ from: "pending_signature", to: "signed", actor }).kind,
-    ).toBe("accepted");
+    expect(svc.contract({ from: "draft", to: "pending_signature", actor }).kind).toBe("accepted");
+    expect(svc.contract({ from: "pending_signature", to: "signed", actor }).kind).toBe("accepted");
   });
 
   it("rejects direct draft -> signed (issuance required)", () => {

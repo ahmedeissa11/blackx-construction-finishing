@@ -80,9 +80,7 @@ export interface TransitionReject {
   readonly reason: string;
 }
 
-export type TransitionResult<TState extends string> =
-  | TransitionAccept<TState>
-  | TransitionReject;
+export type TransitionResult<TState extends string> = TransitionAccept<TState> | TransitionReject;
 
 /* ------------------------------------------------------------------ */
 /* Reason codes (stable, localizable keys — never raw prose)          */
