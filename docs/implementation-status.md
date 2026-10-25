@@ -24,7 +24,7 @@ live registers (it does not duplicate them, per
 |------|-------|
 | Proposed contract | `docs/api-contract-v1.md`, document version **0.3** |
 | Contract state | **PROPOSED — for project-owner approval. Nothing in it is implemented.** |
-| Baseline commit | `ahmedeissa11/blackx-construction-finishing` @ `bae846a1719b90cc47d81cccc15aecadcad5c368` |
+| Baseline commit | `ahmedeissa11/blackx-construction-finishing` @ `ff000b6` (current `main`, production-deployed) |
 | Production (unchanged) | https://blackx-construction-finishing.vercel.app |
 
 ## Implemented vs. unimplemented behavior

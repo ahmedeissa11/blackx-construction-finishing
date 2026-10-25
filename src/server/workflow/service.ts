@@ -48,6 +48,14 @@ const NON_HOLD_REQUEST_STATUSES = new Set([
   "inspection_done",
   "quotation_sent",
 ]);
+/** Valid targets when resuming from `on_hold`. `new` is excluded: per §4.1,
+ * `new` resumes to `contacted`, never to itself. */
+const VALID_RESUME_TARGETS = new Set([
+  "contacted",
+  "inspection_scheduled",
+  "inspection_done",
+  "quotation_sent",
+]);
 
 const reject = (reasonCode: string, reason: string): TransitionReject => ({
   kind: "rejected",
@@ -179,7 +187,7 @@ export function createWorkflowService(clock: Clock) {
     // Resume from on_hold: the requested `to` must equal the declared
     // resumeTo (the last non-hold status). A mismatch is rejected.
     if (from === "on_hold" && resumeTo !== undefined) {
-      if (!NON_HOLD_REQUEST_STATUSES.has(resumeTo)) {
+      if (!VALID_RESUME_TARGETS.has(resumeTo)) {
         return reject(WorkflowReason.ILLEGAL_TRANSITION, `Invalid resume target ${resumeTo}.`);
       }
       if (to !== resumeTo) {

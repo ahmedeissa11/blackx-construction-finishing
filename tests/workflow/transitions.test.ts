@@ -107,6 +107,19 @@ describe("workflow — request lifecycle (§4.1)", () => {
     expect(resumeMismatch.kind).toBe("rejected");
   });
 
+  it("rejects resume to new (new resumes to contacted per §4.1)", () => {
+    const r = svc.request({
+      from: "on_hold",
+      to: "new",
+      actor,
+      resumeTo: "new",
+    });
+    expect(r.kind).toBe("rejected");
+    if (r.kind === "rejected") {
+      expect(r.reasonCode).toBe(WorkflowReason.ILLEGAL_TRANSITION);
+    }
+  });
+
   it("cancels any non-terminal request", () => {
     for (const from of [
       "new",
