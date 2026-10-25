@@ -6,22 +6,29 @@ may change**. It adds structure only: it does not modify, supersede, or
 approve anything inside the documents it lists, and it never contains
 secrets or credentials.
 
-Last verified against the repository on **24 October 2026**, baseline
-commit `bae846a1719b90cc47d81cccc15aecadcad5c368` (the commit deployed
-to Production as `dpl_Fdci8LXznkZEePoomtPCes8TMSsh` at last check —
-re-verify live state before relying on it; this file describes
-documentation, not deployment).
+Last verified against the repository on **25 October 2026** on branch
+`arena/b04f8c7e-blackx-construction-finishing` (backend-foundation
+task, based on Production merge commit
+`9b84ec874ed808f5f6c36ce48c480e9d6f8cba62`, deployed to Production as
+`dpl_Efju7iijsfPf1fp2kCUgrqfhnCxv` at last check — re-verify live
+state before relying on it; this file describes documentation, not
+deployment. The foundation branch itself is **not** merged or deployed
+to Production).
 
 ## 1. Controlled documents
 
 | Document | Role | Owner | Status (as written in the document itself) |
 |---|---|---|---|
 | [`requirements-and-implementation-plan.md`](./requirements-and-implementation-plan.md) | Business requirements, first-release scope, phased implementation plan, open questions (§10), pre-implementation approval checklist (§12). | Arena/ChatGPT (drafting) · company owner (approval) | **Planning draft for management approval — not an implementation authorization.** §12 approval checklist is unchecked. |
-| [`api-contract-v1.md`](./api-contract-v1.md) | Proposed API Contract v1 & database-independent integration specification: DTOs, endpoints, workflow state machines, repository ports, security rules, contract-test suites, unresolved-decision register (§9), DB-colleague integration checklist (§10). | Arena/ChatGPT (application spec) · database colleague (DB implementation behind the ports) · company owner (approval) | **PROPOSED, document version 0.3 — for project-owner approval. Nothing in it is implemented.** The application's only existing backend surface remains NextAuth; there are no business endpoints and no database. |
-| [`decisions/`](./decisions/) | Decision-register structure and (future) Architecture Decision Records. See [`decisions/README.md`](./decisions/README.md). | Shared, per the rules there | Structure only. **No decision record exists yet, and this structure does not approve any unresolved decision.** |
-| [`../tests/contract/README.md`](../tests/contract/README.md) | BX-104 contract-test harness and conventions (lives with the tests it governs). | Arena/ChatGPT | Probe harness plus the CT-PORT subset for the public-intake ports, run against the governed fake; no database adapter is registered. |
+| [`api-contract-v1.md`](./api-contract-v1.md) | Proposed API Contract v1 & database-independent integration specification: DTOs, endpoints, workflow state machines, repository ports, security rules, contract-test suites, unresolved-decision register (§9), DB-colleague integration checklist (§10). | Arena/ChatGPT (application spec) · database colleague (DB implementation behind the ports) · company owner (approval) | **PROPOSED, document version 0.3 — for project-owner approval.** The intake slice and the wave-1 foundation (below) implement parts of it behind ports on the governed fake for dev/test; there is still **no production database** and its TBD-PO/DB/TECH register remains open. |
+| [`backend-architecture.md`](./backend-architecture.md) | Backend foundation assessment + architecture: layering, adapter status, domain/endpoint status matrix, frontend-integration status, test/verification results, limitations, next steps. | Arena/ChatGPT | Implemented wave 1 on the foundation branch (customers writable; other domains read-only/planned 501). Not merged to Production. |
+| [`openapi.json`](./openapi.json) | OpenAPI 3.1 contract for `/api/v1` (generated from `src/server/foundation/openapi.ts`; served owner-gated; drift- and coverage-tested). Per-operation `x-implementation-status`/`x-blocked-by`. | Arena/ChatGPT | Wave-1 surface: 49 paths (intake + foundation). Frontend-usable without DB knowledge. |
+| [`database-integration-contract.md`](./database-integration-contract.md) | General integration contract for the database colleague: entities/relationships, ID/timestamp/money conventions, required adapter capabilities, migration ownership, connection-config format (names only), import/mapping expectations, acceptance criteria. | Arena/ChatGPT → database colleague | Selects no DB technology. Awaiting TBD-DB-01…10 answers. Generalizes the intake handoff below. |
+| [`decisions/`](./decisions/) | Decision-register structure and Architecture Decision Records. See [`decisions/README.md`](./decisions/README.md). | Shared, per the rules there | One accepted record: [`0001`](./decisions/0001-database-agnostic-backend-foundation.md) (ports-&-adapters foundation; resolves no PO/DB item). No other decision is approved by this structure. |
+| [`../tests/contract/README.md`](../tests/contract/README.md) | BX-104 contract-test harness and conventions (lives with the tests it governs). | Arena/ChatGPT | Probe harness plus CT-PORT subsets for the intake ports **and** the foundation ports (`foundation-ports.contract.test.ts`), run against the governed fake; no database adapter is registered. |
 | [`../src/server/intake/README.md`](../src/server/intake/README.md) | Public-intake business slice (Batch 2): endpoints, adapter governance, open decisions. | Arena/ChatGPT | Implemented on ports + fake adapter for dev/test; production fail-closed (503) until the real adapter integrates. Forms not yet cut over. |
-| [`db-integration-handoff.md`](./db-integration-handoff.md) | Exact handoff for the database colleague: intake ports, transaction/idempotency/audit/outbox behavior, disposable test-DB expectations, acceptance criteria. | Arena/ChatGPT → database colleague | Intake slice only; selects no DB technology. Awaiting TBD-DB-01…10 answers. |
+| [`../src/server/foundation/README.md`](../src/server/foundation/README.md) | Backend foundation module guide: status matrix, file roles, governance, tests. | Arena/ChatGPT | Wave 1 implemented (branch); production fail-closed until the real adapter integrates. |
+| [`db-integration-handoff.md`](./db-integration-handoff.md) | Exact handoff for the database colleague: intake ports, transaction/idempotency/audit/outbox behavior, disposable test-DB expectations, acceptance criteria. | Arena/ChatGPT → database colleague | Intake slice only; selects no DB technology. Awaiting TBD-DB-01…10 answers. Generalized by `database-integration-contract.md` above. |
 
 Repository root [`../README.md`](../README.md) describes the current
 (frontend-phase) application as built; where it and the planning
