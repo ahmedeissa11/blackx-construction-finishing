@@ -24,6 +24,16 @@ const MAX_FAILED_ATTEMPTS = 5;
 const ATTEMPT_WINDOW_MS = 10 * 60 * 1000;
 const BLOCK_DURATION_MS = 15 * 60 * 1000;
 
+/**
+ * SECURITY LIMITATION (P0, confirmed): this Map is per-process memory.
+ * On serverless platforms each cold start gets a fresh Map, so the
+ * login throttle is reset and can be bypassed by spreading attempts
+ * across instances. It does NOT protect against brute force in
+ * production. Replace with the shared RateLimitPort defined in
+ * `src/lib/rate-limit-port.ts` before production login traffic.
+ *
+ * @see src/lib/rate-limit-port.ts LOGIN_THROTTLE_LIMITATION
+ */
 type LoginAttempt = {
   count: number;
   firstAttemptAt: number;
