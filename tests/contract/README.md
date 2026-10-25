@@ -1,12 +1,15 @@
 # Contract-test harness (BX-104) — skeleton and conventions
 
-**Status:** harness + first business suite. The probe files prove that a
+**Status:** harness + business suites. The probe files prove that a
 single behavior-only suite can run unchanged against interchangeable
 adapters; `intake-ports.contract.test.ts` applies the same mechanics to
-the real public-intake ports (Batch 2) against the governed in-memory
-fake in `src/server/intake/fake-adapter.ts` (§5.4). No database adapter
-is registered anywhere yet — the colleague's real adapter must pass the
-intake suite unchanged before integration (§5.5).
+the real public-intake ports (Batch 2) and
+`foundation-ports.contract.test.ts` to the backend-foundation ports
+(`src/server/foundation/ports.ts`), both against their governed
+in-memory fakes (§5.4). No database adapter is registered anywhere
+yet — the colleague's real adapter must pass the intake **and**
+foundation suites unchanged before integration (§5.5). Engineer-facing
+entry point: `docs/database-engineer-handoff.md`.
 
 ## Why this exists
 
@@ -28,6 +31,7 @@ pattern under pressure.
 | `probe-memory-adapter.ts` | In-memory dummy implementation, registered as `memory-dummy`. Test-only fixture. |
 | `probe.contract.test.ts` | The shared probe suite + adapter-selection tests. Discovered by the existing Vitest `include` pattern (`tests/**/*.test.ts`) — no config change was needed. |
 | `intake-ports.contract.test.ts` | CT-PORT subset for the public-intake ports (atomicity, idempotency, references, rate limits, append-only audit, reset). Adapter selected via `INTAKE_CONTRACT_ADAPTER` (default `fake-memory`) so it never collides with the probe's `CONTRACT_ADAPTER`. |
+| `foundation-ports.contract.test.ts` | CT-PORT subset for the foundation ports (workspace scoping, pagination/order, folded search, version conflicts, UnitOfWork atomicity, append-only audit surface, references, scoped idempotency, reset). Adapter selected via `FOUNDATION_CONTRACT_ADAPTER` (default `fake`) — dedicated variable mirroring the intake pattern, so all suites select independently. |
 
 ## Running
 
@@ -37,25 +41,40 @@ From the repository root (dependencies installed with `npm ci`):
 # Everything, exactly as CI runs it (unit + contract):
 npm test
 
-# Only the contract suite:
+# Only the contract suites (all on their fake defaults — the normal run):
 npm run test:contract
 
-# The contract suite against a named registered adapter:
-CONTRACT_ADAPTER=memory-dummy npm run test:contract
+# All suites against named registered adapters in one run:
+CONTRACT_ADAPTER=memory-dummy INTAKE_CONTRACT_ADAPTER=fake-memory FOUNDATION_CONTRACT_ADAPTER=fake npm run test:contract
+
+# Or one suite at a time:
+INTAKE_CONTRACT_ADAPTER=<name> npx vitest run tests/contract/intake-ports.contract.test.ts
+FOUNDATION_CONTRACT_ADAPTER=<name> npx vitest run tests/contract/foundation-ports.contract.test.ts
+CONTRACT_ADAPTER=memory-dummy npx vitest run tests/contract/probe.contract.test.ts
 ```
+
+Adapter-selection variables (verified 2026-10-25 — each suite has its
+own variable, so selections never interfere):
+
+| Suite | Env var | Default (fake) name |
+|---|---|---|
+| Probe | `CONTRACT_ADAPTER` | `memory-dummy` |
+| Intake ports | `INTAKE_CONTRACT_ADAPTER` | `fake-memory` |
+| Foundation ports | `FOUNDATION_CONTRACT_ADAPTER` | `fake` |
 
 Notes:
 
-- `CONTRACT_ADAPTER` unset → the registry default (`memory-dummy`) runs.
-- `CONTRACT_ADAPTER` naming an **unregistered** adapter fails loudly at
-  collection and lists the registered names. There is no silent
-  fallback — running against the wrong implementation must never look
-  like a pass.
+- Env unset → each suite's registry default runs; `npm test` and
+  `npm run test:contract` are green this way (38 contract tests).
+- Naming an **unregistered** adapter fails loudly at collection and
+  lists the registered names. There is no silent fallback — running
+  against the wrong implementation must never look like a pass.
+- Note the fake adapter *names* differ per suite (`fake` vs
+  `fake-memory`) — registered names are stable by convention, so use
+  each suite's own name with its own variable.
 - A future real-adapter run needs the colleague's disposable test
   database (TBD-DB-07) and env-var **names** (TBD-DB-06). Until those
   exist under an authorized task, no real adapter is registered here.
-  Select it per suite without cross-talk: `CONTRACT_ADAPTER` for the
-  probe, `INTAKE_CONTRACT_ADAPTER` for the intake ports.
 
 ## Conventions every adapter and suite must follow
 
