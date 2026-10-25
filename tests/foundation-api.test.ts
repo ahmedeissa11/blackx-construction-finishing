@@ -26,6 +26,8 @@ import { GET as getEngineers } from "@/app/api/v1/admin/engineers/route";
 import { GET as getOpenApi } from "@/app/api/v1/admin/openapi.json/route";
 import { GET as getProjects, POST as postProject } from "@/app/api/v1/admin/projects/route";
 import { GET as getSystemStatus } from "@/app/api/v1/admin/system/status/route";
+import { ApiError } from "@/server/foundation/errors";
+import { readJsonBody } from "@/server/foundation/http";
 import { resetFoundationCacheForTests } from "@/server/foundation/runtime";
 
 const OWNER_SESSION = {
@@ -185,7 +187,10 @@ describe("customers over HTTP (persistence across requests)", () => {
       params: Promise.resolve({ id }),
     });
     expect(getResponse.status).toBe(200);
-    expect((await bodyOf(getResponse)).name).toBe("Mona Adel");
+    const detail = await bodyOf(getResponse);
+    expect(detail.name).toBe("Mona Adel");
+    // Contract §3.3 summary block (requests [] until PO-12 linking).
+    expect(detail.summary).toEqual({ requests: [], projects: [], openFindings: 0 });
 
     const patchResponse = await patchCustomer(
       jsonRequest("http://x", {
@@ -272,6 +277,24 @@ describe("identity & system surfaces", () => {
       name: "fake",
       productionCapable: false,
     });
+  });
+
+  it("rejects over-cap JSON bodies (declared length refused before buffering)", async () => {
+    const oversized = new Request("http://x", {
+      method: "POST",
+      headers: { "content-type": "application/json", "content-length": "40000" },
+      body: "{}",
+    });
+    await expect(readJsonBody(oversized)).rejects.toMatchObject({
+      code: "MALFORMED_BODY",
+    } satisfies Partial<ApiError>);
+
+    const withinCap = new Request("http://x", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ok: true }),
+    });
+    await expect(readJsonBody(withinCap)).resolves.toEqual({ ok: true });
   });
 
   it("serves the OpenAPI document to the owner only", async () => {

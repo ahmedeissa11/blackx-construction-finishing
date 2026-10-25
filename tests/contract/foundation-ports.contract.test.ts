@@ -6,7 +6,12 @@
  * registered; selecting an unregistered adapter fails loudly at
  * collection time (no silent fallback).
  *
- *   CONTRACT_ADAPTER=fake npm run test:contract
+ *   FOUNDATION_CONTRACT_ADAPTER=fake npm run test:contract
+ *
+ * (Dedicated env var, mirroring the intake suite's
+ * INTAKE_CONTRACT_ADAPTER, so all three contract suites can select
+ * their adapters independently in a single run — the probe keeps the
+ * generic CONTRACT_ADAPTER.)
  *
  * Covered observable behavior: workspace scoping, deterministic
  * ordering + pagination stability, folded search (incl. formatted
@@ -27,7 +32,7 @@ import type {
   FoundationPorts,
   ProjectRecord,
 } from "@/server/foundation/ports";
-import { describeWithAdapter, resolveAdapterFromEnv, type ContractAdapter } from "./harness";
+import { describeWithAdapter, resolveAdapter, type ContractAdapter } from "./harness";
 
 const NOW = "2026-10-25T10:00:00.000Z";
 const WS = "ws-a";
@@ -54,7 +59,11 @@ const fakeAdapter: ContractAdapter<FoundationPorts> = {
   },
 };
 
-const adapter = resolveAdapterFromEnv([fakeAdapter], "fake");
+const adapter = resolveAdapter(
+  [fakeAdapter],
+  process.env.FOUNDATION_CONTRACT_ADAPTER,
+  fakeAdapter.name,
+);
 
 function customerRecord(id: string, overrides: Partial<CustomerRecord> = {}): CustomerRecord {
   return {

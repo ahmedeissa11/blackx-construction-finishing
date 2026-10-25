@@ -69,7 +69,6 @@ export const DOMAIN_STATUS: SystemStatusDTO["domains"] = {
   implemented: ["customers", "intake", "identity-reads", "workspace", "system"],
   readOnly: [
     "users",
-    "engineers",
     "projects",
     "milestones",
     "progress",

@@ -26,6 +26,7 @@ import type {
   ContractSummaryDTO,
   CurrentUserDTO,
   CustomerCreateInput,
+  CustomerDetailDTO,
   CustomerDTO,
   CustomerUpdateInput,
   DiaryEntryDTO,
@@ -88,7 +89,7 @@ export interface ApiClient {
   workspace(): Promise<WorkspaceDTO>;
   listUsers(params?: ListParams): Promise<Page<UserDTO>>;
   listCustomers(params?: ListParams): Promise<Page<CustomerDTO>>;
-  getCustomer(id: string): Promise<CustomerDTO>;
+  getCustomer(id: string): Promise<CustomerDetailDTO>;
   createCustomer(
     input: CustomerCreateInput,
     options?: { idempotencyKey?: string },

@@ -398,6 +398,119 @@
           }
         }
       },
+      "RequestSummary": {
+        "type": "object",
+        "required": [
+          "id",
+          "reference",
+          "customerId",
+          "customerName",
+          "serviceSlug",
+          "city",
+          "submittedAt",
+          "status",
+          "priority",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "customerId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "serviceSlug": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "contacted",
+              "inspection_scheduled",
+              "inspection_done",
+              "quotation_sent",
+              "approved",
+              "on_hold",
+              "cancelled"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "high",
+              "urgent"
+            ]
+          },
+          "assigneeId": {
+            "type": "string"
+          },
+          "assigneeName": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        }
+      },
+      "CustomerDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Customer"
+          },
+          {
+            "type": "object",
+            "required": [
+              "summary"
+            ],
+            "properties": {
+              "summary": {
+                "type": "object",
+                "required": [
+                  "requests",
+                  "projects",
+                  "openFindings"
+                ],
+                "properties": {
+                  "requests": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/RequestSummary"
+                    }
+                  },
+                  "projects": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ProjectSummary"
+                    }
+                  },
+                  "openFindings": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "description": "Customer + read-model summary (contract §3.3). summary.requests is empty while request→customer linking is unimplemented (TBD-PO-12); summary.openFindings counts findings with status open or in_progress across the customer's projects."
+      },
       "CustomerCreateInput": {
         "type": "object",
         "required": [
@@ -2661,7 +2774,7 @@
         "tags": [
           "customers"
         ],
-        "summary": "Get one customer.",
+        "summary": "Get one customer with its linked-work summary (contract §3.3).",
         "x-implementation-status": "implemented",
         "security": [
           {
@@ -2674,7 +2787,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Customer"
+                  "$ref": "#/components/schemas/CustomerDetail"
                 }
               }
             }

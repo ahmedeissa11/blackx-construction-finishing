@@ -30,6 +30,13 @@ export async function readJsonBody(request: Request): Promise<unknown> {
   if (!contentType.toLowerCase().includes("application/json")) {
     throw new ApiError("MALFORMED_BODY");
   }
+  // Reject over-cap bodies up front when the client declares a length,
+  // so an oversized payload is refused without buffering it first.
+  // Undeclared/chunked bodies are still capped by the byte check below.
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+    throw new ApiError("MALFORMED_BODY");
+  }
   const text = await request.text();
   if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) {
     throw new ApiError("MALFORMED_BODY");

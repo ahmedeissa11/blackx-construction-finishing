@@ -70,6 +70,25 @@ describe("OpenAPI specification", () => {
     }
   });
 
+  it("customer detail returns the contract §3.3 summary shape", () => {
+    const spec = openApiSpec as {
+      paths: Record<string, Record<string, Record<string, unknown>>>;
+      components: { schemas: Record<string, Record<string, unknown>> };
+    };
+    const operation = spec.paths["/api/v1/admin/customers/{id}"]?.get as {
+      responses: Record<string, { content: Record<string, { schema: { $ref: string } }> }>;
+    };
+    expect(operation.responses["200"]?.content["application/json"]?.schema.$ref).toBe(
+      "#/components/schemas/CustomerDetail",
+    );
+    const serialized = JSON.stringify(spec.components.schemas.CustomerDetail);
+    expect(serialized).toContain('"summary"');
+    expect(serialized).toContain('"requests"');
+    expect(serialized).toContain('"projects"');
+    expect(serialized).toContain('"openFindings"');
+    expect(spec.components.schemas.RequestSummary).toBeDefined();
+  });
+
   it("never exposes server-internal fields in entity schemas", () => {
     const schemas = (openApiSpec as { components: { schemas: Record<string, unknown> } }).components
       .schemas;

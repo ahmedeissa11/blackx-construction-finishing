@@ -111,6 +111,19 @@ describe("system status (no secrets)", () => {
     expect(status.domains.planned).toContain("user-administration");
   });
 
+  it("keeps domain status lists disjoint (no domain in two states)", () => {
+    const status = withEnv({ NODE_ENV: "test", DATA_ADAPTER: undefined }, () => getSystemStatus());
+    const { implemented, readOnly, planned } = status.domains;
+    // engineers is a staff-role surface: writes (and the route itself)
+    // are planned under TBD-PO-03 — it must not also claim read-only.
+    expect(planned).toContain("engineers");
+    expect(readOnly).not.toContain("engineers");
+    const overlap = (a: string[], b: string[]) => a.filter((item) => b.includes(item));
+    expect(overlap(implemented, readOnly)).toEqual([]);
+    expect(overlap(implemented, planned)).toEqual([]);
+    expect(overlap(readOnly, planned)).toEqual([]);
+  });
+
   it("reports unconfigured adapter honestly", () => {
     const status = withEnv(
       {

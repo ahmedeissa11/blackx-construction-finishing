@@ -26,6 +26,7 @@ import type {
   ComplaintDTO,
   ContractSummaryDTO,
   CurrentUserDTO,
+  CustomerDetailDTO,
   CustomerDTO,
   DiaryEntryDTO,
   DocumentDTO,
@@ -373,10 +374,49 @@ export function createFoundationServices(ports: FoundationPorts) {
       return { ...page, items: page.items.map(dto.toCustomerDTO) };
     },
 
-    async getCustomer(actor: Actor, id: string): Promise<CustomerDTO> {
+    async getCustomer(actor: Actor, id: string): Promise<CustomerDetailDTO> {
       const record = await repos.customers.byId(actor.workspaceId, id);
       if (!record) throw new ApiError("NOT_FOUND");
-      return dto.toCustomerDTO(record);
+      // Contract §3.3 summary composition: the customer's projects in
+      // this workspace (enriched like the projects list) and their
+      // unresolved findings ("open" = open or in_progress, matching
+      // the UI's existing semantics). `requests` is empty by accuracy,
+      // not by omission: request→customer linking does not exist yet
+      // (TBD-PO-12) and intake never links silently, so no request can
+      // be linked to any customer today.
+      const projects = await listAll(repos.projects.list, {
+        workspaceId: actor.workspaceId,
+        customerId: record.id,
+        page: 1,
+        pageSize: 100,
+        sortField: "updatedAt",
+        direction: "desc" as const,
+      });
+      const projectDTOs = await Promise.all(
+        projects.map(async (project) =>
+          dto.toProjectSummaryDTO(project, await projectDerived(actor, project)),
+        ),
+      );
+      let openFindings = 0;
+      for (const project of projects) {
+        const countByStatus = async (status: string) =>
+          (
+            await repos.findings.list({
+              workspaceId: actor.workspaceId,
+              projectId: project.id,
+              status,
+              page: 1,
+              pageSize: 1,
+              sortField: "reportedAt",
+              direction: "desc" as const,
+            })
+          ).total;
+        openFindings += (await countByStatus("open")) + (await countByStatus("in_progress"));
+      }
+      return {
+        ...dto.toCustomerDTO(record),
+        summary: { requests: [], projects: projectDTOs, openFindings },
+      };
     },
 
     async updateCustomer(

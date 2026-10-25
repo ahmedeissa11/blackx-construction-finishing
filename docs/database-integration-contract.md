@@ -176,9 +176,9 @@ unique; reference unique per kind.
 1. `tests/contract/intake-ports.contract.test.ts` **and**
    `tests/contract/foundation-ports.contract.test.ts` pass
    **unchanged** against your adapter on a disposable test DB:
-   `CONTRACT_ADAPTER=<your-name> npm run test:contract`
-   (we register your adapter name together; suite edits = contract
-   change, discussed first).
+   `INTAKE_CONTRACT_ADAPTER=<your-name> FOUNDATION_CONTRACT_ADAPTER=<your-name> npm run test:contract`
+   (each suite selects via its own env var; we register your adapter
+   name together; suite edits = contract change, discussed first).
 2. `tests/intake-*.test.ts`, `tests/foundation-*.test.ts` pass with
    your adapter wired in both runtimes (incl. rollback freeing
    idempotency keys and 503 governance with the fake off).

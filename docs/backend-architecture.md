@@ -133,12 +133,20 @@ chosen. Customer duplicate phones are neither merged nor rejected
 
 ## 6. Tests and verification (actual results)
 
-- **249/249 unit/integration tests pass** (178 baseline + 71 new):
+- **254/254 unit/integration tests pass** (178 baseline + 76 new):
   config governance, customer service (validation/idempotency/
   concurrency/scoping/search/audit), HTTP handlers (401/403/503/501
   matrix, persistence across requests, envelope), repository contract
-  suite (38 contract tests incl. intake), API client, OpenAPI
+  suites (38 contract tests incl. intake), API client, OpenAPI
   coverage/drift, cross-bundle error mapping.
+- **Contract-alignment follow-up (2026-10-25):** customer detail now
+  returns the §3.3 `summary` block (projects + unresolved-finding
+  count; `requests` empty until PO-12 linking exists); input naming
+  frozen as `phone` (contract §1.5); domain-status lists disjoint;
+  contract suites select adapters via per-suite env vars
+  (`FOUNDATION_CONTRACT_ADAPTER` / `INTAKE_CONTRACT_ADAPTER` /
+  `CONTRACT_ADAPTER`) and pass together and independently; over-cap
+  declared request bodies are refused before buffering.
 - `format:check`, `lint`, `typecheck`, production `build`: green.
 - **Live local verification (dev, fake):** sign-in → create customer
   201 → idempotent replay 201 (one record) → search/patch → stale
@@ -174,6 +182,38 @@ chosen. Customer duplicate phones are neither merged nor rejected
    (verified behavior in prod), but dev duplicates could theoretically
    affect intake the same way the foundation bug manifested. Worth a
    small follow-up to apply the same structural mapping there.
+8. **CSRF posture (reviewed 2026-10-25; decision = TBD-TECH-02).**
+   State-changing foundation routes (today: customer POST/PATCH; the
+   rest are 501) are cookie-authenticated. Current compensating
+   controls: session cookie is httpOnly, `__Secure-` in production,
+   `SameSite=Lax`; mutations require `Content-Type: application/json`
+   (a non-simple type, so cross-origin browser requests preflight and
+   fail — no CORS allowlist exists); no GET performs a mutation;
+   NextAuth's own auth POSTs carry built-in CSRF tokens. **What is
+   missing:** explicit server-side origin verification. **Residual
+   risk:** SameSite is enforced by the browser, not verified by the
+   server — a malicious page on a *same-site* subdomain could still
+   ride the session (Lax permits same-site POST cookies), older
+   browsers may not enforce SameSite, and any future form-encoded
+   endpoint would bypass the content-type mitigation. The API
+   contract (§1.2) requires CSRF protection on cookie-auth mutations,
+   so today this is mitigations-only, not compliance.
+   **Recommended control (implement before any production write
+   expansion, as an explicitly authorized change):** in the shared
+   guards (`src/server/foundation/admin-http.ts`, and the intake
+   guard if staff writes arrive there), verify on every
+   state-changing request that `Origin` (falling back to `Referer`)
+   matches the expected application origin (`Host`/`AUTH_URL`), or
+   that Fetch Metadata `Sec-Fetch-Site` is `same-origin`; requests
+   with a mismatched Origin ⇒ 403; requests with no Origin and no
+   Fetch Metadata (non-browser clients) stay allowed but are logged.
+   Add guard tests (mismatched Origin ⇒ 403; same-origin unaffected).
+   A synchronizer-token scheme is heavier than needed for this
+   same-origin admin. **No behavior was changed for this item in the
+   alignment batch** — this entry is the documented risk + proposal
+   for the TECH-02 decision. Related observation: credential login
+   has no application-level attempt throttling today (thresholds are
+   TBD-TECH-03) — consider deciding both together.
 
 ## 8. Recommended next steps (in order)
 

@@ -56,7 +56,7 @@ its header for why).
 
 - `tests/contract/foundation-ports.contract.test.ts` — adapter
   conformance suite (must pass unchanged against the real adapter;
-  select via `CONTRACT_ADAPTER`).
+  select via `FOUNDATION_CONTRACT_ADAPTER`).
 - `tests/foundation-customers.test.ts` — service behavior without HTTP.
 - `tests/foundation-api.test.ts` — HTTP handlers: auth matrix,
   fail-closed governance, persistence across requests, 501 markers.

@@ -256,6 +256,63 @@ export const openApiSpec: Json = {
           "version",
         ],
       ),
+      RequestSummary: obj(
+        {
+          id: str,
+          reference: str,
+          customerId: { type: ["string", "null"] },
+          customerName: str,
+          serviceSlug: str,
+          city: str,
+          submittedAt: dateTime,
+          status: strEnum(
+            "new",
+            "contacted",
+            "inspection_scheduled",
+            "inspection_done",
+            "quotation_sent",
+            "approved",
+            "on_hold",
+            "cancelled",
+          ),
+          priority: strEnum("normal", "high", "urgent"),
+          assigneeId: str,
+          assigneeName: str,
+          version: int,
+        },
+        [
+          "id",
+          "reference",
+          "customerId",
+          "customerName",
+          "serviceSlug",
+          "city",
+          "submittedAt",
+          "status",
+          "priority",
+          "version",
+        ],
+      ),
+      CustomerDetail: {
+        allOf: [
+          ref("Customer"),
+          obj(
+            {
+              summary: obj(
+                {
+                  requests: { type: "array", items: ref("RequestSummary") },
+                  projects: { type: "array", items: ref("ProjectSummary") },
+                  openFindings: int,
+                },
+                ["requests", "projects", "openFindings"],
+              ),
+            },
+            ["summary"],
+          ),
+        ],
+        description:
+          "Customer + read-model summary (contract §3.3). summary.requests is empty while request→customer linking is unimplemented (TBD-PO-12); summary.openFindings counts findings with status open or in_progress across the customer's projects.",
+      },
       CustomerCreateInput: obj({ name: str, phone: str, email: str, city: str }, ["name", "phone"]),
       CustomerUpdateInput: obj(
         {
@@ -727,10 +784,10 @@ export const openApiSpec: Json = {
     "/api/v1/admin/customers/{id}": {
       get: {
         tags: ["customers"],
-        summary: "Get one customer.",
+        summary: "Get one customer with its linked-work summary (contract §3.3).",
         "x-implementation-status": "implemented",
         security: [{ sessionCookie: [] }],
-        responses: { ...jsonBody(ref("Customer")), ...READ_ERRORS },
+        responses: { ...jsonBody(ref("CustomerDetail")), ...READ_ERRORS },
       },
       patch: {
         tags: ["customers"],

@@ -166,6 +166,58 @@ export interface CustomerUpdateInput {
   version: number;
 }
 
+/** Inspection-request lifecycle (contract §4.1). */
+export type InspectionRequestStatus =
+  | "new"
+  | "contacted"
+  | "inspection_scheduled"
+  | "inspection_done"
+  | "quotation_sent"
+  | "approved"
+  | "on_hold"
+  | "cancelled";
+
+/** Staff list projection of a public-inspection request (contract §2.4). */
+export interface RequestSummaryDTO {
+  id: string; // ro
+  reference: string; // ro
+  /** ro — null until a staff member explicitly links the request (§3.4). */
+  customerId: string | null;
+  /** ro — linked customer name, otherwise the submitted full name. */
+  customerName: string;
+  serviceSlug: string;
+  city: string;
+  submittedAt: string; // ro
+  status: InspectionRequestStatus;
+  priority: "normal" | "high" | "urgent";
+  assigneeId?: string;
+  assigneeName?: string; // ro
+  version: number; // ro
+}
+
+/**
+ * `GET /api/v1/admin/customers/{id}` (contract §3.3): the customer plus a
+ * read-model summary of explicitly linked work.
+ */
+export interface CustomerDetailDTO extends CustomerDTO {
+  summary: {
+    /**
+     * Requests explicitly linked to this customer. Always empty while
+     * request→customer linking is unimplemented (TBD-PO-12): intake
+     * never links silently, so no request can appear here yet.
+     */
+    requests: RequestSummaryDTO[];
+    /** All projects owned by this customer (enriched summaries). */
+    projects: ProjectSummaryDTO[];
+    /**
+     * Findings across those projects that are not yet resolved
+     * (status `open` or `in_progress`) — the same "open" semantics the
+     * admin/portal UI uses today.
+     */
+    openFindings: number;
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Projects & operations (contract §2.6 — reads implemented, writes planned)
 // ---------------------------------------------------------------------------

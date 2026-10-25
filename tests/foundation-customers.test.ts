@@ -305,6 +305,85 @@ describe("updateCustomer", () => {
   });
 });
 
+describe("customer detail summary (contract §3.3)", () => {
+  it("returns an accurate empty summary for a new customer", async () => {
+    const { dto: created } = await services.createCustomer(actor, customerBody(), KEY, "c-sum-1");
+    const detail = await services.getCustomer(actor, created.id);
+    expect(detail.id).toBe(created.id);
+    expect(detail.phoneE164).toBe(created.phoneE164);
+    // requests is [] by accuracy: linking does not exist yet (PO-12).
+    expect(detail.summary).toEqual({ requests: [], projects: [], openFindings: 0 });
+  });
+
+  it("composes workspace-scoped projects and unresolved-finding counts", async () => {
+    const { dto: created } = await services.createCustomer(actor, customerBody(), KEY, "c-sum-2");
+    const ws = actor.workspaceId;
+    const base = { workspaceId: ws, createdAt: NOW, updatedAt: NOW, version: 1 };
+    const repos = fake.ports.repositories;
+    await repos.projects.create({
+      ...base,
+      id: "proj-1",
+      reference: "PR-000001",
+      title: { ar: "مشروع أ", en: "Project A" },
+      customerId: created.id,
+      contractId: "contract-1",
+      serviceSlug: "interior-finishing",
+      status: "in_progress",
+    });
+    await repos.projects.create({
+      ...base,
+      id: "proj-2",
+      reference: "PR-000002",
+      title: { ar: "مشروع ب", en: "Project B" },
+      customerId: created.id,
+      contractId: "contract-2",
+      serviceSlug: "interior-finishing",
+      status: "on_hold",
+    });
+    // Same customer id in another workspace must never leak in.
+    await repos.projects.create({
+      ...base,
+      workspaceId: "other-workspace",
+      id: "proj-foreign",
+      reference: "PR-999999",
+      title: { ar: "أجنبي", en: "Foreign" },
+      customerId: created.id,
+      contractId: "contract-x",
+      serviceSlug: "interior-finishing",
+      status: "in_progress",
+    });
+    const finding = (id: string, projectId: string, status: "open" | "in_progress" | "resolved") =>
+      repos.findings.create({
+        ...base,
+        id,
+        reference: `FD-${id}`,
+        projectId,
+        kind: "issue",
+        source: "staff",
+        title: `Finding ${id}`,
+        detail: "Detail",
+        severity: "normal",
+        status,
+        reportedAt: NOW,
+      });
+    await finding("f-1", "proj-1", "open");
+    await finding("f-2", "proj-1", "resolved");
+    await finding("f-3", "proj-2", "in_progress");
+    await finding("f-4", "proj-foreign", "open");
+
+    const detail = await services.getCustomer(actor, created.id);
+    expect(detail.summary.requests).toEqual([]);
+    expect(detail.summary.projects.map((project) => project.id).sort()).toEqual([
+      "proj-1",
+      "proj-2",
+    ]);
+    // Enriched like the projects list (provisional progress derivation).
+    expect(detail.summary.projects[0]?.progressPercent).toBe(0);
+    // open + in_progress across own projects; resolved + foreign excluded.
+    expect(detail.summary.openFindings).toBe(2);
+  });
+});
+
 describe("read-only domains over the ports", () => {
   it("return honest empty pages before any data exists", async () => {
     const projects = await services.listProjects(actor, new URLSearchParams(""));
