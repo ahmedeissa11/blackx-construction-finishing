@@ -179,8 +179,7 @@ function BoardShell({
     <section className={`panel domain-board domain-board--${variant}`}>
       <div className="domain-board-hero">
         <div className="domain-board-head">
-          <h2>{title}</h2>
-          <p>{intro}</p>
+          {intro ? <p>{intro}</p> : null}
         </div>
         <div className="domain-stats" role="list" aria-label={title}>
           {stats.map((stat) => (
