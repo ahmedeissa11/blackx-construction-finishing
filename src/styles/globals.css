@@ -5850,31 +5850,58 @@ html[dir="rtl"] .shell-nav a[aria-current="page"] {
 }
 
 /* =========================================================================
-   BLACK X ADMIN — HARMONIZATION LAYER (presentation only)
-   Final cascade layer for the operations shell: one type rhythm, one
-   surface/border system, consistent cards, stats, tabs, tables and forms,
-   plus first-class small-screen behaviour in Arabic RTL and English LTR.
+   BLACK X ADMIN — CORRECTIVE VISUAL REDESIGN (presentation only)
+   Replaces the harmonization layer. Addresses: duplicate branding, competing
+   headlines, flat equal-weight KPI strips, beige-on-beige cards with weak
+   hierarchy, scattered metadata, tall empty card bottoms, dense tables, and
+   inconsistent whitespace. Shared design system applied per-module.
    ========================================================================= */
+
+/* ---------- Tokens (admin scope only) ---------- */
+:root {
+  --bx-canvas: #f5f1ea;        /* warm ivory canvas */
+  --bx-surface: #ffffff;       /* light content surface */
+  --bx-surface-raised: #faf7f1;/* elevated surface */
+  --bx-surface-muted: #f3ede0; /* secondary surface */
+  --bx-border-soft: #e3d8c3;   /* subtle borders */
+  --bx-border-strong: #cfc4b2; /* stronger borders */
+  --bx-text: #2d2b27;          /* charcoal text */
+  --bx-text-muted: #8a8478;    /* muted text */
+  --bx-sage-deep: #5b6a56;     /* deep sage accent */
+  --bx-brass: #8a6a3b;         /* muted gold primary */
+  --bx-brass-soft: #f2e9d7;    /* muted gold soft */
+  --bx-success: #4a7c59;       /* muted green positive */
+  --bx-warning: #b0722b;       /* amber warning */
+  --bx-error: #a64d4d;         /* red only for errors/destructive */
+  --bx-radius: 14px;
+  --bx-radius-sm: 10px;
+  --bx-shadow-soft: 0 1px 3px rgba(45,43,39,0.06), 0 8px 24px rgba(45,43,39,0.04);
+  --bx-shadow-card: 0 1px 2px rgba(45,43,39,0.04), 0 4px 16px rgba(45,43,39,0.03);
+}
 
 /* Arabic is a joined script: tracking disconnects its glyphs. */
 html[dir="rtl"] .shell,
 html[dir="rtl"] .shell * {
   letter-spacing: normal;
 }
-html[dir="rtl"] .shell-account-copy strong {
-  letter-spacing: 0.04em; /* Latin wordmark only */
-}
 
 /* ---------- Shell: sidebar navigation ---------- */
 .shell-nav a {
   border-radius: 10px;
+  min-height: 48px;
+  padding: 10px 14px;
 }
 .shell-nav .nav-count {
   margin-inline-start: 6px;
   font-variant-numeric: tabular-nums;
+  background: var(--bx-border-soft);
+  color: var(--bx-text-muted);
 }
 .shell-nav a.active {
+  background: var(--bx-surface-raised);
   box-shadow: inset 3px 0 0 var(--bx-brass);
+  color: var(--bx-text);
+  font-weight: 650;
 }
 html[dir="rtl"] .shell-nav a.active {
   box-shadow: inset -3px 0 0 var(--bx-brass);
@@ -5894,7 +5921,9 @@ html[dir="rtl"] .shell-nav a.active {
 /* ---------- Shell: topbar ---------- */
 .shell-topbar {
   padding: 10px 28px;
-  background: rgba(245, 241, 234, 0.97);
+  background: var(--bx-surface);
+  border-block-end: 1px solid var(--bx-border-soft);
+  backdrop-filter: none;
 }
 .shell-heading {
   display: flex;
@@ -5906,152 +5935,319 @@ html[dir="rtl"] .shell-nav a.active {
   margin: 0;
   font-size: var(--admin-meta);
   font-weight: 600;
-  color: var(--color-sage-deep);
+  color: var(--bx-sage-deep);
 }
 .shell-title {
-  font-size: clamp(1.22rem, 1.4vw, 1.42rem);
+  font-size: clamp(1.15rem, 1.3vw, 1.32rem);
   font-weight: 800;
   line-height: 1.3;
+  color: var(--bx-text);
 }
 .shell-account {
-  border: 0;
-  background: transparent;
+  border: 1px solid var(--bx-border-soft);
+  background: var(--bx-surface-raised);
   box-shadow: none;
-  padding: 2px 4px;
+  padding: 4px 8px;
+  border-radius: 10px;
 }
 .shell-account-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  font-size: 0.7rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--bx-sage-deep);
+  color: #fff;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-.shell-account-copy strong {
-  font-size: 0.78rem;
-}
-.shell-account-copy small {
-  font-size: var(--admin-meta);
-  color: var(--color-muted);
+.shell-account-copy {
+  display: none; /* remove duplicate wordmark from topbar; sidebar keeps the mark */
 }
 .shell-topbar .locale-switch {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   padding: 3px;
-  border: 1px solid var(--admin-border);
+  border: 1px solid var(--bx-border-soft);
   border-radius: 999px;
-  background: var(--admin-surface-raised);
+  background: var(--bx-surface-raised);
 }
 .shell-topbar .locale-switch a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: auto;
-  height: auto;
-  min-width: 46px;
+  min-width: 48px;
   min-height: 30px;
   padding: 4px 10px;
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--color-muted);
+  color: var(--bx-text-muted);
   font-size: 0.8rem;
   font-weight: 650;
   line-height: 1.2;
   text-decoration: none;
 }
 .shell-topbar .locale-switch a:hover {
-  color: var(--color-ink);
+  color: var(--bx-text);
+  background: var(--bx-surface-muted);
 }
 .shell-topbar .locale-switch a.current {
-  background: var(--color-sage-deep);
+  background: var(--bx-sage-deep);
   color: #f4f7ef;
 }
 
 /* ---------- Shell: content frame ---------- */
 .shell-content {
   max-width: var(--admin-content-max);
-  padding: 24px 32px 56px;
-  gap: 20px;
+  padding: 26px 36px 64px;
+  gap: 24px;
 }
 
 /* ---------- Buttons & focus (shell scope only) ---------- */
 .shell .btn-primary {
-  background: var(--admin-primary);
-  border: 1px solid var(--admin-primary);
-  color: var(--admin-on-primary);
+  background: var(--bx-brass);
+  border: 1px solid var(--bx-brass);
+  color: #fffdf8;
 }
 .shell .btn-primary:hover,
 .shell .btn-primary:active {
-  background: var(--admin-primary-strong);
-  border-color: var(--admin-primary-strong);
+  background: #77592f;
+  border-color: #77592f;
+}
+.shell .btn-outline {
+  border-color: var(--bx-border-soft);
+  color: var(--bx-text);
+  background: var(--bx-surface);
+}
+.shell .btn-outline:hover {
+  border-color: var(--bx-border-strong);
+  background: var(--bx-surface-muted);
+}
+.shell .btn-ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--bx-text-muted);
+}
+.shell .btn-ghost:hover {
+  background: var(--bx-surface-muted);
+  border-color: var(--bx-border-soft);
+  color: var(--bx-text);
 }
 .shell :focus-visible {
-  outline: 2px solid var(--admin-primary);
+  outline: 2px solid var(--bx-brass);
   outline-offset: 2px;
 }
 
 /* ---------- Panels ---------- */
 .shell .panel {
-  border: 1px solid var(--admin-border-soft);
-  border-radius: var(--admin-radius);
-  box-shadow: var(--admin-shadow-soft);
+  border: 1px solid var(--bx-border-soft);
+  border-radius: var(--bx-radius);
+  box-shadow: var(--bx-shadow-card);
+  background: var(--bx-surface);
+}
+.shell .panel + .panel {
+  margin-block-start: 0;
 }
 
 /* ---------- Board hero & stat band ---------- */
+.domain-board-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block-end: 0;
+}
+.domain-board-head {
+  padding: 0;
+}
+.domain-board-head h2 {
+  font-size: clamp(1.35rem, 1.8vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0;
+  color: var(--bx-text);
+}
 .domain-board-head p {
-  max-width: 68ch;
+  max-width: 72ch;
+  margin: 4px 0 0;
+  color: var(--bx-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
   text-wrap: pretty;
 }
 .domain-stats {
-  padding-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  padding-top: 6px;
+  border-block-start: 1px solid var(--bx-border-soft);
+  margin-block-start: 10px;
 }
 .domain-stat {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  padding: 12px 14px 10px;
+  border-radius: var(--bx-radius-sm);
+  background: var(--bx-surface-raised);
+  border: 1px solid var(--bx-border-soft);
 }
 .domain-stat span {
-  color: var(--color-muted);
+  color: var(--bx-text-muted);
+  font-size: var(--admin-meta);
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 .domain-stat strong {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--bx-text);
   font-variant-numeric: tabular-nums;
 }
 .domain-stat small {
-  color: var(--color-muted);
+  color: var(--bx-text-muted);
   font-size: var(--admin-meta);
   line-height: 1.55;
 }
 @media (min-width: 1025px) {
-  /* Reserve two label lines so values align across the strip. */
   .domain-stat span {
     min-height: 2.9em;
   }
 }
 
+/* ---------- KPI cards: overview snapshot ---------- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 20px;
+  border-radius: var(--bx-radius);
+  border: 1px solid var(--bx-border-soft);
+  background: var(--bx-surface);
+  box-shadow: var(--bx-shadow-card);
+  text-decoration: none;
+  color: inherit;
+}
+.stat-card:hover {
+  border-color: var(--bx-border-strong);
+  box-shadow: 0 4px 20px rgba(45,43,39,0.06);
+}
+.stat-card .stat-label {
+  font-size: var(--admin-meta);
+  font-weight: 600;
+  color: var(--bx-text-muted);
+  line-height: 1.4;
+}
+.stat-card .stat-value {
+  font-size: clamp(1.5rem, 2vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--bx-text);
+  font-variant-numeric: tabular-nums;
+}
+.stat-card .stat-note {
+  font-size: 0.81rem;
+  color: var(--bx-text-muted);
+  line-height: 1.5;
+}
+
 /* ---------- Record cards & metadata ---------- */
+.record-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--bx-border-soft);
+  border-radius: var(--bx-radius);
+  box-shadow: var(--bx-shadow-card);
+  background: var(--bx-surface);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.record-card:hover {
+  box-shadow: 0 4px 20px rgba(45,43,39,0.06);
+  border-color: var(--bx-border-strong);
+}
+.record-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px 12px;
+  border-block-end: 1px solid var(--bx-border-soft);
+}
+.record-card-leading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.record-card-heading {
+  min-width: 0;
+}
+.record-kind {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--bx-surface-muted);
+  color: var(--bx-sage-deep);
+  font-size: var(--admin-meta);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.record-card-heading h3 {
+  font-size: 1.05rem;
+  font-weight: 750;
+  margin-block-start: 4px;
+  margin-block-end: 0;
+  color: var(--bx-text);
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+.record-reference {
+  margin-top: 3px;
+  font-size: var(--admin-meta);
+  color: var(--bx-text-muted);
+  font-family: var(--ds-num-font);
+  letter-spacing: 0.01em;
+}
+.record-card-badges {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
 .record-meta {
-  gap: 12px 20px;
-  padding: 13px 15px;
-  border: 1px solid var(--admin-border-soft);
-  border-radius: 12px;
-  background: var(--admin-surface-muted);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px 18px;
+  border-block-end: 1px solid var(--bx-border-soft);
+  background: var(--bx-surface-raised);
 }
 .record-meta-item,
 html[dir="rtl"] .record-meta-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
 }
+.record-meta-item-wide {
+  grid-column: 1 / -1;
+}
 .record-meta dt {
   font-size: var(--admin-meta);
   font-weight: 600;
-  color: var(--color-muted);
+  color: var(--bx-text-muted);
   line-height: 1.4;
 }
 .record-meta dd {
@@ -6059,19 +6255,24 @@ html[dir="rtl"] .record-meta-item {
   font-size: 0.92rem;
   font-weight: 650;
   line-height: 1.55;
-  overflow-wrap: anywhere;
+  color: var(--bx-text);
+  overflow-wrap: break-word;
 }
 .record-meta dd a {
-  color: inherit;
+  color: var(--bx-brass);
   text-decoration: none;
 }
 .record-meta dd a:hover {
   text-decoration: underline;
 }
+.record-relationships {
+  padding: 14px 18px;
+}
 .record-relationship-title {
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--color-muted);
+  color: var(--bx-text-muted);
+  margin-block-end: 8px;
 }
 .record-relationship-links {
   display: flex;
@@ -6079,28 +6280,60 @@ html[dir="rtl"] .record-meta-item {
   gap: 6px;
 }
 .record-relationship-links a {
-  padding: 4px 10px;
-  border: 1px solid var(--admin-border-soft);
-  border-radius: 8px;
-  background: var(--admin-surface-raised);
+  padding: 5px 12px;
+  border: 1px solid var(--bx-border-soft);
+  border-radius: var(--bx-radius-sm);
+  background: var(--bx-surface-raised);
   font-size: var(--admin-meta);
   font-weight: 600;
+  color: var(--bx-text);
   text-decoration: none;
 }
 .record-relationship-links a:hover {
-  border-color: var(--admin-border-strong);
-  background: var(--admin-accent-soft);
+  border-color: var(--bx-border-strong);
+  background: var(--bx-brass-soft);
+  color: var(--bx-brass);
 }
 .record-card-actions {
-  border-block-start-color: var(--admin-border-soft);
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px 14px;
+  border-block-start: 1px solid var(--bx-border-soft);
+  margin-block-start: auto;
 }
 
-/* ---------- Work items & list rows ---------- */
-.wf-work-item {
-  padding: 12px 2px;
-}
+/* ---------- List rows ---------- */
 .record-list-item {
-  border-block-end-color: var(--admin-border-soft);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-block-end: 1px solid var(--bx-border-soft);
+  background: var(--bx-surface);
+}
+.record-list-item:last-child {
+  border-block-end: 0;
+}
+.record-list-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.record-list-heading h4 {
+  font-size: 0.95rem;
+  font-weight: 750;
+  margin: 0;
+  color: var(--bx-text);
+}
+.record-list-heading h4 + .record-reference {
+  margin: 0;
+}
+.record-list-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* ---------- Expansion tabs: one segmented control ---------- */
@@ -6108,9 +6341,9 @@ html[dir="rtl"] .record-meta-item {
   display: flex;
   gap: 4px;
   padding: 4px;
-  border: 1px solid var(--admin-border-soft);
-  border-radius: 12px;
-  background: var(--admin-surface-muted);
+  border: 1px solid var(--bx-border-soft);
+  border-radius: var(--bx-radius-sm);
+  background: var(--bx-surface-muted);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -6124,28 +6357,50 @@ html[dir="rtl"] .record-meta-item {
   border: 1px solid transparent;
   border-radius: 9px;
   background: transparent;
-  color: var(--color-muted);
+  color: var(--bx-text-muted);
   font-size: var(--admin-small);
   font-weight: 650;
   white-space: nowrap;
   cursor: pointer;
 }
 .expansion-tabs [role="tab"]:hover {
-  color: var(--color-ink);
+  color: var(--bx-text);
 }
 .expansion-tabs [role="tab"][aria-selected="true"] {
-  background: var(--admin-surface-raised);
-  border-color: var(--admin-border-soft);
-  box-shadow: var(--admin-shadow-soft);
-  color: var(--color-ink);
+  background: var(--bx-surface-raised);
+  border-color: var(--bx-border-soft);
+  box-shadow: var(--bx-shadow-card);
+  color: var(--bx-text);
 }
 
 /* ---------- Tables ---------- */
+.data-card-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 .data-card-table th {
-  background: var(--admin-surface-muted);
-  color: var(--color-muted);
+  background: var(--bx-surface-muted);
+  color: var(--bx-text-muted);
   font-size: var(--admin-meta);
   font-weight: 700;
+  text-align: start;
+  padding: 12px 16px;
+  border-block-end: 1px solid var(--bx-border-soft);
+  letter-spacing: 0.01em;
+}
+.data-card-table td {
+  padding: 12px 16px;
+  border-block-end: 1px solid var(--bx-border-soft);
+  font-size: 0.92rem;
+  color: var(--bx-text);
+  font-variant-numeric: tabular-nums;
+  vertical-align: top;
+}
+.data-card-table tbody tr:last-child td {
+  border-block-end: 0;
+}
+.data-card-table tbody tr:hover td {
+  background: var(--bx-surface-raised);
 }
 .shell-content td {
   font-variant-numeric: tabular-nums;
@@ -6154,54 +6409,65 @@ html[dir="rtl"] .record-meta-item {
 /* ---------- Forms ---------- */
 .shell-content :is(.form-input, .form-select) {
   min-height: 42px;
-  border-color: var(--admin-border);
-  border-radius: 10px;
+  border-color: var(--bx-border-soft);
+  border-radius: var(--bx-radius-sm);
 }
 .shell-content :is(.form-input, .form-select):focus {
-  border-color: var(--admin-primary);
-  box-shadow: 0 0 0 3px var(--admin-primary-soft);
+  border-color: var(--bx-brass);
+  box-shadow: 0 0 0 3px var(--bx-brass-soft);
   outline: none;
 }
 
-/* ---------- Small screens: nothing truncates, nothing hides ---------- */
+/* ---------- Small screens ---------- */
 @media (max-width: 768px) {
   .shell-topbar {
     padding: 8px 14px;
     gap: 10px;
   }
   .shell-title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    white-space: normal;
-    overflow: hidden;
-    text-overflow: clip;
     font-size: 1.08rem;
-    line-height: 1.35;
   }
   .shell-content {
-    padding: 16px 14px 40px;
-    padding-block-end: max(40px, env(safe-area-inset-bottom));
-    gap: 14px;
+    padding: 18px 16px 52px;
+    gap: 16px;
+  }
+  .domain-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+  .record-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .record-card-badges {
+    margin-top: 6px;
+  }
+  .record-meta {
+    grid-template-columns: 1fr;
+  }
+  .record-list-item {
+    padding: 12px 16px;
+    gap: 10px;
   }
 }
 @media (max-width: 640px) {
-  .shell-signout {
-    min-width: 40px;
-    padding: 8px 10px;
-    gap: 0;
-    font-size: 0;
-    justify-content: center;
+  .shell-title {
+    font-size: 1.02rem;
   }
-  .shell-signout-icon {
-    display: block;
-    width: 19px;
-    height: 19px;
+  .shell-content {
+    padding: 16px 14px 48px;
+    gap: 14px;
   }
-  .shell-topbar .locale-switch a {
-    min-width: 40px;
-    min-height: 28px;
-    padding: 3px 8px;
+  .domain-stats {
+    grid-template-columns: 1fr;
+  }
+  .stat-card {
+    padding: 14px 16px;
+  }
+  .stat-card .stat-value {
+    font-size: 1.5rem;
   }
 }
