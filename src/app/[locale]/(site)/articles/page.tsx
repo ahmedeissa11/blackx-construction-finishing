@@ -5,7 +5,7 @@ import { pick } from "@/lib/i18n";
 import { resolveLocale } from "@/lib/locale-params";
 import { localizedAlternates } from "@/lib/site-url";
 import { getDictionary } from "@/content/dictionary";
-import { articles, publishedArticles } from "@/content/publications";
+import { publishedArticles } from "@/content/publications";
 import { formatNumber } from "@/lib/format";
 import { siteHref } from "@/config/navigation";
 import { PageHero } from "@/components/site/PageHero";
@@ -40,12 +40,12 @@ export default async function ArticlesPage({ params }: { params: Promise<{ local
       />
       <section className="section">
         <div className="container">
-          {articles.length === 0 ? (
+          {publishedArticles.length === 0 ? (
             <EmptyState icon="▤" title={dict.articles.emptyTitle} text={dict.articles.emptyText} />
           ) : (
             <>
               <div className="articles-grid">
-                {articles.map((article) => (
+                {publishedArticles.map((article) => (
                   <Link
                     key={article.slug}
                     href={siteHref(locale, `articles/${article.slug}`)}
