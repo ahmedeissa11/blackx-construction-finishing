@@ -1490,14 +1490,20 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
                 {
                   key: "collected",
                   label: x.finance.totalCollected,
-                  valueLabel: formatMoney(totals.collected, locale),
+                  valueLabel: formatPercent(
+                    totals.dues > 0 ? (totals.collected / totals.dues) * 100 : 0,
+                    locale,
+                  ),
                   ratio: totals.dues > 0 ? totals.collected / totals.dues : 0,
                   tone: "ok",
                 },
                 {
                   key: "remaining",
                   label: x.finance.totalRemaining,
-                  valueLabel: formatMoney(totals.remaining, locale),
+                  valueLabel: formatPercent(
+                    totals.dues > 0 ? (totals.remaining / totals.dues) * 100 : 0,
+                    locale,
+                  ),
                   ratio: totals.dues > 0 ? totals.remaining / totals.dues : 0,
                   tone: "warn",
                 },
@@ -1508,18 +1514,20 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
             <h3 className="viz-subtitle">{x.finance.aging.title}</h3>
             <BarRows
               ariaLabel={x.finance.aging.title}
-              items={aging.map((bucket) => ({
-                key: bucket.key,
-                label: `${x.finance.aging[bucket.key]} · ${formatNumber(bucket.count, locale)}`,
-                valueLabel: formatMoney(bucket.amount, locale),
-                ratio: bucket.amount / Math.max(1, ...aging.map((entry) => entry.amount)),
-                tone:
-                  bucket.key === "current"
-                    ? ("ok" as const)
-                    : bucket.key === "d61_90" || bucket.key === "d90plus"
-                      ? ("danger" as const)
-                      : ("warn" as const),
-              }))}
+              items={aging
+                .filter((bucket) => bucket.amount > 0 || bucket.count > 0)
+                .map((bucket) => ({
+                  key: bucket.key,
+                  label: `${x.finance.aging[bucket.key]} · ${formatNumber(bucket.count, locale)}`,
+                  valueLabel: formatMoney(bucket.amount, locale),
+                  ratio: bucket.amount / Math.max(1, ...aging.map((entry) => entry.amount)),
+                  tone:
+                    bucket.key === "current"
+                      ? ("ok" as const)
+                      : bucket.key === "d61_90" || bucket.key === "d90plus"
+                        ? ("danger" as const)
+                        : ("warn" as const),
+                }))}
             />
           </div>
         </div>

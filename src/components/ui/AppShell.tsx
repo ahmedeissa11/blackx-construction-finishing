@@ -235,14 +235,14 @@ export function AppShell({
             <SearchIcon />
           </span>
           <label className="sr-only" htmlFor="shell-navigation-search">
-            {appDict.searchShort}
+            {appDict.navFilter}
           </label>
           <input
             id="shell-navigation-search"
             type="search"
             value={navQuery}
             onChange={(event) => setNavQuery(event.target.value)}
-            placeholder={appDict.searchShort}
+            placeholder={appDict.navFilter}
             autoComplete="off"
           />
           {navQuery ? (
@@ -267,7 +267,6 @@ export function AppShell({
             const visibleItems = expanded
               ? group.items
               : group.items.filter((item) => isActive(item.href));
-            const groupCount = group.items.reduce((total, item) => total + (item.count ?? 0), 0);
             const groupPanelId = `shell-nav-group-${groupIndex}`;
 
             return (
@@ -286,7 +285,6 @@ export function AppShell({
                     onClick={() => toggleNavGroup(group.label!, expanded)}
                   >
                     <span>{group.label}</span>
-                    {groupCount > 0 ? <span className="nav-count">{groupCount}</span> : null}
                     <span className="shell-nav-chevron" aria-hidden="true">
                       {expanded ? "⌃" : "⌄"}
                     </span>
@@ -306,7 +304,14 @@ export function AppShell({
                       </span>
                       <span className="nav-label">{item.label}</span>
                       {typeof item.count === "number" && item.count > 0 ? (
-                        <span className="nav-count">{item.count}</span>
+                        <>
+                          <span className="nav-count" aria-hidden="true">
+                            {item.count}
+                          </span>
+                          <span className="sr-only">
+                            ({item.count} {appDict.status.new})
+                          </span>
+                        </>
                       ) : null}
                     </Link>
                   ))}

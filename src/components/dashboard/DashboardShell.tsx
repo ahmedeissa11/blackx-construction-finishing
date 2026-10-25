@@ -41,11 +41,17 @@ export function DashboardShell({ locale, children }: { locale: Locale; children:
             href: dashboardHref(locale),
           },
           { label: appDict.dashboard.navGroups[currentGroupKey] },
-          {
-            label: appDict.dashboard.modules[currentKey],
-            href: detailId ? dashboardHref(locale, "projects") : undefined,
-          },
-          ...(detailId ? [{ label: detailId }] : []),
+          // The module name already serves as the page H1 in the shell topbar,
+          // so it is only repeated in the trail when a record detail sits beneath it.
+          ...(detailId
+            ? [
+                {
+                  label: appDict.dashboard.modules[currentKey],
+                  href: dashboardHref(locale, "projects"),
+                },
+                { label: detailId },
+              ]
+            : []),
         ];
 
   return (

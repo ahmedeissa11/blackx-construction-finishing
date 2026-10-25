@@ -320,6 +320,12 @@ export function ProjectWorkspace({
         <Link className="btn btn-ghost btn-sm" href="#project-overview">
           {d.projectOverview}
         </Link>
+        <Link className="btn btn-ghost btn-sm" href="#project-phases">
+          {expansion.phases.title}
+        </Link>
+        <Link className="btn btn-ghost btn-sm" href="#project-work-items">
+          {expansion.workflow.workItemsTitle}
+        </Link>
         <Link className="btn btn-ghost btn-sm" href="#project-actions">
           {actionLabels.title}
         </Link>
@@ -331,6 +337,12 @@ export function ProjectWorkspace({
         </Link>
         <Link className="btn btn-ghost btn-sm" href="#project-findings">
           {d.projectFindings}
+        </Link>
+        <Link className="btn btn-ghost btn-sm" href="#project-quality">
+          {d.projectQuality}
+        </Link>
+        <Link className="btn btn-ghost btn-sm" href="#project-documents">
+          {d.projectDocuments}
         </Link>
         <Link className="btn btn-ghost btn-sm" href="#project-reports">
           {d.projectReports}
@@ -909,7 +921,7 @@ export function ProjectWorkspace({
           </WorkspacePanel>
 
           <WorkspacePanel
-            id="project-documents"
+            id="project-document-catalog"
             title={d.modules.documents}
             href={dashboardHref(locale, "documents")}
             linkLabel={d.modules.documents}

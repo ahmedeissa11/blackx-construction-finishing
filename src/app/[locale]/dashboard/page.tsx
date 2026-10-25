@@ -68,7 +68,7 @@ function Panel({
   return (
     <section className={className ? `panel ${className}` : "panel"}>
       <div className="panel-head">
-        <h3 style={{ fontSize: "1.05rem" }}>{title}</h3>
+        <h2 style={{ fontSize: "1.05rem" }}>{title}</h2>
         {href && linkLabel ? (
           <Link href={href} className="btn btn-ghost btn-sm">
             {linkLabel} <Arrow />
@@ -179,14 +179,10 @@ export default async function DashboardOverview({
 
   return (
     <div className="executive-dashboard">
-      <section className="dashboard-intro" aria-labelledby="dashboard-overview-title">
-        <div className="dashboard-intro-copy">
-          <h2 id="dashboard-overview-title">{d.overviewTitle}</h2>
-          <p>{d.overviewLead}</p>
-          <p className="dashboard-snapshot">
-            {d.snapshotAsOf} {formatDate(overview.snapshotDate, locale)}
-          </p>
-        </div>
+      <div className="dashboard-intro">
+        <p className="dashboard-snapshot">
+          {d.snapshotAsOf} {formatDate(overview.snapshotDate, locale)}
+        </p>
         <div className="dashboard-intro-actions">
           <Link className="btn btn-primary" href={moduleHref(locale, "requests")}>
             {d.ownerActions.reviewRequests}
@@ -198,7 +194,7 @@ export default async function DashboardOverview({
             {d.ownerActions.viewAlerts}
           </Link>
         </div>
-      </section>
+      </div>
 
       <div className="stat-grid executive-kpi-band" aria-label={d.overviewTitle}>
         {primaryStats.map((stat) => (

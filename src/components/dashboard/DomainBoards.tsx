@@ -346,6 +346,8 @@ function DocumentsBoard({
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [projectFilter, setProjectFilter] = useState("");
+  const [sort, setSort] = useState<"updated" | "title">("updated");
+  const [page, setPage] = useState(1);
   const catalog = useMemo(() => getDocumentCatalog(), []);
   const operations = appDict.dashboard.operations;
   const domain = operations.domain;
@@ -378,12 +380,26 @@ function DocumentsBoard({
       return haystack.includes(normalizedQuery);
     });
   }, [catalog, query, categoryFilter, projectFilter]);
-  const groups = useMemo(() => groupDocumentCatalog(filtered), [filtered]);
+  const sorted = useMemo(() => {
+    const items = [...filtered];
+    if (sort === "title") {
+      items.sort((a, b) => pick(a.title, locale).localeCompare(pick(b.title, locale), locale));
+    } else {
+      items.sort((a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""));
+    }
+    return items;
+  }, [filtered, sort, locale]);
+  const PAGE_SIZE = 25;
+  const pageCount = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const pageItems = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const groups = useMemo(() => groupDocumentCatalog(pageItems), [pageItems]);
 
   function clearFilters() {
     setQuery("");
     setCategoryFilter("");
     setProjectFilter("");
+    setPage(1);
   }
   const hasFilters = query !== "" || categoryFilter !== "" || projectFilter !== "";
 
@@ -415,7 +431,10 @@ function DocumentsBoard({
                 type="search"
                 placeholder={appDict.search}
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setPage(1);
+                }}
               />
             </div>
             <div className="filter-field">
@@ -426,7 +445,10 @@ function DocumentsBoard({
                 id="documents-board-category"
                 className="form-select"
                 value={categoryFilter}
-                onChange={(event) => setCategoryFilter(event.target.value)}
+                onChange={(event) => {
+                  setCategoryFilter(event.target.value);
+                  setPage(1);
+                }}
               >
                 <option value="">{x.documentsWorkspace.allCategories}</option>
                 {categories.map((category) => (
@@ -444,7 +466,10 @@ function DocumentsBoard({
                 id="documents-board-project"
                 className="form-select"
                 value={projectFilter}
-                onChange={(event) => setProjectFilter(event.target.value)}
+                onChange={(event) => {
+                  setProjectFilter(event.target.value);
+                  setPage(1);
+                }}
               >
                 <option value="">{x.documentsWorkspace.allProjects}</option>
                 {projects.map((projectId) => (
@@ -452,6 +477,23 @@ function DocumentsBoard({
                     {projectId}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div className="filter-field">
+              <label className="filter-label" htmlFor="documents-board-sort">
+                {appDict.sortLabel}
+              </label>
+              <select
+                id="documents-board-sort"
+                className="form-select"
+                value={sort}
+                onChange={(event) => {
+                  setSort(event.target.value as "updated" | "title");
+                  setPage(1);
+                }}
+              >
+                <option value="updated">{appDict.sortNewest}</option>
+                <option value="title">{appDict.sortTitle}</option>
               </select>
             </div>
             {hasFilters ? (
@@ -482,55 +524,61 @@ function DocumentsBoard({
           {x.documentsWorkspace.emptyGroup}
         </RecordEmptyState>
       ) : (
-        groups.map((group) => (
-          <section key={group.category} className="wf-doc-group">
-            <h3>
-              {x.documentCategories[group.category] ?? group.category} ·{" "}
-              {formatNumber(group.items.length, locale)} {x.documentsWorkspace.groupCountSuffix}
-            </h3>
-            {group.items.map((item) => (
-              <DomainRecordCard
-                appDict={appDict}
-                key={item.id}
-                kind={x.documentCategories[item.category] ?? item.category}
-                title={pick(item.title, locale)}
-                reference={<span dir="ltr">{item.reference}</span>}
-                leading={<DocBadge format={item.format} />}
-                badges={
-                  <span className="badge badge-neutral">
-                    {item.format ?? operations.notRecorded}
-                  </span>
-                }
-                summaryItems={[
-                  meta(
-                    cols.project,
-                    item.projectId ? (
-                      <span dir="ltr">{item.projectId}</span>
-                    ) : (
-                      operations.notRecorded
-                    ),
-                  ),
-                  meta(
-                    cols.updated,
-                    item.updatedAt ? formatDate(item.updatedAt, locale) : operations.notRecorded,
-                  ),
-                ]}
-                detailItems={[
-                  ...(item.amount !== undefined
-                    ? [
-                        meta(cols.amount, formatMoney(item.amount, locale), {
-                          dir: "ltr" as const,
-                        }),
-                      ]
-                    : []),
-                  ...(item.status
-                    ? [meta(cols.status, appDict.status[item.status] ?? item.status)]
-                    : []),
-                  meta(domain.fileFormat, item.format ?? operations.notRecorded, { dir: "ltr" }),
-                ]}
-                relationships={
-                  item.projectId || item.customerId ? (
-                    <span className="record-relationship-links">
+        <>
+          {groups.map((group) => (
+            <section key={group.category} className="wf-doc-group">
+              <h3>
+                {x.documentCategories[group.category] ?? group.category} ·{" "}
+                {formatNumber(group.items.length, locale)} {x.documentsWorkspace.groupCountSuffix}
+              </h3>
+              <div className="wf-doc-list">
+                {group.items.map((item) => (
+                  <article className="wf-doc-row" key={item.id}>
+                    <DocBadge format={item.format} />
+                    <div className="wf-doc-main">
+                      <div className="wf-doc-title">{pick(item.title, locale)}</div>
+                      <div className="wf-doc-ref">
+                        <span dir="ltr">{item.reference}</span>
+                      </div>
+                    </div>
+                    <div className="wf-doc-meta">
+                      <span>
+                        {cols.project}:{" "}
+                        <b>
+                          {item.projectId ? (
+                            <span dir="ltr">{item.projectId}</span>
+                          ) : (
+                            operations.notRecorded
+                          )}
+                        </b>
+                      </span>
+                      <span>
+                        {cols.updated}:{" "}
+                        <b>
+                          {item.updatedAt
+                            ? formatDate(item.updatedAt, locale)
+                            : operations.notRecorded}
+                        </b>
+                      </span>
+                      {item.amount !== undefined ? (
+                        <span>
+                          {cols.amount}: <b dir="ltr">{formatMoney(item.amount, locale)}</b>
+                        </span>
+                      ) : null}
+                      {item.status ? (
+                        <span>
+                          {cols.status}: <b>{appDict.status[item.status] ?? item.status}</b>
+                        </span>
+                      ) : null}
+                      <span>
+                        {domain.fileFormat}:{" "}
+                        <b dir="ltr">{item.format ?? operations.notRecorded}</b>
+                      </span>
+                    </div>
+                    <span className="badge badge-neutral">
+                      {item.format ?? operations.notRecorded}
+                    </span>
+                    <div className="wf-doc-actions">
                       {item.projectId ? (
                         <Link
                           className="record-chip-link"
@@ -547,20 +595,47 @@ function DocumentsBoard({
                           {cols.customer} · <span dir="ltr">{item.customerId}</span>
                         </Link>
                       ) : null}
-                    </span>
-                  ) : undefined
-                }
-                actions={
-                  <UnavailableButton
-                    label={domain.actions.downloadDocument}
-                    message={domain.downloadDocumentUnavailable}
-                    onUnavailable={onUnavailable}
-                  />
-                }
-              />
-            ))}
-          </section>
-        ))
+                      <UnavailableButton
+                        label={domain.actions.downloadDocument}
+                        message={domain.downloadDocumentUnavailable}
+                        onUnavailable={onUnavailable}
+                      />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ))}
+          {pageCount > 1 ? (
+            <nav className="board-pagination" aria-label={appDict.pageLabel}>
+              <span className="board-pagination-info">
+                {formatNumber(sorted.length, locale)} {appDict.showingResults}
+              </span>
+              <span className="board-pagination-controls">
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  disabled={safePage <= 1}
+                  onClick={() => setPage(safePage - 1)}
+                >
+                  {appDict.pagePrevious}
+                </button>
+                <span className="board-pagination-current">
+                  {appDict.pageLabel} {formatNumber(safePage, locale)} {appDict.pageOf}{" "}
+                  {formatNumber(pageCount, locale)}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  disabled={safePage >= pageCount}
+                  onClick={() => setPage(safePage + 1)}
+                >
+                  {appDict.pageNext}
+                </button>
+              </span>
+            </nav>
+          ) : null}
+        </>
       )}
     </BoardShell>
   );
