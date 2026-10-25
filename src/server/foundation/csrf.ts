@@ -42,14 +42,25 @@ const STATE_CHANGING_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 const BROWSER_HEADERS = ["origin", "referer", "sec-fetch-site"];
 
 /**
- * Resolves the trusted application origin server-side from configuration.
- * Never client-controlled: only the operator-configured `AUTH_URL` is
- * trusted. The raw `Host` header is never used because it can be spoofed.
+ * Resolves the trusted application origin(s) server-side from configuration.
+ * `AUTH_URL` may contain a comma-separated list of origins (for example
+ * the production URL plus one or more Vercel preview URLs). Only
+ * operator-configured origins are trusted. The raw `Host` header is never
+ * used because it can be spoofed.
  */
-export function getExpectedOrigin(): string | null {
+export function getExpectedOrigins(): string[] {
   const configured = process.env.AUTH_URL?.trim();
-  if (!configured) return null;
-  return configured.replace(/\/+$/, "");
+  if (!configured) return [];
+  return configured
+    .split(",")
+    .map((u) => u.trim().replace(/\/+$/, ""))
+    .filter(Boolean);
+}
+
+/** Returns the first trusted origin, or null if none configured. */
+export function getExpectedOrigin(): string | null {
+  const origins = getExpectedOrigins();
+  return origins.length > 0 ? origins[0] : null;
 }
 
 /** Returns true if the request carries any browser-origin header. */
@@ -80,14 +91,14 @@ export function verifyOrigin(request: Request): Response | null {
   // Safe methods are never CSRF-checked.
   if (!STATE_CHANGING_METHODS.has(request.method)) return null;
 
-  const trustedOrigin = getExpectedOrigin();
+  const trustedOrigins = getExpectedOrigins();
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
   const secFetchSite = request.headers.get("sec-fetch-site");
   const hasBrowserHeader = origin !== null || referer !== null || secFetchSite !== null;
 
   // No trusted origin configured: refuse all browser state changes.
-  if (trustedOrigin === null) {
+  if (trustedOrigins.length === 0) {
     if (hasBrowserHeader) {
       logWarn("csrf.origin_required_no_trusted_origin", {
         method: request.method,
@@ -103,12 +114,12 @@ export function verifyOrigin(request: Request): Response | null {
     return null;
   }
 
-  // --- Origin present: must match trusted origin -----------------------
+  // --- Origin present: must match one of the trusted origins -----------
   if (origin !== null) {
-    if (origin !== trustedOrigin) {
+    if (!trustedOrigins.includes(origin)) {
       logWarn("csrf.origin_mismatch", {
         method: request.method,
-        trustedOrigin,
+        trustedOrigins,
         requestOrigin: origin,
       });
       return jsonError(403, "ORIGIN_MISMATCH", "errors.csrfOriginMismatch");
@@ -130,10 +141,10 @@ export function verifyOrigin(request: Request): Response | null {
   // --- No Origin: fall back to Referer --------------------------------
   if (referer !== null) {
     const refererOrigin = parseRefererOrigin(referer);
-    if (refererOrigin === null || refererOrigin !== trustedOrigin) {
+    if (refererOrigin === null || !trustedOrigins.includes(refererOrigin)) {
       logWarn("csrf.referer_mismatch", {
         method: request.method,
-        trustedOrigin,
+        trustedOrigins,
         referer,
       });
       return jsonError(403, "ORIGIN_MISMATCH", "errors.csrfRefererMismatch");
