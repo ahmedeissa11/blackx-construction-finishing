@@ -5848,3 +5848,360 @@ html[dir="rtl"] .shell-nav a[aria-current="page"] {
   font-family: var(--ds-num-font);
   white-space: nowrap;
 }
+
+/* =========================================================================
+   BLACK X ADMIN — HARMONIZATION LAYER (presentation only)
+   Final cascade layer for the operations shell: one type rhythm, one
+   surface/border system, consistent cards, stats, tabs, tables and forms,
+   plus first-class small-screen behaviour in Arabic RTL and English LTR.
+   ========================================================================= */
+
+/* Arabic is a joined script: tracking disconnects its glyphs. */
+html[dir="rtl"] .shell,
+html[dir="rtl"] .shell * {
+  letter-spacing: normal;
+}
+html[dir="rtl"] .shell-account-copy strong {
+  letter-spacing: 0.04em; /* Latin wordmark only */
+}
+
+/* ---------- Shell: sidebar navigation ---------- */
+.shell-nav a {
+  border-radius: 10px;
+}
+.shell-nav .nav-count {
+  margin-inline-start: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.shell-nav a.active {
+  box-shadow: inset 3px 0 0 var(--bx-brass);
+}
+html[dir="rtl"] .shell-nav a.active {
+  box-shadow: inset -3px 0 0 var(--bx-brass);
+}
+.shell-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(207, 201, 189, 0.35) transparent;
+}
+.shell-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.shell-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(207, 201, 189, 0.3);
+  border-radius: 99px;
+}
+
+/* ---------- Shell: topbar ---------- */
+.shell-topbar {
+  padding: 10px 28px;
+  background: rgba(245, 241, 234, 0.97);
+}
+.shell-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.shell-context {
+  margin: 0;
+  font-size: var(--admin-meta);
+  font-weight: 600;
+  color: var(--color-sage-deep);
+}
+.shell-title {
+  font-size: clamp(1.22rem, 1.4vw, 1.42rem);
+  font-weight: 800;
+  line-height: 1.3;
+}
+.shell-account {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 2px 4px;
+}
+.shell-account-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  font-size: 0.7rem;
+}
+.shell-account-copy strong {
+  font-size: 0.78rem;
+}
+.shell-account-copy small {
+  font-size: var(--admin-meta);
+  color: var(--color-muted);
+}
+.shell-topbar .locale-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  background: var(--admin-surface-raised);
+}
+.shell-topbar .locale-switch a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  min-width: 46px;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.shell-topbar .locale-switch a:hover {
+  color: var(--color-ink);
+}
+.shell-topbar .locale-switch a.current {
+  background: var(--color-sage-deep);
+  color: #f4f7ef;
+}
+
+/* ---------- Shell: content frame ---------- */
+.shell-content {
+  max-width: var(--admin-content-max);
+  padding: 24px 32px 56px;
+  gap: 20px;
+}
+
+/* ---------- Buttons & focus (shell scope only) ---------- */
+.shell .btn-primary {
+  background: var(--admin-primary);
+  border: 1px solid var(--admin-primary);
+  color: var(--admin-on-primary);
+}
+.shell .btn-primary:hover,
+.shell .btn-primary:active {
+  background: var(--admin-primary-strong);
+  border-color: var(--admin-primary-strong);
+}
+.shell :focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Panels ---------- */
+.shell .panel {
+  border: 1px solid var(--admin-border-soft);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-soft);
+}
+
+/* ---------- Board hero & stat band ---------- */
+.domain-board-head p {
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+.domain-stats {
+  padding-top: 10px;
+}
+.domain-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.domain-stat span {
+  color: var(--color-muted);
+  font-weight: 600;
+  line-height: 1.45;
+}
+.domain-stat strong {
+  font-variant-numeric: tabular-nums;
+}
+.domain-stat small {
+  color: var(--color-muted);
+  font-size: var(--admin-meta);
+  line-height: 1.55;
+}
+@media (min-width: 1025px) {
+  /* Reserve two label lines so values align across the strip. */
+  .domain-stat span {
+    min-height: 2.9em;
+  }
+}
+
+/* ---------- Record cards & metadata ---------- */
+.record-meta {
+  gap: 12px 20px;
+  padding: 13px 15px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 12px;
+  background: var(--admin-surface-muted);
+}
+.record-meta-item,
+html[dir="rtl"] .record-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.record-meta dt {
+  font-size: var(--admin-meta);
+  font-weight: 600;
+  color: var(--color-muted);
+  line-height: 1.4;
+}
+.record-meta dd {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 650;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.record-meta dd a {
+  color: inherit;
+  text-decoration: none;
+}
+.record-meta dd a:hover {
+  text-decoration: underline;
+}
+.record-relationship-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.record-relationship-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.record-relationship-links a {
+  padding: 4px 10px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 8px;
+  background: var(--admin-surface-raised);
+  font-size: var(--admin-meta);
+  font-weight: 600;
+  text-decoration: none;
+}
+.record-relationship-links a:hover {
+  border-color: var(--admin-border-strong);
+  background: var(--admin-accent-soft);
+}
+.record-card-actions {
+  border-block-start-color: var(--admin-border-soft);
+}
+
+/* ---------- Work items & list rows ---------- */
+.wf-work-item {
+  padding: 12px 2px;
+}
+.record-list-item {
+  border-block-end-color: var(--admin-border-soft);
+}
+
+/* ---------- Expansion tabs: one segmented control ---------- */
+.expansion-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--admin-border-soft);
+  border-radius: 12px;
+  background: var(--admin-surface-muted);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.expansion-tabs::-webkit-scrollbar {
+  display: none;
+}
+.expansion-tabs [role="tab"] {
+  flex: none;
+  min-height: 38px;
+  padding: 7px 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: var(--admin-small);
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.expansion-tabs [role="tab"]:hover {
+  color: var(--color-ink);
+}
+.expansion-tabs [role="tab"][aria-selected="true"] {
+  background: var(--admin-surface-raised);
+  border-color: var(--admin-border-soft);
+  box-shadow: var(--admin-shadow-soft);
+  color: var(--color-ink);
+}
+
+/* ---------- Tables ---------- */
+.data-card-table th {
+  background: var(--admin-surface-muted);
+  color: var(--color-muted);
+  font-size: var(--admin-meta);
+  font-weight: 700;
+}
+.shell-content td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Forms ---------- */
+.shell-content :is(.form-input, .form-select) {
+  min-height: 42px;
+  border-color: var(--admin-border);
+  border-radius: 10px;
+}
+.shell-content :is(.form-input, .form-select):focus {
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 3px var(--admin-primary-soft);
+  outline: none;
+}
+
+/* ---------- Small screens: nothing truncates, nothing hides ---------- */
+@media (max-width: 768px) {
+  .shell-topbar {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+  .shell-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: clip;
+    font-size: 1.08rem;
+    line-height: 1.35;
+  }
+  .shell-content {
+    padding: 16px 14px 40px;
+    padding-block-end: max(40px, env(safe-area-inset-bottom));
+    gap: 14px;
+  }
+}
+@media (max-width: 640px) {
+  .shell-signout {
+    min-width: 40px;
+    padding: 8px 10px;
+    gap: 0;
+    font-size: 0;
+    justify-content: center;
+  }
+  .shell-signout-icon {
+    display: block;
+    width: 19px;
+    height: 19px;
+  }
+  .shell-topbar .locale-switch a {
+    min-width: 40px;
+    min-height: 28px;
+    padding: 3px 8px;
+  }
+}
