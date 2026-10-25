@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { pick } from "@/lib/i18n";
 import { resolveLocale } from "@/lib/locale-params";
+import { localizedAlternates } from "@/lib/site-url";
 import { getDictionary } from "@/content/dictionary";
 import { articles, publishedArticles } from "@/content/publications";
 import { formatNumber } from "@/lib/format";
@@ -18,6 +19,7 @@ export async function generateMetadata({
   const locale = await resolveLocale(params);
   return {
     title: getDictionary(locale).articles.title,
+    alternates: localizedAlternates(locale, "articles"),
     robots: publishedArticles.length === 0 ? { index: false, follow: true } : undefined,
   };
 }

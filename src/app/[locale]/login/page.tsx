@@ -113,7 +113,12 @@ export default async function LoginPage({
         <p className="auth-lead">{app.auth.lead}</p>
 
         {errorMessage ? (
-          <div className="alert alert-error" role="alert" style={{ marginBlockEnd: 18 }}>
+          <div
+            id="auth-error"
+            className="alert alert-error"
+            role="alert"
+            style={{ marginBlockEnd: 18 }}
+          >
             <span aria-hidden="true">!</span>
             <p>{errorMessage}</p>
           </div>
@@ -133,6 +138,9 @@ export default async function LoginPage({
               autoComplete="username"
               required
               dir="ltr"
+              autoFocus
+              aria-invalid={errorMessage ? true : undefined}
+              aria-describedby={errorMessage ? "auth-error" : undefined}
             />
           </div>
           <div className="field">
@@ -147,6 +155,8 @@ export default async function LoginPage({
               autoComplete="current-password"
               required
               dir="ltr"
+              aria-invalid={errorMessage ? true : undefined}
+              aria-describedby={errorMessage ? "auth-error" : undefined}
             />
           </div>
           <button type="submit" className="btn btn-primary">

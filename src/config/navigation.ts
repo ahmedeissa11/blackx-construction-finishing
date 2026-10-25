@@ -33,7 +33,12 @@ export type DashboardModuleKey =
   | "handover"
   | "warranty"
   | "notifications"
-  | "audit";
+  | "audit"
+  | "engineers"
+  | "finance"
+  | "purchases"
+  | "complaints"
+  | "messages";
 
 export const dashboardModules: ReadonlyArray<{
   key: DashboardModuleKey;
@@ -58,10 +63,22 @@ export const dashboardModules: ReadonlyArray<{
   { key: "reports", segment: "reports", icon: "▥" },
   { key: "documents", segment: "documents", icon: "🗀" },
   { key: "audit", segment: "audit", icon: "☰" },
+  { key: "engineers", segment: "engineers", icon: "⚙" },
+  { key: "finance", segment: "finance", icon: "◈" },
+  { key: "purchases", segment: "purchases", icon: "▩" },
+  { key: "complaints", segment: "complaints", icon: "✦" },
+  { key: "messages", segment: "messages", icon: "☏" },
 ];
 
 export type DashboardNavGroupKey =
-  "home" | "clientsSales" | "projectsExecution" | "qualityHandover" | "managementReports";
+  | "home"
+  | "clientsSales"
+  | "projectsExecution"
+  | "qualityHandover"
+  | "managementReports"
+  | "people"
+  | "financePurchasing"
+  | "customerService";
 
 export const dashboardNavGroups: ReadonlyArray<{
   key: DashboardNavGroupKey;
@@ -75,6 +92,9 @@ export const dashboardNavGroups: ReadonlyArray<{
   { key: "projectsExecution", modules: ["projects", "milestones", "diary", "progress"] },
   { key: "qualityHandover", modules: ["issues", "quality", "handover", "warranty"] },
   { key: "managementReports", modules: ["reports", "documents", "audit"] },
+  { key: "people", modules: ["engineers"] },
+  { key: "financePurchasing", modules: ["finance", "purchases"] },
+  { key: "customerService", modules: ["complaints", "messages"] },
 ];
 
 export function getDashboardNavGroupKey(module: DashboardModuleKey): DashboardNavGroupKey {
@@ -94,6 +114,8 @@ export type PortalNavKey =
   | "quotations"
   | "issues"
   | "handover"
+  | "finance"
+  | "complaints"
   | "profile";
 
 export const portalNav: ReadonlyArray<{ key: PortalNavKey; segment: string; icon: string }> = [
@@ -105,6 +127,8 @@ export const portalNav: ReadonlyArray<{ key: PortalNavKey; segment: string; icon
   { key: "quotations", segment: "quotations", icon: "▤" },
   { key: "issues", segment: "issues", icon: "⚠" },
   { key: "handover", segment: "handover", icon: "🔑" },
+  { key: "finance", segment: "finance", icon: "◈" },
+  { key: "complaints", segment: "complaints", icon: "✦" },
   { key: "profile", segment: "profile", icon: "◉" },
 ];
 

@@ -133,6 +133,7 @@ export function RecordCard({
   reference,
   kind,
   badges,
+  leading,
   summaryItems = [],
   summaryVariant = "summary",
   detailItems = [],
@@ -150,6 +151,7 @@ export function RecordCard({
   reference?: ReactNode;
   kind?: ReactNode;
   badges?: ReactNode;
+  leading?: ReactNode;
   summaryItems?: RecordMetaItem[];
   summaryVariant?: "summary" | "inline";
   detailItems?: RecordMetaItem[];
@@ -168,6 +170,7 @@ export function RecordCard({
       className={className ? `record-card domain-card ${className}` : "record-card domain-card"}
     >
       <header className="record-card-head">
+        {leading ? <div className="record-card-leading">{leading}</div> : null}
         <div className="record-card-heading">
           {kind ? <p className="record-kind">{kind}</p> : null}
           <h3>{title}</h3>
@@ -204,6 +207,7 @@ export function RecordListItem({
   title,
   reference,
   badges,
+  leading,
   summaryItems = [],
   detailItems = [],
   detailChildren,
@@ -217,6 +221,7 @@ export function RecordListItem({
   title: ReactNode;
   reference?: ReactNode;
   badges?: ReactNode;
+  leading?: ReactNode;
   summaryItems?: RecordMetaItem[];
   detailItems?: RecordMetaItem[];
   detailChildren?: ReactNode;
@@ -229,6 +234,7 @@ export function RecordListItem({
 }) {
   return (
     <article className={className ? `record-list-item ${className}` : "record-list-item"}>
+      {leading ? <div className="record-list-leading">{leading}</div> : null}
       <div className="record-list-main">
         <div className="record-list-heading">
           <h4>{title}</h4>

@@ -29,7 +29,54 @@ import {
   previewSnapshotDate,
 } from "@/content/preview-data";
 import { countPreviewModuleStatus, previewModuleTables } from "@/content/preview-modules";
-import { dashboardModules, dashboardNavGroups, getDashboardNavGroupKey } from "@/config/navigation";
+import {
+  dashboardModules,
+  dashboardNavGroups,
+  getDashboardNavGroupKey,
+  portalNav,
+} from "@/config/navigation";
+import {
+  getAgingBuckets,
+  getAllDuesWithBalance,
+  getAssignmentHistoryForEngineer,
+  getAssignmentHistoryForProject,
+  getContractDetail,
+  getCustomerDocuments,
+  getCustomerFinance,
+  getDocumentCatalog,
+  getHandoverDetail,
+  getHandoverForProject,
+  getPortalDocuments,
+  getPortalHandover,
+  getPortalWarranty,
+  getProjectDocuments,
+  getWarrantyDetail,
+  groupDocumentCatalog,
+  getChangeOrdersForContract,
+  getEngineerAssignments,
+  getExpansionOverview,
+  getInspectionDetail,
+  getNotificationDelivery,
+  getPortalComplaints,
+  getPortalFinance,
+  getProjectPhases,
+  getProjectStatusHistory,
+  getProjectWorkItems,
+  getQuotationDetail,
+  getSupplierBalance,
+  internalReplies,
+  workItemProgress,
+} from "@/lib/preview-expansion";
+import {
+  previewAssignmentHistory,
+  previewHandoverDetails,
+  previewWarrantyDetails,
+  previewComplaints,
+  previewNotificationDeliveries,
+  previewPayments,
+  previewPhases,
+  previewWorkItems,
+} from "@/content/preview-expansion";
 import {
   getAllowedPreviewRequestStatusTransitions,
   getLinkedPreviewRecords,
@@ -66,7 +113,9 @@ import {
   verifyOwnerPassword,
 } from "@/lib/admin-auth";
 import { isReviewProtectedPath, sanitizeReviewCallbackUrl } from "@/lib/review-auth-shared";
+import robots from "@/app/robots";
 import sitemap from "@/app/sitemap";
+import { getSiteUrl, localizedAlternates } from "@/lib/site-url";
 
 const root = path.join(__dirname, "..");
 
@@ -196,6 +245,7 @@ describe("owner review authentication", () => {
       "src/app/[locale]/dashboard/requests/page.tsx",
       "src/app/[locale]/dashboard/[module]/page.tsx",
       "src/app/[locale]/dashboard/projects/[id]/page.tsx",
+      "src/app/[locale]/dashboard/customers/[id]/page.tsx",
     ].map((file) => fs.readFileSync(path.join(root, file), "utf8"));
     const envExample = fs.readFileSync(path.join(root, ".env.example"), "utf8");
 
@@ -539,7 +589,86 @@ describe("content integrity", () => {
     expect(publishedArticles).toEqual([]);
     const urls = sitemap().map((entry) => entry.url);
     expect(urls.some((url) => url.includes("/articles"))).toBe(false);
-    expect(urls).toContain("https://blackx-construction.example/ar/projects");
+    expect(urls).toContain(`${getSiteUrl()}/ar/projects`);
+  });
+
+  it("never publishes the placeholder example origin in the sitemap", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    expect(urls.length).toBeGreaterThan(0);
+    expect(urls.every((url) => !url.includes(".example"))).toBe(true);
+    expect(urls.every((url) => url.startsWith(getSiteUrl()))).toBe(true);
+  });
+
+  it("respects NEXT_PUBLIC_SITE_URL and falls back to the live production domain", () => {
+    const saved = process.env.NEXT_PUBLIC_SITE_URL;
+    try {
+      delete process.env.NEXT_PUBLIC_SITE_URL;
+      expect(getSiteUrl()).toBe("https://blackx-construction-finishing.vercel.app");
+      process.env.NEXT_PUBLIC_SITE_URL = "https://www.blackx-eg.com/";
+      expect(getSiteUrl()).toBe("https://www.blackx-eg.com");
+      process.env.NEXT_PUBLIC_SITE_URL = "not-a-url";
+      expect(getSiteUrl()).toBe("https://blackx-construction-finishing.vercel.app");
+    } finally {
+      if (saved === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+      else process.env.NEXT_PUBLIC_SITE_URL = saved;
+    }
+  });
+
+  it("builds canonical + hreflang alternates per locale with an ar x-default", () => {
+    expect(localizedAlternates("ar")).toEqual({
+      canonical: "/ar",
+      languages: { ar: "/ar", en: "/en", "x-default": "/ar" },
+    });
+    expect(localizedAlternates("en", "services/kitchens")).toEqual({
+      canonical: "/en/services/kitchens",
+      languages: {
+        ar: "/ar/services/kitchens",
+        en: "/en/services/kitchens",
+        "x-default": "/ar/services/kitchens",
+      },
+    });
+  });
+
+  it("cross-links sitemap entries to their other-locale twins", () => {
+    const entries = sitemap();
+    const kitchensAr = entries.find((e) => e.url === `${getSiteUrl()}/ar/services/kitchens`);
+    expect(kitchensAr?.alternates?.languages).toMatchObject({
+      ar: `${getSiteUrl()}/ar/services/kitchens`,
+      en: `${getSiteUrl()}/en/services/kitchens`,
+      "x-default": `${getSiteUrl()}/ar/services/kitchens`,
+    });
+    expect(
+      entries.every((e) => Boolean(e.alternates?.languages?.ar && e.alternates?.languages?.en)),
+    ).toBe(true);
+  });
+
+  it("advertises the sitemap in robots and keeps app surfaces disallowed", () => {
+    const result = robots();
+    expect(result.sitemap).toBe(`${getSiteUrl()}/sitemap.xml`);
+    const rules = JSON.stringify(result.rules);
+    expect(rules).toContain("/ar/dashboard");
+    expect(rules).toContain("/en/portal");
+  });
+
+  it("wires metadataBase in the locale layout and alternates on every public page", () => {
+    const layout = fs.readFileSync(path.join(root, "src/app/[locale]/layout.tsx"), "utf8");
+    expect(layout).toContain("metadataBase");
+    expect(layout).toContain("getSiteUrl()");
+    const publicPages = [
+      "src/app/[locale]/(site)/page.tsx",
+      "src/app/[locale]/(site)/about/page.tsx",
+      "src/app/[locale]/(site)/services/page.tsx",
+      "src/app/[locale]/(site)/services/[slug]/page.tsx",
+      "src/app/[locale]/(site)/projects/page.tsx",
+      "src/app/[locale]/(site)/articles/page.tsx",
+      "src/app/[locale]/(site)/faqs/page.tsx",
+      "src/app/[locale]/(site)/contact/page.tsx",
+      "src/app/[locale]/(site)/request/page.tsx",
+    ];
+    for (const file of publicPages) {
+      const source = fs.readFileSync(path.join(root, file), "utf8");
+      expect(source, file).toContain("alternates: localizedAlternates(locale");
+    }
   });
 
   it("keeps the authentic logo asset in place", () => {
@@ -576,6 +705,8 @@ describe("required routes exist", () => {
     "src/app/[locale]/portal/issues/page.tsx",
     "src/app/[locale]/portal/handover/page.tsx",
     "src/app/[locale]/portal/profile/page.tsx",
+    "src/app/[locale]/portal/finance/page.tsx",
+    "src/app/[locale]/portal/complaints/page.tsx",
     "src/app/[locale]/error.tsx",
     "src/app/[locale]/not-found.tsx",
     "src/app/[locale]/[...rest]/page.tsx",
@@ -1211,5 +1342,437 @@ describe("formatting helpers", () => {
     expect(formatPercent(65, "ar")).toContain("65");
     expect(formatPercent(65, "ar")).toContain("٪");
     expect(formatPercent(140, "en")).toBe("100%");
+  });
+});
+
+describe("frontend expansion derivations", () => {
+  it("orders project phases contracting, finishing, furnishing with distinct states", () => {
+    const phases = getProjectPhases("PV-PR-201");
+    expect(phases.map((phase) => phase.type)).toEqual(["contracting", "finishing", "furnishing"]);
+    const statuses = new Set<string>(previewPhases.map((phase) => phase.status));
+    for (const status of [
+      "not_started",
+      "in_progress",
+      "on_hold",
+      "stopped",
+      "cancelled",
+      "completed",
+    ]) {
+      expect(statuses.has(status)).toBe(true);
+    }
+    // Phases never leave their root project.
+    for (const phase of previewPhases) {
+      expect(previewProjects.some((project) => project.id === phase.rootProjectId)).toBe(true);
+    }
+  });
+
+  it("derives due balances and statuses from payment allocations", () => {
+    const byId = new Map(getAllDuesWithBalance().map((item) => [item.due.id, item]));
+    expect(byId.get("PV-DU-201-1")).toMatchObject({
+      allocated: 450000,
+      remaining: 0,
+      status: "settled",
+    });
+    expect(byId.get("PV-DU-201-2")).toMatchObject({
+      allocated: 200000,
+      remaining: 180000,
+      status: "overdue",
+    });
+    expect(byId.get("PV-DU-202-1")).toMatchObject({
+      allocated: 0,
+      remaining: 180000,
+      status: "overdue",
+    });
+    expect(byId.get("PV-DU-201-3")).toMatchObject({ remaining: 320000, status: "due" });
+    // Every payment is fully allocated to dues of the same customer.
+    for (const payment of previewPayments) {
+      const allocated = payment.allocations.reduce((t, a) => t + a.amount, 0);
+      expect(allocated).toBe(payment.amount);
+      for (const allocation of payment.allocations) {
+        expect(byId.get(allocation.dueId)?.due.customerId).toBe(payment.customerId);
+      }
+    }
+  });
+
+  it("aging buckets reconcile with the overview totals", () => {
+    const overview = getExpansionOverview();
+    const buckets = getAgingBuckets();
+    expect(buckets.reduce((t, b) => t + b.amount, 0)).toBe(overview.outstandingTotal);
+    const overdueBuckets = buckets.filter((b) => b.key !== "current");
+    expect(overdueBuckets.reduce((t, b) => t + b.amount, 0)).toBe(overview.overdueTotal);
+    expect(overview.outstandingTotal).toBe(650000 + 180000 + 250000);
+  });
+
+  it("computes customer and supplier balances from recorded lines", () => {
+    const finance = getCustomerFinance("PV-CU-06");
+    expect(finance).toMatchObject({ duesTotal: 1300000, collected: 650000, remaining: 650000 });
+    expect(getSupplierBalance("PV-SU-01")).toMatchObject({
+      purchasesTotal: 160000,
+      paid: 100000,
+      payable: 60000,
+    });
+    expect(getSupplierBalance("PV-SU-02").payable).toBe(0);
+    expect(getSupplierBalance("PV-SU-03").payable).toBe(50000);
+  });
+
+  it("keeps portal finance and complaints limited to the own customer", () => {
+    const finance = getPortalFinance("PV-CU-06");
+    expect(finance.invoices.every((invoice) => invoice.customerId === "PV-CU-06")).toBe(true);
+    expect(finance.certificates.every((c) => c.projectId === "PV-PR-201")).toBe(true);
+    expect(finance.receipts.every((r) => r.payment?.customerId === "PV-CU-06")).toBe(true);
+    const tickets = getPortalComplaints("PV-CU-06");
+    expect(tickets.map((ticket) => ticket.id)).toEqual(["PV-CMP-301", "PV-CMP-302"]);
+    for (const ticket of tickets) {
+      expect(ticket.replies.every((reply) => reply.visibility === "customer")).toBe(true);
+    }
+    // The admin derivation still sees the internal note separately.
+    const adminTicket = getPortalComplaints("PV-CU-06")[0]!;
+    expect(adminTicket.replies).toHaveLength(1);
+  });
+
+  it("separates internal complaint notes from customer-visible replies for staff", () => {
+    const ticket = previewComplaints.find((item) => item.id === "PV-CMP-301")!;
+    expect(internalReplies(ticket)).toHaveLength(1);
+    expect(internalReplies(ticket)[0]?.visibility).toBe("internal");
+    const portalTicket = getPortalComplaints("PV-CU-06").find((item) => item.id === "PV-CMP-301")!;
+    expect(portalTicket.replies.some((reply) => reply.visibility === "internal")).toBe(false);
+  });
+
+  it("derives team assignments from existing assignee records", () => {
+    const supervisor = getEngineerAssignments("PV-EN-04")!;
+    expect(supervisor.phases.map((phase) => phase.id)).toContain("PV-PH-201-2");
+    const manager = getEngineerAssignments("PV-EN-03")!;
+    expect(manager.phases.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("registers the expansion modules in navigation, tables and dictionaries", () => {
+    const keys = ["engineers", "finance", "purchases", "complaints", "messages"] as const;
+    const grouped = dashboardNavGroups.flatMap((group) => group.modules);
+    for (const key of keys) {
+      expect(dashboardModules.some((m) => m.key === key)).toBe(true);
+      expect(grouped.filter((item) => item === key)).toHaveLength(1);
+      expect((previewModuleTables[key]?.rows.length ?? 0) > 0).toBe(true);
+      for (const locale of ["ar", "en"] as const) {
+        expect(appDictionaries[locale].dashboard.modules[key]?.length).toBeGreaterThan(2);
+        expect(appDictionaries[locale].dashboard.moduleLead[key]?.length).toBeGreaterThan(10);
+      }
+    }
+    expect(portalNav.map((item) => item.key)).toContain("finance");
+    expect(portalNav.map((item) => item.key)).toContain("complaints");
+    for (const locale of ["ar", "en"] as const) {
+      expect(appDictionaries[locale].portal.nav.finance.length).toBeGreaterThan(2);
+      expect(appDictionaries[locale].portal.nav.complaints.length).toBeGreaterThan(2);
+      const x = appDictionaries[locale].dashboard.expansion;
+      expect(x.phaseTypes["contracting"]?.length).toBeGreaterThan(0);
+      expect(x.phaseTypes["finishing"]?.length).toBeGreaterThan(0);
+      expect(x.phaseTypes["furnishing"]?.length).toBeGreaterThan(0);
+      for (const method of ["cash", "instapay", "fawry", "bank_transfer", "vodafone_cash"]) {
+        expect(x.paymentMethods[method]?.length).toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
+describe("workflow detail fixtures", () => {
+  function moduleAmount(moduleKey: "quotations" | "contracts", ref: string) {
+    const row = previewModuleTables[moduleKey]?.rows.find(
+      (item) => item.cells["ref"]?.kind === "plain" && item.cells["ref"]?.value === ref,
+    );
+    const cell = row?.cells["amount"];
+    return cell?.kind === "money" ? cell.value : undefined;
+  }
+
+  it("joins inspection details to every recorded inspection row", () => {
+    for (const ref of ["PV-IN-41", "PV-IN-40", "PV-IN-39", "PV-IN-38"]) {
+      const detail = getInspectionDetail(ref)!;
+      expect(detail, ref).toBeDefined();
+      expect(detail.history.length).toBeGreaterThan(0);
+      expect(detail.scheduledAt).toMatch(/^2026-/);
+    }
+    // Completed inspections carry a result; upcoming ones do not invent one.
+    expect(getInspectionDetail("PV-IN-39")!.result?.measuredArea).toBe("180 m²");
+    expect(getInspectionDetail("PV-IN-41")!.result).toBeUndefined();
+  });
+
+  it("reconciles BOQ nets with the recorded quotation amounts", () => {
+    for (const ref of ["PV-QT-74", "PV-QT-75", "PV-QT-76", "PV-QT-77"]) {
+      const found = getQuotationDetail(ref)!;
+      expect(found, ref).toBeDefined();
+      expect(found.totals.net, ref).toBe(moduleAmount("quotations", ref));
+      expect(found.totals.gross - found.totals.discount).toBe(found.totals.net);
+      expect(found.detail.revisions.length).toBeGreaterThan(0);
+      // Latest revision total always equals the recorded amount.
+      const last = found.detail.revisions[found.detail.revisions.length - 1]!;
+      expect(last.total, ref).toBe(found.totals.net);
+    }
+    expect(getQuotationDetail("PV-QT-74")!.detail.decision?.state).toBe("approved");
+    expect(getQuotationDetail("PV-QT-77")!.detail.decision?.state).toBe("pending");
+    expect(getQuotationDetail("PV-QT-75")!.detail.decision).toBeUndefined();
+  });
+
+  it("keeps contract and change-order details consistent with module rows", () => {
+    expect(getContractDetail("PV-CT-12")!.quotationRef).toBe("PV-QT-74");
+    expect(getContractDetail("PV-CT-11")!.quotationRef).toBe("PV-QT-76");
+    const orders = getChangeOrdersForContract("PV-CT-12");
+    expect(orders).toHaveLength(1);
+    expect(orders[0]?.amountDelta).toBe(moduleAmount("contracts", "PV-CO-03"));
+    expect(getChangeOrdersForContract("PV-CT-11")).toHaveLength(0);
+  });
+
+  it("groups project work items by phase with bounded progress", () => {
+    const groups = getProjectWorkItems("PV-PR-201");
+    expect(groups.map((group) => group.phase.id)).toEqual(["PV-PH-201-1", "PV-PH-201-2"]);
+    for (const item of previewWorkItems) {
+      expect(item.completedQty).toBeLessThanOrEqual(item.plannedQty);
+      const progress = workItemProgress(item);
+      expect(progress).toBeGreaterThanOrEqual(0);
+      expect(progress).toBeLessThanOrEqual(100);
+      expect(previewPhases.some((phase) => phase.id === item.phaseId)).toBe(true);
+    }
+    const flooring = previewWorkItems.find((item) => item.id === "PV-WI-112")!;
+    expect(workItemProgress(flooring)).toBe(79);
+  });
+
+  it("records assignment history that matches current phase engineers", () => {
+    for (const record of previewAssignmentHistory) {
+      if (!record.to && record.phaseId) {
+        const phase = previewPhases.find((item) => item.id === record.phaseId)!;
+        expect(phase.engineerId, record.phaseId).toBe(record.engineerId);
+      }
+    }
+    expect(getAssignmentHistoryForProject("PV-PR-201").length).toBeGreaterThanOrEqual(2);
+    expect(getAssignmentHistoryForEngineer("PV-EN-04").some((record) => !record.to)).toBe(true);
+    const history = getProjectStatusHistory("PV-PR-204");
+    expect(history[history.length - 1]?.status).toBe("handed_over");
+  });
+
+  it("covers every notification row with honest delivery details", () => {
+    for (const row of previewModuleTables["notifications"]?.rows ?? []) {
+      const delivery = getNotificationDelivery(row.id)!;
+      expect(delivery, row.id).toBeDefined();
+      expect(["whatsapp", "staff_internal"]).toContain(delivery.channel);
+      expect(delivery.attempts).toBe(0);
+      expect(delivery.stateNote.ar.length).toBeGreaterThan(10);
+    }
+    expect(previewNotificationDeliveries).toHaveLength(
+      previewModuleTables["notifications"]?.rows.length ?? 0,
+    );
+  });
+
+  it("labels the workflow presentations in both locales", () => {
+    for (const locale of ["ar", "en"] as const) {
+      const wf = appDictionaries[locale].dashboard.expansion.workflow;
+      for (const label of [
+        wf.boqTitle,
+        wf.inspectionResult,
+        wf.contractScope,
+        wf.workItemsTitle,
+        wf.assignmentHistoryTitle,
+        wf.statusHistoryTitle,
+        wf.channels["whatsapp"] ?? "",
+        wf.channels["staff_internal"] ?? "",
+        wf.events["rescheduled"] ?? "",
+      ]) {
+        expect(label.length).toBeGreaterThan(2);
+      }
+    }
+  });
+});
+
+describe("handover, warranty and documents coverage", () => {
+  function moduleRefRow(moduleKey: "handover" | "warranty", ref: string) {
+    return previewModuleTables[moduleKey]?.rows.find(
+      (row) => row.cells["ref"]?.kind === "plain" && row.cells["ref"]?.value === ref,
+    );
+  }
+
+  it("joins handover details to module rows with coherent dates", () => {
+    for (const detail of previewHandoverDetails) {
+      const row = moduleRefRow("handover", detail.ref)!;
+      expect(row, detail.ref).toBeDefined();
+      expect(row.links?.projectId).toBe(detail.projectId);
+      expect(row.links?.customerId).toBe(detail.customerId);
+      expect(detail.checklist.length).toBe(5);
+    }
+    const done = getHandoverDetail("PV-HO-04")!;
+    expect(done.actualDate).toBe("2026-10-02");
+    expect(done.checklist.every((item) => item.state === "done")).toBe(true);
+    const pending = getHandoverDetail("PV-HO-05")!;
+    expect(pending.actualDate).toBeUndefined();
+    expect(pending.checklist.every((item) => item.state === "pending")).toBe(true);
+    expect(getHandoverForProject("PV-PR-204")?.ref).toBe("PV-HO-04");
+    // Project status history agrees with the recorded handover date.
+    const history = getProjectStatusHistory("PV-PR-204");
+    expect(history[history.length - 1]?.at).toBe("2026-10-02");
+  });
+
+  it("records warranty visits and keeps internal notes staff-only", () => {
+    for (const detail of previewWarrantyDetails) {
+      const row = moduleRefRow("warranty", detail.ref)!;
+      expect(row, detail.ref).toBeDefined();
+      expect(row.links?.projectId).toBe(detail.projectId);
+      expect(detail.visits.length).toBeGreaterThan(0);
+    }
+    const open = getWarrantyDetail("PV-WR-02")!;
+    expect(open.source).toBe("customer_request");
+    expect(open.nextVisit).toBe("2026-10-25");
+    expect(open.internalNotes.length).toBe(1);
+    // The portal customer for PR-204 sees the cases without internal notes.
+    const portal = getPortalWarranty("PV-CU-03");
+    expect(portal.map((item) => item.ref).sort()).toEqual(["PV-WR-01", "PV-WR-02"]);
+    expect(JSON.stringify(portal)).not.toContain("internalNotes");
+    expect(JSON.stringify(portal)).not.toContain("مفصلات باب غرفة النوم الثانية");
+    // The signed-in portal customer (PV-CU-06) has no warranty cases.
+    expect(getPortalWarranty("PV-CU-06")).toHaveLength(0);
+    expect(getPortalHandover("PV-CU-06")).toHaveLength(0);
+    expect(getPortalHandover("PV-CU-03")).toHaveLength(1);
+  });
+
+  it("builds a grouped document catalog with distinct finance document types", () => {
+    const catalog = getDocumentCatalog();
+    const groups = groupDocumentCatalog(catalog);
+    const byCategory = new Map(groups.map((group) => [group.category, group.items]));
+    // Every required category is represented and stays distinct.
+    for (const category of [
+      "boq",
+      "contracts",
+      "change_orders",
+      "reports_evidence",
+      "invoices",
+      "certificates",
+      "receipts",
+      "handover",
+      "warranty",
+      "approvals_drawings",
+    ] as const) {
+      expect(byCategory.get(category)?.length ?? 0, category).toBeGreaterThan(0);
+    }
+    expect(byCategory.get("invoices")?.map((item) => item.id)).toEqual(
+      expect.arrayContaining(["PV-INV-7001", "PV-INV-7002", "PV-INV-7003"]),
+    );
+    expect(byCategory.get("certificates")?.some((item) => item.id === "PV-CERT-501")).toBe(true);
+    expect(byCategory.get("receipts")?.some((item) => item.id === "PV-RC-6001")).toBe(true);
+    expect(byCategory.get("handover")?.every((item) => item.reference === "PV-HO-04")).toBe(true);
+    expect(byCategory.get("warranty")?.length).toBe(2);
+    // No fabricated files: every item points at a recorded reference.
+    for (const item of catalog) {
+      expect(item.reference.length).toBeGreaterThan(2);
+      expect(item.title.ar.length).toBeGreaterThan(2);
+    }
+  });
+
+  it("scopes project, customer and portal document views", () => {
+    const pr201 = getProjectDocuments("PV-PR-201");
+    expect(pr201.length).toBeGreaterThan(0);
+    expect(pr201.every((item) => item.projectId === "PV-PR-201")).toBe(true);
+    const cu06 = getCustomerDocuments("PV-CU-06");
+    expect(cu06.every((item) => item.customerId === "PV-CU-06")).toBe(true);
+    const portal = getPortalDocuments("PV-CU-06");
+    // Portal keeps project documents only: no finance docs, no warranty evidence,
+    // no other customer's records.
+    expect(portal.every((item) => item.customerId === "PV-CU-06")).toBe(true);
+    expect(portal.some((item) => item.category === "invoices")).toBe(false);
+    expect(portal.some((item) => item.category === "warranty")).toBe(false);
+    expect(portal.some((item) => item.id === "dc1")).toBe(true);
+    expect(portal.some((item) => item.reference === "PV-CT-12")).toBe(true);
+    expect(portal.some((item) => item.reference === "PV-CT-11")).toBe(false);
+  });
+
+  it("labels lifecycle and document categories in both locales", () => {
+    for (const locale of ["ar", "en"] as const) {
+      const x = appDictionaries[locale].dashboard.expansion;
+      expect(x.lifecycle.checklistTitle.length).toBeGreaterThan(2);
+      expect(x.lifecycle.policyNote.length).toBeGreaterThan(20);
+      expect(x.lifecycle.separationNote.length).toBeGreaterThan(20);
+      expect(x.lifecycle.warrantySources["customer_request"]?.length).toBeGreaterThan(2);
+      for (const category of [
+        "boq",
+        "contracts",
+        "change_orders",
+        "invoices",
+        "certificates",
+        "receipts",
+        "handover",
+        "warranty",
+      ]) {
+        expect(x.documentCategories[category]?.length ?? 0, category).toBeGreaterThan(2);
+      }
+    }
+  });
+});
+
+describe("D1 session payment allocation helpers", () => {
+  it("plans FIFO allocations only against the customer's open dues for the project", async () => {
+    const { getAllDuesWithBalance, planSessionAllocations, sessionRemainingFor } =
+      await import("@/lib/preview-expansion");
+    const dues = getAllDuesWithBalance();
+    const remaining = sessionRemainingFor(dues, "PV-CU-06", "PV-PR-201");
+    expect(remaining).toBeGreaterThan(0);
+    const plan = planSessionAllocations(dues, {
+      customerId: "PV-CU-06",
+      projectId: "PV-PR-201",
+      amount: 10000,
+    });
+    expect(plan.reduce((t, a) => t + a.amount, 0)).toBe(10000);
+    const firstOpen = dues
+      .filter(
+        (d) =>
+          d.due.customerId === "PV-CU-06" && d.due.projectId === "PV-PR-201" && d.remaining > 0,
+      )
+      .sort((a, b) => a.due.dueDate.localeCompare(b.due.dueDate))[0]!;
+    expect(plan[0]?.dueId).toBe(firstOpen.due.id);
+    // Never allocates to another customer or beyond what is owed.
+    expect(
+      planSessionAllocations(dues, {
+        customerId: "PV-CU-06",
+        projectId: "PV-PR-201",
+        amount: remaining + 500000,
+      }).reduce((t, a) => t + a.amount, 0),
+    ).toBe(remaining);
+    expect(
+      planSessionAllocations(dues, {
+        customerId: "PV-CU-04",
+        projectId: "PV-PR-201",
+        amount: 1000,
+      }),
+    ).toEqual([]);
+  });
+
+  it("applies confirmed allocations to balances and settles a fully paid due", async () => {
+    const { getAllDuesWithBalance, planSessionAllocations, withSessionAllocations } =
+      await import("@/lib/preview-expansion");
+    const dues = getAllDuesWithBalance();
+    const open = dues.find(
+      (d) => d.due.customerId === "PV-CU-06" && d.due.projectId === "PV-PR-201" && d.remaining > 0,
+    )!;
+    const plan = planSessionAllocations(dues, {
+      customerId: "PV-CU-06",
+      projectId: "PV-PR-201",
+      amount: open.remaining,
+    });
+    const updated = withSessionAllocations(dues, plan);
+    const settled = updated.find((d) => d.due.id === open.due.id)!;
+    expect(settled.remaining).toBe(0);
+    expect(settled.status).toBe("settled");
+    expect(settled.allocated).toBe(open.due.amount);
+    // Untouched dues are returned unchanged (same reference content).
+    const other = dues.find((d) => d.due.id !== open.due.id)!;
+    expect(updated.find((d) => d.due.id === other.due.id)?.remaining).toBe(other.remaining);
+    expect(withSessionAllocations(dues, [])).toBe(dues);
+  });
+
+  it("aging buckets accept session-adjusted dues without changing default totals", async () => {
+    const { getAgingBuckets, getAllDuesWithBalance, withSessionAllocations } =
+      await import("@/lib/preview-expansion");
+    const base = getAgingBuckets();
+    const dues = getAllDuesWithBalance();
+    const overdue = dues.find((d) => d.status === "overdue" && d.remaining > 0);
+    expect(overdue).toBeTruthy();
+    const adjusted = withSessionAllocations(dues, [
+      { dueId: overdue!.due.id, amount: overdue!.remaining },
+    ]);
+    const after = getAgingBuckets(adjusted);
+    const total = (rows: typeof base) => rows.reduce((t, r) => t + r.amount, 0);
+    expect(total(after)).toBe(total(base) - overdue!.remaining);
   });
 });

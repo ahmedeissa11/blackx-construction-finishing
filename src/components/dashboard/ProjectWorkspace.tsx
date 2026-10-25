@@ -17,15 +17,36 @@ import {
   getPreviewRowStatus,
 } from "@/lib/admin-preview";
 import { clampPercent, formatDate, formatMoney, formatNumber, formatPercent } from "@/lib/format";
+import {
+  getAssignmentHistoryForProject,
+  getHandoverForProject,
+  getProjectDocuments,
+  getWarrantyForProject,
+  getPreviewEngineer,
+  getProjectFinance,
+  getProjectPhases,
+  getProjectStatusHistory,
+  getProjectWorkItems,
+  workItemProgress,
+} from "@/lib/preview-expansion";
+import {
+  DocumentCatalogGroups,
+  EvidenceChips,
+  HandoverDetailBlock,
+  Timeline,
+  WarrantyDetailBlock,
+} from "@/components/dashboard/RecordDetails";
 import { Arrow } from "@/components/ui/Pieces";
 import {
   PriorityBadge,
   ProgressMeter,
+  RecordEmptyState,
   RecordListItem,
   RecordMetaList,
   StatusBadge,
   type RecordMetaItem,
 } from "@/components/dashboard/RecordUI";
+import { Donut } from "@/components/ui/Viz";
 
 function localizedValue(value: LocalizedText | string, locale: Locale): string {
   return typeof value === "string" ? value : pick(value, locale);
@@ -224,6 +245,13 @@ export function ProjectWorkspace({
   const blockerReferences = operations.blockerRows
     .map((row) => getPreviewRowReference(row))
     .filter((reference): reference is string => Boolean(reference));
+  const expansion = d.expansion;
+  const projectPhases = getProjectPhases(project.id);
+  const projectFinance = getProjectFinance(project.id);
+  const hasProjectFinance =
+    projectFinance.duesTotal > 0 ||
+    projectFinance.expensesTotal > 0 ||
+    projectFinance.purchasesTotal > 0;
   const handoverStateLabel =
     operations.handoverState === "handed_over"
       ? actionLabels.handedOver
@@ -250,16 +278,19 @@ export function ProjectWorkspace({
             <span>{pick(project.serviceLabel, locale)}</span>
           </div>
           <p className="project-command-lead">{d.projectWorkspaceLead}</p>
-          <div className="project-command-progress">
-            <span>
-              {d.cols.progress} · {formatPercent(progress, locale)}
-            </span>
-            <ProgressMeter
-              appDict={appDict}
-              locale={locale}
-              value={progress}
-              label={`${pick(project.title, locale)} · ${d.cols.progress}`}
-            />
+          <div className="project-command-progress viz-hero-progress">
+            <Donut value={progress} locale={locale} label={d.cols.progress} size={92} />
+            <div className="viz-hero-progress-main">
+              <span>
+                {d.cols.progress} · {formatPercent(progress, locale)}
+              </span>
+              <ProgressMeter
+                appDict={appDict}
+                locale={locale}
+                value={progress}
+                label={`${pick(project.title, locale)} · ${d.cols.progress}`}
+              />
+            </div>
           </div>
         </div>
         <dl className="project-command-metrics" aria-label={d.projectOverview}>
@@ -289,6 +320,12 @@ export function ProjectWorkspace({
         <Link className="btn btn-ghost btn-sm" href="#project-overview">
           {d.projectOverview}
         </Link>
+        <Link className="btn btn-ghost btn-sm" href="#project-phases">
+          {expansion.phases.title}
+        </Link>
+        <Link className="btn btn-ghost btn-sm" href="#project-work-items">
+          {expansion.workflow.workItemsTitle}
+        </Link>
         <Link className="btn btn-ghost btn-sm" href="#project-actions">
           {actionLabels.title}
         </Link>
@@ -300,6 +337,12 @@ export function ProjectWorkspace({
         </Link>
         <Link className="btn btn-ghost btn-sm" href="#project-findings">
           {d.projectFindings}
+        </Link>
+        <Link className="btn btn-ghost btn-sm" href="#project-quality">
+          {d.projectQuality}
+        </Link>
+        <Link className="btn btn-ghost btn-sm" href="#project-documents">
+          {d.projectDocuments}
         </Link>
         <Link className="btn btn-ghost btn-sm" href="#project-reports">
           {d.projectReports}
@@ -351,6 +394,181 @@ export function ProjectWorkspace({
               <span>{d.cols.progress}</span>
               <ProgressMeter appDict={appDict} locale={locale} value={progress} />
             </div>
+          </div>
+        </WorkspacePanel>
+
+        <WorkspacePanel
+          id="project-phases"
+          title={expansion.phases.title}
+          href={hasProjectFinance ? dashboardHref(locale, "finance") : undefined}
+          linkLabel={hasProjectFinance ? d.modules.finance : undefined}
+        >
+          <p style={{ padding: "0 20px" }}>{expansion.phases.intro}</p>
+          {projectPhases.length === 0 ? (
+            <RecordEmptyState>{expansion.phases.noPhases}</RecordEmptyState>
+          ) : (
+            <div className="domain-record-list" style={{ padding: "0 20px 16px" }}>
+              {projectPhases.map((phase) => {
+                const engineer = getPreviewEngineer(phase.engineerId);
+                const predecessor = phase.predecessorPhaseId
+                  ? projectPhases.find((item) => item.id === phase.predecessorPhaseId)
+                  : undefined;
+                const phaseFinance = projectFinance.byPhase.find(
+                  (row) => row.phase.id === phase.id,
+                );
+                return (
+                  <RecordListItem
+                    key={phase.id}
+                    title={`${expansion.phaseTypes[phase.type] ?? phase.type} — ${pick(phase.title, locale)}`}
+                    reference={<span dir="ltr">{phase.id}</span>}
+                    badges={<StatusBadge appDict={appDict} status={phase.status} />}
+                    summaryItems={[
+                      meta(d.cols.assignee, engineer ? pick(engineer.name, locale) : d.unassigned),
+                      meta(d.cols.updated, formatDate(phase.updatedAt, locale)),
+                      ...(predecessor
+                        ? [
+                            meta(
+                              expansion.phases.predecessor,
+                              `${expansion.phaseTypes[predecessor.type] ?? predecessor.type} — ${pick(predecessor.title, locale)}`,
+                            ),
+                          ]
+                        : []),
+                      ...(phaseFinance && phaseFinance.duesTotal > 0
+                        ? [
+                            meta(
+                              expansion.finance.balances.phaseDues,
+                              formatMoney(phaseFinance.duesTotal, locale),
+                              { dir: "ltr" as const },
+                            ),
+                            meta(
+                              expansion.finance.balances.phaseCollected,
+                              formatMoney(phaseFinance.collected, locale),
+                              { dir: "ltr" as const },
+                            ),
+                          ]
+                        : []),
+                      ...(phase.statusReason
+                        ? [
+                            meta(expansion.phases.statusReason, pick(phase.statusReason, locale), {
+                              wide: true as const,
+                            }),
+                          ]
+                        : []),
+                    ]}
+                    showDetailsLabel={appDict.showDetails}
+                    hideDetailsLabel={appDict.hideDetails}
+                    detailsTitle={appDict.recordMoreDetails}
+                  >
+                    <ProgressMeter
+                      appDict={appDict}
+                      locale={locale}
+                      value={clampPercent(phase.progress)}
+                      label={`${pick(phase.title, locale)} — ${formatPercent(phase.progress, locale)}`}
+                    />
+                  </RecordListItem>
+                );
+              })}
+            </div>
+          )}
+          {hasProjectFinance ? (
+            <div style={{ padding: "0 20px 16px" }}>
+              <RecordMetaList
+                variant="detail"
+                items={[
+                  meta(expansion.finance.totalDues, formatMoney(projectFinance.duesTotal, locale), {
+                    dir: "ltr",
+                  }),
+                  meta(
+                    expansion.finance.totalCollected,
+                    formatMoney(projectFinance.collected, locale),
+                    { dir: "ltr" },
+                  ),
+                  meta(
+                    expansion.finance.totalRemaining,
+                    formatMoney(projectFinance.remaining, locale),
+                    { dir: "ltr" },
+                  ),
+                  meta(
+                    expansion.finance.totalExpenses,
+                    formatMoney(projectFinance.expensesTotal, locale),
+                    { dir: "ltr" },
+                  ),
+                ]}
+              />
+            </div>
+          ) : null}
+        </WorkspacePanel>
+
+        <WorkspacePanel id="project-work-items" title={expansion.workflow.workItemsTitle}>
+          <p style={{ padding: "0 20px" }}>{expansion.workflow.workItemsIntro}</p>
+          {getProjectWorkItems(project.id).length === 0 ? (
+            <RecordEmptyState>{expansion.workflow.noWorkItems}</RecordEmptyState>
+          ) : (
+            getProjectWorkItems(project.id).map((group) => (
+              <div key={group.phase.id} style={{ padding: "0 20px 12px" }}>
+                <h4>
+                  {`${expansion.phaseTypes[group.phase.type] ?? group.phase.type} — ${pick(group.phase.title, locale)}`}
+                </h4>
+                <div>
+                  {group.items.map((item) => (
+                    <div key={item.id} className="wf-work-item">
+                      <div className="wf-work-item-head">
+                        <strong>{pick(item.label, locale)}</strong>
+                        <span className="wf-work-item-qty">
+                          {expansion.workflow.completedQty} {item.completedQty}/{item.plannedQty}{" "}
+                          {pick(item.unit, locale)} ·{" "}
+                          {formatPercent(workItemProgress(item), locale)}
+                        </span>
+                      </div>
+                      <ProgressMeter
+                        appDict={appDict}
+                        locale={locale}
+                        value={workItemProgress(item)}
+                        label={pick(item.label, locale)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {group.items
+                  .filter((item) => item.evidence.length > 0)
+                  .map((item) => (
+                    <div key={item.id} className="wf-evidence-row">
+                      <span>{pick(item.label, locale)}:</span>
+                      <EvidenceChips locale={locale} items={item.evidence} />
+                    </div>
+                  ))}
+              </div>
+            ))
+          )}
+        </WorkspacePanel>
+
+        <WorkspacePanel id="project-history" title={expansion.workflow.statusHistoryTitle}>
+          <div style={{ padding: "0 20px 8px" }}>
+            <Timeline
+              locale={locale}
+              entries={getProjectStatusHistory(project.id).map((record) => ({
+                at: record.at,
+                title: <StatusBadge appDict={appDict} status={record.status} />,
+                note: pick(record.note, locale),
+              }))}
+            />
+          </div>
+          <h4 style={{ padding: "8px 20px 0" }}>{expansion.workflow.assignmentHistoryTitle}</h4>
+          <div style={{ padding: "0 20px 16px" }}>
+            <Timeline
+              locale={locale}
+              entries={getAssignmentHistoryForProject(project.id).map((record) => {
+                const engineer = getPreviewEngineer(record.engineerId);
+                return {
+                  at: record.from,
+                  title: engineer ? pick(engineer.name, locale) : record.engineerId,
+                  by: expansion.engineerRoles[record.role] ?? record.role,
+                  note: record.to
+                    ? `${expansion.workflow.periodFrom} ${formatDate(record.from, locale)} ${expansion.workflow.periodTo} ${formatDate(record.to, locale)}`
+                    : expansion.workflow.currentAssignment,
+                };
+              })}
+            />
           </div>
         </WorkspacePanel>
 
@@ -676,6 +894,15 @@ export function ProjectWorkspace({
               locale={locale}
               appDict={appDict}
             />
+            {getHandoverForProject(project.id) ? (
+              <div style={{ padding: "0 20px 12px" }}>
+                <HandoverDetailBlock
+                  locale={locale}
+                  appDict={appDict}
+                  reference={getHandoverForProject(project.id)?.ref}
+                />
+              </div>
+            ) : null}
             <SubsectionTitle>{d.modules.warranty}</SubsectionTitle>
             <ModuleRowsList
               rows={operations.warrantyRows}
@@ -683,6 +910,29 @@ export function ProjectWorkspace({
               locale={locale}
               appDict={appDict}
             />
+            {getWarrantyForProject(project.id).map((detail) => (
+              <div key={detail.ref} style={{ padding: "0 20px 12px" }}>
+                <h4>
+                  <span dir="ltr">{detail.ref}</span>
+                </h4>
+                <WarrantyDetailBlock locale={locale} appDict={appDict} reference={detail.ref} />
+              </div>
+            ))}
+          </WorkspacePanel>
+
+          <WorkspacePanel
+            id="project-document-catalog"
+            title={d.modules.documents}
+            href={dashboardHref(locale, "documents")}
+            linkLabel={d.modules.documents}
+          >
+            <div style={{ padding: "0 20px 16px" }}>
+              <DocumentCatalogGroups
+                locale={locale}
+                appDict={appDict}
+                items={getProjectDocuments(project.id)}
+              />
+            </div>
           </WorkspacePanel>
         </div>
       </div>

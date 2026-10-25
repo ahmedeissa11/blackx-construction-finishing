@@ -61,22 +61,25 @@ export function CtaBand({ locale, dict }: { locale: Locale; dict: Dictionary }) 
 export function EmptyState({
   icon = "▦",
   title,
+  titleLevel = 2,
   text,
   actionLabel,
   actionHref,
 }: {
   icon?: string;
   title: string;
+  titleLevel?: 1 | 2;
   text: string;
   actionLabel?: string;
   actionHref?: string;
 }) {
+  const TitleTag = titleLevel === 1 ? "h1" : "h2";
   return (
     <div className="empty-state">
       <div className="es-icon" aria-hidden="true">
         <GlyphIcon icon={icon} />
       </div>
-      <h2>{title}</h2>
+      <TitleTag className="es-title">{title}</TitleTag>
       <p>{text}</p>
       {actionLabel && actionHref ? (
         <Link href={actionHref} className="btn btn-primary">

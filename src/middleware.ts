@@ -9,7 +9,9 @@ const { auth } = NextAuth(authConfig);
 export const middleware = auth((request) => {
   const { pathname, search } = request.nextUrl;
 
-  if (pathname.startsWith("/api/auth")) {
+  // API routes (NextAuth + /api/v1 business API) are locale-less; never
+  // redirect them under /ar. Each handler enforces its own rules.
+  if (pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 

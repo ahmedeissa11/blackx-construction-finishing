@@ -16,6 +16,7 @@ export default function LocaleNotFound() {
         </div>
         <EmptyState
           icon="٤٠٤"
+          titleLevel={1}
           title="الصفحة مش موجودة — Page not found"
           text="الرابط اللي فتحته غير متاح أو تم نقله. The page you requested is unavailable or has moved."
           actionLabel="العودة للرئيسية · Back to home"

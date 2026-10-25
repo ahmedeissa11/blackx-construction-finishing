@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { resolveLocale } from "@/lib/locale-params";
+import { localizedAlternates } from "@/lib/site-url";
 import { getDictionary } from "@/content/dictionary";
 import { getService } from "@/content/services";
 import { PageHero } from "@/components/site/PageHero";
@@ -11,7 +12,10 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
-  return { title: getDictionary(locale).request.title };
+  return {
+    title: getDictionary(locale).request.title,
+    alternates: localizedAlternates(locale, "request"),
+  };
 }
 
 export default async function RequestPage({

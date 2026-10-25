@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { pick } from "@/lib/i18n";
 import { resolveLocale } from "@/lib/locale-params";
+import { localizedAlternates } from "@/lib/site-url";
 import { getDictionary } from "@/content/dictionary";
 import { getService, services } from "@/content/services";
 import { faqs, publishedProjects } from "@/content/publications";
@@ -20,7 +21,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const locale = await resolveLocale(params);
   const dict = getDictionary(locale);
-  return { title: dict.brand.full, description: dict.meta.siteDescription };
+  return {
+    title: dict.brand.full,
+    description: dict.meta.siteDescription,
+    alternates: localizedAlternates(locale),
+  };
 }
 
 const TRUST_ICONS = ["◉", "▤", "⛨", "✓"];

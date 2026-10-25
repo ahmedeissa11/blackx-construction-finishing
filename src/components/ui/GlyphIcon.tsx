@@ -152,6 +152,42 @@ export function GlyphIcon({ icon, className }: GlyphIconProps) {
           <path d="M14 3v5h5M9 13h6M9 17h6" />
         </svg>
       );
+    case "⚙":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3.2" />
+          <path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1" />
+        </svg>
+      );
+    case "◈":
+      return (
+        <svg {...common}>
+          <path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v2" />
+          <rect x="3" y="8" width="18" height="11" rx="2" />
+          <circle cx="16.5" cy="13.5" r="1.1" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "▩":
+      return (
+        <svg {...common}>
+          <path d="M5.5 8h13l-.9 11a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8Z" />
+          <path d="M9 10.2V6a3 3 0 0 1 6 0v4.2" />
+        </svg>
+      );
+    case "✦":
+      return (
+        <svg {...common}>
+          <path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 21l2-5.6A8.5 8.5 0 1 1 21 11.5Z" />
+          <path d="M12 7.5v4" />
+          <path d="M12 15h.01" />
+        </svg>
+      );
+    case "☏":
+      return (
+        <svg {...common}>
+          <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.45c.9.34 1.84.57 2.8.7A2 2 0 0 1 22 16.9Z" />
+        </svg>
+      );
     default:
       return (
         <svg {...common}>
