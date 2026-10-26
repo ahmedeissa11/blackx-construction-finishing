@@ -6,7 +6,11 @@ import { pick } from "@/lib/i18n";
 import { getScreenViews, screenSearchText } from "@/config/erp-screen-specs";
 import { erpHref, erpModules, legacyReference, type ErpModule, type ErpPage } from "@/config/erp";
 import { erpNavigationGroups } from "@/config/erp-navigation";
-import { erpWorkspacePresentation, normalizeWorkspaceSearch } from "@/config/erp-workspace";
+import {
+  erpWorkspacePresentation,
+  normalizeWorkspaceSearch,
+  workspaceCount,
+} from "@/config/erp-workspace";
 import { erpText, erpKindLabel } from "@/content/erp-dictionary";
 import { GlyphIcon } from "@/components/ui/GlyphIcon";
 
@@ -24,53 +28,72 @@ function RegisteredPages({
   query: string;
   headingLevel?: "h3" | "h5";
 }) {
+  const statusId = useId();
   return (
     <div className="workspace-page-groups">
-      {[...new Set(pages.map((page) => pick(page.section, locale)))].map((section) => (
-        <section className="workspace-page-group" key={section}>
-          <SectionHeading>{section}</SectionHeading>
-          <ul>
-            {pages
-              .filter((page) => pick(page.section, locale) === section)
-              .map((page) => {
-                const views = getScreenViews(areaModule.id, page.id);
-                const matchingViews = query
-                  ? views.filter((view) =>
-                      normalizeWorkspaceSearch(`${view.title.ar} ${view.title.en}`).includes(query),
-                    )
-                  : [];
-                return (
-                  <li key={page.id}>
-                    <Link
-                      className="workspace-page-link"
-                      href={erpHref(locale, areaModule.id, page.id)}
-                    >
-                      <span>{pick(page.title, locale)}</span>
-                      <small>{erpKindLabel(page.kind, locale)}</small>
-                    </Link>
-                    {views.length ? (
-                      <details className="erp-layout-links" open={matchingViews.length > 0}>
-                        <summary>
-                          {locale === "ar"
-                            ? "هياكل إضافية — ليست مسارات جديدة"
-                            : "Detailed layouts — not extra routes"}
-                        </summary>
-                        {(matchingViews.length ? matchingViews : views).map((view) => (
-                          <Link
-                            key={view.id}
-                            href={`${erpHref(locale, areaModule.id, page.id)}?view=${encodeURIComponent(view.id)}`}
-                          >
-                            {pick(view.title, locale)}
-                          </Link>
-                        ))}
-                      </details>
-                    ) : null}
-                  </li>
-                );
-              })}
-          </ul>
-        </section>
-      ))}
+      {[...new Set(pages.map((page) => pick(page.section, locale)))].map(
+        (section, sectionIndex) => {
+          const sectionPages = pages.filter((page) => pick(page.section, locale) === section);
+          // State a shared status once, visibly; mixed sections keep each page's exact status.
+          const commonKind =
+            sectionPages.length > 1 &&
+            sectionPages.every((page) => page.kind === sectionPages[0]?.kind)
+              ? sectionPages[0]?.kind
+              : undefined;
+          return (
+            <section className="workspace-page-group" key={section}>
+              <SectionHeading>{section}</SectionHeading>
+              {commonKind ? (
+                <p className="workspace-section-kind" id={`${statusId}-${sectionIndex}`}>
+                  {locale === "ar" ? "جميع صفحات هذا القسم: " : "All pages in this section: "}
+                  {erpKindLabel(commonKind, locale)}
+                </p>
+              ) : null}
+              <ul>
+                {sectionPages.map((page) => {
+                  const views = getScreenViews(areaModule.id, page.id);
+                  const matchingViews = query
+                    ? views.filter((view) =>
+                        normalizeWorkspaceSearch(`${view.title.ar} ${view.title.en}`).includes(
+                          query,
+                        ),
+                      )
+                    : [];
+                  return (
+                    <li key={page.id}>
+                      <Link
+                        className="workspace-page-link"
+                        aria-describedby={commonKind ? `${statusId}-${sectionIndex}` : undefined}
+                        href={erpHref(locale, areaModule.id, page.id)}
+                      >
+                        <span>{pick(page.title, locale)}</span>
+                        {!commonKind ? <small>{erpKindLabel(page.kind, locale)}</small> : null}
+                      </Link>
+                      {views.length ? (
+                        <details className="erp-layout-links" open={matchingViews.length > 0}>
+                          <summary>
+                            {locale === "ar"
+                              ? "هياكل إضافية — ليست مسارات جديدة"
+                              : "Detailed layouts — not extra routes"}
+                          </summary>
+                          {(matchingViews.length ? matchingViews : views).map((view) => (
+                            <Link
+                              key={view.id}
+                              href={`${erpHref(locale, areaModule.id, page.id)}?view=${encodeURIComponent(view.id)}`}
+                            >
+                              {pick(view.title, locale)}
+                            </Link>
+                          ))}
+                        </details>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        },
+      )}
     </div>
   );
 }
@@ -101,6 +124,16 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
   const searching = Boolean(q) || mode !== "all";
   const totalPages = modules.reduce((sum, areaModule) => sum + areaModule.pages.length, 0);
   const matchedPages = results.reduce((sum, result) => sum + result.pages.length, 0);
+  function countSummary(count: number, noun: "module" | "page") {
+    const [before, after] = workspaceCount(count, noun, locale).split(String(count));
+    return (
+      <>
+        {before}
+        <strong>{count}</strong>
+        {after}
+      </>
+    );
+  }
   function resetSearch() {
     setQuery("");
     setMode("all");
@@ -122,26 +155,35 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
           {selectedModule
             ? pick(selectedModule.boundary, locale)
             : t(
-                "Access every business module from one workspace. Choose an area or search for the page you need.",
-                "يمكنك الوصول إلى جميع وحدات الأعمال من مساحة واحدة. اختر مجال العمل أو ابحث عن الصفحة التي تحتاجها.",
+                "Choose a business area or search all registered pages.",
+                "اختر مجال العمل أو ابحث في جميع الصفحات المسجلة.",
               )}
         </p>
         <div className="erp-counts workspace-counts">
-          <span>
-            <strong>{modules.length}</strong> {erpText("modules", locale)}
-          </span>
-          <span>
-            <strong>{totalPages}</strong> {erpText("pages", locale)}
-          </span>
+          <span>{countSummary(modules.length, "module")}</span>
+          <span>{countSummary(totalPages, "page")}</span>
           {!moduleId ? (
-            <span>
-              {t(
-                `${erpNavigationGroups.length} business areas`,
-                `${erpNavigationGroups.length} مجالات عمل`,
-              )}
-            </span>
+            <span>{workspaceCount(erpNavigationGroups.length, "area", locale)}</span>
           ) : null}
         </div>
+        {selectedModule ? (
+          <div className="workspace-hub-meta">
+            <span className="workspace-provenance">
+              {erpText(selectedModule.provenance === "adapted" ? "adapted" : "category", locale)}
+            </span>
+            {selectedModule.pages.some((page) => page.kind === "deferred") ? (
+              <span className="workspace-availability">
+                {workspaceCount(
+                  selectedModule.pages.filter((page) => page.kind === "deferred").length,
+                  "page",
+                  locale,
+                )}
+                {" · "}
+                {erpText("pending", locale)}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         {selectedModule ? (
           <Link className="workspace-back" href={erpHref(locale)}>
             {t("All business modules", "جميع وحدات الأعمال")} <span aria-hidden="true">↗</span>
@@ -189,8 +231,8 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
           </div>
           <p id={`${id}-search-help`}>
             {t(
-              "Search Arabic or English module names, page titles and detailed layouts.",
-              "ابحث بأسماء الوحدات وعناوين الصفحات والهياكل التفصيلية بالعربية أو الإنجليزية.",
+              "Search module, page or layout names in Arabic or English.",
+              "ابحث عن الوحدات والصفحات والهياكل بالعربية أو الإنجليزية.",
             )}
           </p>
         </div>
@@ -214,11 +256,10 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
       <div className="workspace-results-bar">
         <p role="status" aria-live="polite" aria-atomic="true">
           {searching
-            ? t(
-                `${results.length} modules · ${matchedPages} matching pages`,
-                `${results.length} وحدات · ${matchedPages} صفحات مطابقة`,
-              )
-            : t("Choose a business area to get started", "اختر مجال العمل للبدء")}
+            ? `${workspaceCount(results.length, "module", locale)} · ${workspaceCount(matchedPages, "matching-page", locale)}`
+            : selectedModule
+              ? t("Choose a page in this module", "اختر صفحة من هذه الوحدة")
+              : t("Choose a business area to get started", "اختر مجال العمل للبدء")}
         </p>
         {searching ? (
           <button type="button" className="btn btn-ghost btn-sm" onClick={resetSearch}>
@@ -226,7 +267,10 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
           </button>
         ) : (
           <span>
-            {t("Availability is labelled on each page", "حالة الإتاحة موضّحة في كل صفحة")}
+            {t(
+              "Availability is shown with each page or section",
+              "حالة الإتاحة موضّحة مع كل صفحة أو قسم",
+            )}
           </span>
         )}
       </div>
@@ -260,9 +304,7 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
               >
                 <div className="workspace-category-heading">
                   <h3 id={`${id}-${group.id}`}>{pick(group.title, locale)}</h3>
-                  <span>
-                    {groupResults.length} {t("modules", "وحدات")}
-                  </span>
+                  <span>{workspaceCount(groupResults.length, "module", locale)}</span>
                 </div>
                 <div className="erp-module-grid workspace-module-grid">
                   {groupResults.map(({ areaModule, pages }) => {
@@ -285,9 +327,7 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
                           </p>
                         </div>
                         <div className="workspace-module-action">
-                          <span>
-                            {areaModule.pages.length} {erpText("pages", locale)}
-                          </span>
+                          <span>{workspaceCount(areaModule.pages.length, "page", locale)}</span>
                           <Link
                             href={erpHref(locale, areaModule.id)}
                             aria-label={`${t("Open module", "فتح الوحدة")}: ${pick(areaModule.title, locale)}`}
@@ -301,7 +341,7 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
                             open={Boolean(q) && pages.length <= 4}
                           >
                             <summary>
-                              {pages.length} {t("matching pages", "صفحات مطابقة")}
+                              {workspaceCount(pages.length, "matching-page", locale)}
                             </summary>
                             <RegisteredPages
                               areaModule={areaModule}

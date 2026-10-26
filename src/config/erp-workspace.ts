@@ -1,4 +1,4 @@
-import type { LocalizedText } from "@/lib/i18n";
+import type { Locale, LocalizedText } from "@/lib/i18n";
 
 /** Presentation only. Names, counts, availability and destinations come from erpModules. */
 export const erpWorkspacePresentation: Record<
@@ -120,4 +120,21 @@ export function normalizeWorkspaceSearch(text: string): string {
     .replace(/[\u0640\u064b-\u065f\u0670]/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/** Label-first Arabic avoids unnatural numeric inflections; English uses singular/plural. */
+export function workspaceCount(
+  count: number,
+  noun: "module" | "page" | "matching-page" | "area",
+  locale: Locale,
+): string {
+  const labels = {
+    module: { en: ["module", "modules"], ar: "الوحدات" },
+    page: { en: ["page", "pages"], ar: "الصفحات" },
+    "matching-page": { en: ["matching page", "matching pages"], ar: "الصفحات المطابقة" },
+    area: { en: ["business area", "business areas"], ar: "مجالات العمل" },
+  };
+  return locale === "ar"
+    ? `${labels[noun].ar}: ${count}`
+    : `${count} ${labels[noun].en[count === 1 ? 0 : 1]}`;
 }

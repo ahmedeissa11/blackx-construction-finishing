@@ -6,7 +6,12 @@ import { ErpDirectory } from "@/components/dashboard/ErpDirectory";
 import { erpModules, erpHref } from "@/config/erp";
 import { erpNavigationGroups } from "@/config/erp-navigation";
 import { getScreenViews } from "@/config/erp-screen-specs";
-import { erpWorkspacePresentation, normalizeWorkspaceSearch } from "@/config/erp-workspace";
+import {
+  erpWorkspacePresentation,
+  normalizeWorkspaceSearch,
+  workspaceCount,
+} from "@/config/erp-workspace";
+import { erpText, erpKindLabel } from "@/content/erp-dictionary";
 import { AdminThemeProvider, AdminThemeToggle } from "@/components/dashboard/AdminTheme";
 
 let container: HTMLDivElement, root: Root;
@@ -50,6 +55,96 @@ async function filter(value: string) {
 }
 
 describe("Registered ERP workspace (DOM, not authenticated browser E2E)", () => {
+  it.each([0, 1, 2, 15])("uses natural bilingual count labels for %i", (count) => {
+    const nouns = [
+      ["module", "module", "modules", "الوحدات"],
+      ["page", "page", "pages", "الصفحات"],
+      ["matching-page", "matching page", "matching pages", "الصفحات المطابقة"],
+      ["area", "business area", "business areas", "مجالات العمل"],
+    ] as const;
+    for (const [noun, singular, plural, arabic] of nouns) {
+      expect(workspaceCount(count, noun, "en")).toBe(`${count} ${count === 1 ? singular : plural}`);
+      expect(workspaceCount(count, noun, "ar")).toBe(`${arabic}: ${count}`);
+    }
+  });
+  it.each(["ar", "en"] as const)(
+    "uses module-specific %s hub prompts and counts",
+    async (locale) => {
+      await render(locale, "projects");
+      const counts = container.querySelector(".workspace-counts")!.textContent!;
+      expect(counts).toContain(locale === "en" ? "1 module" : "الوحدات: 1");
+      expect(counts).not.toMatch(/Named modules|وحدات مسماة/);
+      expect(container.querySelector('[role="status"]')!.textContent).toBe(
+        locale === "en" ? "Choose a page in this module" : "اختر صفحة من هذه الوحدة",
+      );
+      await render(locale);
+      await search(erpModules.find((item) => item.id === "projects")!.title[locale]);
+      expect(container.querySelector('[role="status"]')!.textContent).toContain(
+        workspaceCount(1, "module", locale),
+      );
+    },
+  );
+  it.each(["ar", "en"] as const)(
+    "restores accurate %s provenance and registry-derived deferred counts",
+    async (locale) => {
+      await render(locale);
+      expect(container.querySelector(".workspace-hub-meta")).toBeNull();
+      for (const areaModule of erpModules) {
+        await render(locale, areaModule.id);
+        expect(container.querySelector(".workspace-provenance")!.textContent).toBe(
+          erpText(areaModule.provenance === "adapted" ? "adapted" : "category", locale),
+        );
+        const count = areaModule.pages.filter((page) => page.kind === "deferred").length;
+        const badge = container.querySelector(".workspace-availability");
+        if (count) {
+          expect(badge!.textContent).toBe(
+            `${workspaceCount(count, "page", locale)} · ${erpText("pending", locale)}`,
+          );
+        } else expect(badge).toBeNull();
+        expect(container.querySelector(".workspace-hub-meta")!.textContent).not.toContain(
+          erpText("previewNote", locale),
+        );
+      }
+    },
+  );
+  it.each(["ar", "en"] as const)(
+    "keeps every %s title and exact status visible while removing uniform status repetition",
+    async (locale) => {
+      let sharedSections = 0,
+        mixedSections = 0;
+      for (const areaModule of erpModules) {
+        await render(locale, areaModule.id);
+        for (const section of container.querySelectorAll(".workspace-page-group")) {
+          const sectionTitle = section.querySelector("h3")!.textContent;
+          const pages = areaModule.pages.filter((page) => page.section[locale] === sectionTitle);
+          const common = pages.length > 1 && pages.every((page) => page.kind === pages[0]?.kind);
+          expect(section.querySelectorAll(".workspace-page-link")).toHaveLength(pages.length);
+          for (const page of pages) {
+            const link = section.querySelector(
+              `a[href="${erpHref(locale, areaModule.id, page.id)}"]`,
+            )!;
+            expect(link.querySelector("span")!.textContent).toBe(page.title[locale]);
+            if (common) {
+              expect(section.querySelector(".workspace-section-kind")!.textContent).toContain(
+                erpKindLabel(page.kind, locale),
+              );
+              expect(link.querySelector("small")).toBeNull();
+              expect(
+                document.getElementById(link.getAttribute("aria-describedby")!)?.textContent,
+              ).toContain(erpKindLabel(page.kind, locale));
+            } else
+              expect(link.querySelector("small")!.textContent).toBe(
+                erpKindLabel(page.kind, locale),
+              );
+          }
+          if (common) sharedSections++;
+          else mixedSections++;
+        }
+      }
+      expect(sharedSections).toBeGreaterThan(0);
+      expect(mixedSections).toBeGreaterThan(0);
+    },
+  );
   it("assigns every registered module exactly once and supplies presentation without invented modules", () => {
     const ids = erpModules.map((areaModule) => areaModule.id).sort();
     expect(erpNavigationGroups.flatMap((group) => group.modules).sort()).toEqual(ids);
