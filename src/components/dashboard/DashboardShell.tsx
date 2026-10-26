@@ -8,6 +8,7 @@ import { dashboardHref, dashboardModules, getDashboardNavGroupKey } from "@/conf
 import { erpModules, erpHref, canAccessErp } from "@/config/erp";
 import { pick } from "@/lib/i18n";
 import { erpText } from "@/content/erp-dictionary";
+import { AdminThemeToggle } from "./AdminTheme";
 import { ErpHeaderTools } from "./ErpHeaderTools";
 import { ErpNavigation } from "./ErpNavigation";
 import { previewRequests } from "@/content/preview-data";
@@ -108,6 +109,7 @@ export function DashboardShell({
           />
         ) : undefined
       }
+      utilityContent={<AdminThemeToggle locale={locale} />}
       baseSegment="dashboard"
       showSignOut
     >

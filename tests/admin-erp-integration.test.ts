@@ -10,6 +10,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => state.pathname }));
 vi.mock("next-auth/react", () => ({ signOut: vi.fn() }));
 vi.mock("@/auth", () => ({ requireReviewAccess: state.guard }));
 
+import { AdminThemeProvider } from "@/components/dashboard/AdminTheme";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { ErpNavigation } from "@/components/dashboard/ErpNavigation";
 import { erpModules, erpHref } from "@/config/erp";
@@ -230,6 +231,20 @@ describe("Unified existing Admin and ERP (DOM/source checks, not authenticated b
     expect(document.body.style.overflow).not.toBe("hidden");
   });
 
+  it("keeps the portalled command dialog inside the Admin theme boundary", async () => {
+    const props = { children: shell() };
+    await render(createElement(AdminThemeProvider, props));
+    await act(async () =>
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true }),
+      ),
+    );
+    const dialog = document.querySelector("dialog[open]");
+    expect(dialog).not.toBeNull();
+    expect(dialog?.closest(".admin-theme-root")).toBe(container.querySelector(".admin-theme-root"));
+    expect(dialog?.closest(".shell-sidebar")).toBeNull();
+  });
+
   it("falls back to the original Admin nav for unsupported presentation roles without granting ERP access", async () => {
     await render(shell("ar", "customer"));
     expect(container.querySelector(".erp-nav")).toBeNull();
@@ -284,8 +299,9 @@ describe("Unified existing Admin and ERP (DOM/source checks, not authenticated b
       params: Promise.resolve({ locale: "ar" }),
       children: "Content",
     });
-    expect(element.type).toBe(DashboardShell);
-    expect(element.props.role).toBe("owner_review");
+    expect(element.type).toBe(AdminThemeProvider);
+    expect(element.props.children.type).toBe(DashboardShell);
+    expect(element.props.children.props.role).toBe("owner_review");
     state.guard.mockRejectedValue(new Error("DENIED"));
     await expect(
       DashboardLayout({ params: Promise.resolve({ locale: "ar" }), children: "Content" }),

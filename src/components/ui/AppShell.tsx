@@ -82,6 +82,7 @@ export function AppShell({
   navItems,
   navigationContent,
   topbarContent,
+  utilityContent,
   shellClassName,
   breadcrumbs = [],
   baseSegment,
@@ -97,6 +98,7 @@ export function AppShell({
   navigationContent?: ReactNode;
   /** Optional Admin-only controls; Portal keeps its existing header. */
   topbarContent?: ReactNode;
+  utilityContent?: ReactNode;
   shellClassName?: string;
   breadcrumbs?: ShellBreadcrumbItem[];
   baseSegment: "dashboard" | "portal";
@@ -395,6 +397,7 @@ export function AppShell({
             <h1 className="shell-title">{title}</h1>
           </div>
           <span className="shell-topbar-actions">
+            {utilityContent}
             <span className="locale-switch" role="group" aria-label="Language / اللغة">
               <Link
                 href={buildLocaleSwitchHref(pathname, "ar", urlSuffix)}

@@ -296,7 +296,8 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
                 <p>{erpText("noResults", locale)}</p>
               ) : null}
             </InfoDialog>,
-            document.body,
+            // Native modal stays in the theme boundary, outside the inert drawer.
+            document.querySelector(".admin-theme-root") ?? document.body,
           )
         : null}
     </>

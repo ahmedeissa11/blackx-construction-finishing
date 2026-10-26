@@ -1,0 +1,726 @@
+/* One Admin-only theme. Public website and Portal deliberately keep their tokens.
+   Semantic aliases bridge the existing Admin components; component adapters below
+   remove historical fixed-color layers without duplicating business components. */
+.admin-theme-root {
+  --ui-canvas: #f2f0e9;
+  --ui-surface: #fcfbf7;
+  --ui-raised: #f7f5ee;
+  --ui-muted-surface: #eeeee5;
+  --ui-text: #272e29;
+  --ui-muted: #626b61;
+  --ui-border: #d9ddd1;
+  --ui-border-strong: #85917f;
+  --ui-accent: #405d45;
+  --ui-accent-soft: #e3ebdf;
+  --ui-gold: #755b2e;
+  --ui-gold-soft: #eee5d1;
+  --ui-action: #405d45;
+  --ui-action-hover: #304b35;
+  --ui-on-action: #ffffff;
+  --ui-success: #365c3d;
+  --ui-success-bg: #e4eddf;
+  --ui-warning: #75551c;
+  --ui-warning-bg: #f5ead0;
+  --ui-error: #9b3b37;
+  --ui-error-bg: #f6e5e0;
+  --ui-info: #375c73;
+  --ui-info-bg: #e2edf2;
+  --ui-shadow: 0 2px 8px rgb(25 35 28 / 4%);
+  --ui-scrim: rgb(12 19 15 / 52%);
+  --ui-sidebar: #202a24;
+  --ui-sidebar-fg: #e8ede2;
+  --ui-sidebar-muted: #b5c1ae;
+  --ui-sidebar-border: #3e4b40;
+  --ui-sidebar-active: #354b39;
+  --ui-focus: #84652d;
+  color-scheme: light;
+}
+.admin-theme-root[data-admin-theme="dark"] {
+  --ui-canvas: #171c19;
+  --ui-surface: #202723;
+  --ui-raised: #252e28;
+  --ui-muted-surface: #2a342d;
+  --ui-text: #e7ebe2;
+  --ui-muted: #b0bcad;
+  --ui-border: #3c493f;
+  --ui-border-strong: #788974;
+  --ui-accent: #b1c5a5;
+  --ui-accent-soft: #303e30;
+  --ui-gold: #d8bd84;
+  --ui-gold-soft: #3e3729;
+  --ui-action: #abc49f;
+  --ui-action-hover: #c0d5b6;
+  --ui-on-action: #19271d;
+  --ui-success: #bad5ac;
+  --ui-success-bg: #2b3c2c;
+  --ui-warning: #e6c58a;
+  --ui-warning-bg: #403723;
+  --ui-error: #f2b0a5;
+  --ui-error-bg: #452e2b;
+  --ui-info: #b2cedf;
+  --ui-info-bg: #2b3a45;
+  --ui-shadow: 0 2px 8px rgb(0 0 0 / 12%);
+  --ui-sidebar: #141c17;
+  --ui-sidebar-border: #344137;
+  --ui-focus: #e0bd72;
+  color-scheme: dark;
+}
+/* Remap existing tokens at the boundary, including top-layer descendants. */
+.admin-theme-root {
+  --color-paper: var(--ui-canvas);
+  --color-white: var(--ui-surface);
+  --color-sand: var(--ui-muted-surface);
+  --color-sand-deep: var(--ui-border);
+  --color-ink: var(--ui-text);
+  --color-charcoal: var(--ui-text);
+  --color-charcoal-deep: var(--ui-text);
+  --color-muted: var(--ui-muted);
+  --color-taupe: var(--ui-muted);
+  --color-taupe-dark: var(--ui-muted);
+  --color-line: var(--ui-border);
+  --color-line-dark: var(--ui-border-strong);
+  --color-sage: var(--ui-accent);
+  --color-sage-deep: var(--ui-accent);
+  --color-sage-soft: var(--ui-accent-soft);
+  --color-success: var(--ui-success);
+  --color-success-bg: var(--ui-success-bg);
+  --color-warning: var(--ui-warning);
+  --color-urgent: var(--ui-warning);
+  --color-warning-bg: var(--ui-warning-bg);
+  --color-error: var(--ui-error);
+  --color-error-bg: var(--ui-error-bg);
+  --color-info: var(--ui-info);
+  --color-info-bg: var(--ui-info-bg);
+  --muted: var(--ui-muted);
+  --admin-canvas: var(--ui-canvas);
+  --admin-canvas-soft: var(--ui-canvas);
+  --admin-surface: var(--ui-surface);
+  --admin-surface-muted: var(--ui-raised);
+  --admin-surface-raised: var(--ui-raised);
+  --admin-surface-dark: var(--ui-sidebar);
+  --admin-surface-dark-2: var(--ui-sidebar);
+  --admin-border: var(--ui-border);
+  --admin-border-soft: var(--ui-border);
+  --admin-border-strong: var(--ui-border-strong);
+  --admin-accent: var(--ui-accent);
+  --admin-accent-soft: var(--ui-accent-soft);
+  --admin-primary: var(--ui-gold);
+  --admin-primary-strong: var(--ui-gold);
+  --admin-primary-soft: var(--ui-gold-soft);
+  --admin-on-primary: var(--ui-on-action);
+  --admin-shadow: var(--ui-shadow);
+  --admin-shadow-soft: var(--ui-shadow);
+  --bx-canvas: var(--ui-canvas);
+  --bx-surface: var(--ui-surface);
+  --bx-surface-raised: var(--ui-raised);
+  --bx-surface-muted: var(--ui-muted-surface);
+  --bx-text: var(--ui-text);
+  --bx-text-muted: var(--ui-muted);
+  --bx-border-soft: var(--ui-border);
+  --bx-border-strong: var(--ui-border-strong);
+  --bx-sage-deep: var(--ui-accent);
+  --bx-brass: var(--ui-gold);
+  --bx-brass-soft: var(--ui-gold-soft);
+  --bx-success: var(--ui-success);
+  --bx-warning: var(--ui-warning);
+  --bx-error: var(--ui-error);
+  --bx-shadow-soft: var(--ui-shadow);
+  --bx-shadow-card: var(--ui-shadow);
+  --shadow-card: var(--ui-shadow);
+  --shadow-pop: var(--ui-shadow);
+  --ds-shadow-hover: var(--ui-shadow);
+  --ds-hairline: var(--ui-border);
+  --ds-chip-bg: var(--ui-muted-surface);
+  --viz-track: var(--ui-muted-surface);
+  --viz-accent: var(--ui-accent);
+  --viz-ok: var(--ui-success);
+  --viz-warn: var(--ui-warning);
+  --viz-danger: var(--ui-error);
+  --viz-neutral: var(--ui-muted);
+  --button-primary: var(--ui-action);
+  --button-primary-hover: var(--ui-action-hover);
+  --button-primary-active: var(--ui-action-hover);
+  --button-secondary-border: var(--ui-border-strong);
+  --button-focus: var(--ui-focus);
+  min-height: 100dvh;
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  accent-color: var(--ui-action);
+}
+
+.admin-theme-root .shell {
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+}
+.admin-theme-root .shell-main {
+  min-width: 0;
+}
+.admin-theme-root .shell-topbar {
+  background: var(--ui-surface);
+  box-shadow: none;
+  border-color: var(--ui-border);
+  gap: 8px 20px;
+}
+.admin-theme-root .shell-title {
+  font-size: clamp(1.2rem, 1.6vw, 1.6rem);
+  font-weight: 750;
+}
+.admin-theme-root .shell-content {
+  padding: 24px 28px 40px;
+  gap: 20px;
+}
+.admin-theme-root .shell-topbar-tools {
+  padding-block-start: 0;
+}
+.admin-theme-root .shell-breadcrumbs .breadcrumbs-list {
+  display: block;
+}
+.admin-theme-root .shell-breadcrumbs li {
+  display: inline;
+}
+.admin-theme-root .shell-breadcrumbs .sep {
+  margin-inline: 6px;
+}
+.admin-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--ui-border);
+  border-radius: 10px;
+  background: var(--ui-raised);
+  color: var(--ui-text);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+.admin-theme-toggle:hover {
+  background: var(--ui-muted-surface);
+  border-color: var(--ui-border-strong);
+}
+.admin-theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.admin-theme-toggle .theme-sun {
+  display: none;
+}
+[data-admin-theme="dark"] .admin-theme-toggle .theme-sun {
+  display: block;
+}
+[data-admin-theme="dark"] .admin-theme-toggle .theme-moon {
+  display: none;
+}
+.admin-theme-root :focus-visible {
+  outline: 3px solid var(--ui-focus);
+  outline-offset: 3px;
+}
+.admin-theme-root .shell :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--ui-focus);
+}
+.admin-theme-root :is(button, input, select, textarea):disabled {
+  opacity: 1;
+  color: var(--ui-muted);
+  background: var(--ui-muted-surface);
+  cursor: not-allowed;
+}
+.admin-theme-root :is(input, select, textarea) {
+  color-scheme: inherit;
+}
+.admin-theme-root :is(.form-input, .form-select, textarea, input[type="search"]) {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border-strong);
+}
+.admin-theme-root :is(input, textarea)::placeholder {
+  color: var(--ui-muted);
+  opacity: 1;
+}
+.admin-theme-root :is(.form-input, .form-select):focus {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: none;
+}
+.admin-theme-root :is(option, optgroup) {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+}
+.admin-theme-root :is(dialog, .app-dialog, .dialog, .dialog-head, .dialog-foot) {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+}
+.admin-theme-root dialog::backdrop {
+  background: var(--ui-scrim);
+  backdrop-filter: none;
+}
+.admin-theme-root .shell-scrim {
+  background: var(--ui-scrim);
+}
+.admin-theme-root .btn {
+  border-radius: 8px;
+  min-height: 44px;
+}
+.admin-theme-root .shell .btn-primary {
+  background: var(--ui-action);
+  border-color: var(--ui-action);
+  color: var(--ui-on-action);
+}
+.admin-theme-root .shell .btn-primary:hover {
+  background: var(--ui-action-hover);
+  border-color: var(--ui-action-hover);
+}
+.admin-theme-root .shell :is(.btn-outline, .btn-ghost) {
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+  background: var(--ui-surface);
+}
+.admin-theme-root .shell :is(.btn-outline, .btn-ghost):hover {
+  background: var(--ui-muted-surface);
+}
+.admin-theme-root .shell .btn:disabled {
+  color: var(--ui-muted);
+  background: var(--ui-muted-surface);
+  border-color: var(--ui-border);
+}
+.admin-theme-root .shell .btn-danger {
+  color: var(--ui-error);
+  background: var(--ui-error-bg);
+  border-color: var(--ui-error);
+}
+
+/* Navigation has its own stable, dark architectural palette in both modes. */
+.admin-theme-root .shell-sidebar {
+  background: var(--ui-sidebar);
+  color: var(--ui-sidebar-fg);
+  border-color: var(--ui-sidebar-border);
+  backdrop-filter: none;
+}
+.admin-theme-root
+  .shell-sidebar
+  :is(
+    .sb-role,
+    .shell-foot,
+    .erp-nav-meta,
+    .erp-nav-section,
+    .erp-nav-category-title,
+    .shell-nav-heading,
+    .erp-nav-tools label
+  ) {
+  color: var(--ui-sidebar-muted);
+}
+.admin-theme-root .shell-sidebar :is(.shell-brand, .shell-foot, details, .erp-nav-submenu) {
+  border-color: var(--ui-sidebar-border);
+}
+.admin-theme-root .shell-foot {
+  background: transparent;
+}
+.admin-theme-root .shell-sidebar :is(a, summary, .shell-drawer-close) {
+  color: var(--ui-sidebar-fg);
+}
+.admin-theme-root .shell-sidebar :is(a, summary) {
+  overflow-wrap: anywhere;
+}
+.admin-theme-root .erp-nav a {
+  font-size: 0.8125rem;
+}
+.admin-theme-root .erp-nav-module summary {
+  font-size: 0.875rem;
+  padding-block: 12px;
+}
+.admin-theme-root .erp-nav-category-title {
+  font-size: 0.75rem;
+  line-height: 1.65;
+  padding-block: 16px 6px;
+}
+.admin-theme-root .erp-nav-section {
+  font-size: 0.75rem;
+}
+.admin-theme-root
+  .shell-sidebar
+  :is(a:hover, summary:hover, a[aria-current="page"], .is-active > summary) {
+  background: var(--ui-sidebar-active);
+  color: var(--ui-sidebar-fg);
+  box-shadow: none;
+}
+.admin-theme-root .shell-sidebar a[aria-current="page"] {
+  border-inline-start: 3px solid var(--ui-gold);
+}
+.admin-theme-root .shell-sidebar .erp-nav-tools .btn {
+  background: var(--ui-sidebar-active);
+  color: var(--ui-sidebar-fg);
+  border-color: var(--ui-sidebar-border);
+}
+.admin-theme-root .shell-sidebar :is(.form-input, .shell-nav-search input) {
+  background: var(--ui-sidebar);
+  color: var(--ui-sidebar-fg);
+  border-color: var(--ui-sidebar-muted);
+}
+.admin-theme-root .shell-sidebar input::placeholder {
+  color: var(--ui-sidebar-muted);
+}
+.admin-theme-root .shell .erp-workspace-entry,
+.admin-theme-root .shell .dashboard-intro-actions .erp-workspace-entry {
+  background: var(--ui-action);
+  color: var(--ui-on-action);
+  border-color: var(--ui-gold);
+  min-height: 52px;
+}
+.admin-theme-root .shell-sidebar .erp-workspace-entry {
+  background: var(--ui-sidebar-active);
+  color: var(--ui-sidebar-fg);
+  border-color: var(--ui-gold);
+}
+.admin-theme-root .shell .erp-workspace-entry:hover {
+  box-shadow: inset 0 0 0 1px var(--ui-gold);
+}
+
+/* Cohesive, restrained dashboard and module surfaces. */
+.admin-theme-root .dashboard-intro {
+  background: var(--ui-surface) !important;
+  color: var(--ui-text);
+  box-shadow: none;
+  border-color: var(--ui-border);
+  border-inline-start: 3px solid var(--ui-gold);
+  padding: 20px;
+}
+.admin-theme-root .dashboard-intro-actions {
+  gap: 8px;
+}
+.admin-theme-root .executive-dashboard {
+  gap: 20px;
+}
+.admin-theme-root .executive-kpi-band {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  gap: 12px;
+  overflow: visible;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.admin-theme-root .executive-kpi-band .stat-card {
+  border-radius: 12px;
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow);
+  min-height: 0;
+  border: 1px solid var(--ui-border);
+  padding: 18px;
+}
+.admin-theme-root .stat-card::after {
+  display: none;
+}
+.admin-theme-root .executive-kpi-band .stat-card::before {
+  display: none;
+}
+.admin-theme-root .stat-label {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.admin-theme-root .stat-note {
+  font-size: 0.8125rem;
+}
+.admin-theme-root :is(.panel, .stat-card, .record-card) {
+  box-shadow: var(--ui-shadow);
+  border-radius: 12px;
+}
+.admin-theme-root
+  :is(
+    .panel-head,
+    .record-card-head,
+    .record-meta,
+    .record-card-actions,
+    .dialog-head,
+    .dialog-foot
+  ) {
+  background: var(--ui-raised);
+  border-color: var(--ui-border);
+}
+.admin-theme-root
+  :is(
+    .domain-board-hero,
+    .requests-board-head,
+    .viz-finance-grid,
+    .viz-board-block,
+    .payment-record-form,
+    .payment-method-card,
+    .executive-project-summary,
+    .workspace-anchor-nav,
+    .request-workflow-steps li,
+    .project-action-item,
+    .record-detail-section,
+    .form-section
+  ) {
+  background: var(--ui-raised);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+  box-shadow: none;
+}
+.admin-theme-root
+  :is(
+    .domain-stat,
+    .requests-summary > div,
+    .priority-item,
+    .ops-flow a,
+    .record-list-item,
+    .record-card,
+    .viz-step-dot
+  ) {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+}
+.admin-theme-root .record-list-item:hover {
+  background: var(--ui-raised);
+}
+.admin-theme-root .domain-stat {
+  min-height: 0;
+}
+.admin-theme-root :is(.domain-context-note, .form-error) {
+  color: var(--ui-muted);
+}
+.admin-theme-root :is(.form-error, .erp-screen-error, [aria-invalid="true"] + small) {
+  color: var(--ui-error);
+}
+.admin-theme-root .erp-preview-note {
+  font-size: 0.8125rem;
+  padding: 10px 14px;
+  margin: 0;
+  background: var(--ui-raised);
+}
+.admin-theme-root .erp-intro h2 {
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+  line-height: 1.6;
+}
+.admin-theme-root :is(.erp-module-card header, .erp-module-card h4) {
+  padding-inline: 18px;
+}
+.admin-theme-root .erp-module-card header {
+  padding-block: 18px;
+}
+.admin-theme-root :is(.erp-module-card, .erp-screen-preview, .erp-tool, .erp-workflow) {
+  min-width: 0;
+}
+.admin-theme-root .erp-module-card li small {
+  font-size: 0.75rem;
+}
+.admin-theme-root :is(.erp-nav-meta, .erp-eyebrow, .erp-nav-category-title) {
+  letter-spacing: normal;
+}
+.admin-theme-root :is(pre, code, kbd) {
+  color: var(--ui-text);
+  background: var(--ui-muted-surface);
+  overflow-wrap: anywhere;
+}
+.admin-theme-root pre {
+  white-space: pre-wrap;
+}
+.admin-theme-root table {
+  color: var(--ui-text);
+}
+.admin-theme-root :is(table.data, .wf-table, .erp-table-scroll table, .data-card-table) th {
+  background: var(--ui-raised);
+  color: var(--ui-muted);
+  border-color: var(--ui-border);
+}
+.admin-theme-root :is(table.data, .wf-table, .erp-table-scroll table, .data-card-table) td {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border);
+}
+.admin-theme-root
+  :is(table.data, .wf-table, .erp-table-scroll table, .data-card-table)
+  tbody
+  tr:hover
+  td {
+  background: var(--ui-raised);
+}
+.admin-theme-root :is(.progress, .ops-flow-bar) {
+  background: var(--ui-muted-surface);
+}
+.admin-theme-root :is(.badge, .badge-neutral) {
+  color: var(--ui-muted);
+  background: var(--ui-muted-surface);
+  border-color: var(--ui-border);
+}
+.admin-theme-root :is(.badge-success, .badge-ok, .badge-done, .erp-status-active, .alert-success) {
+  color: var(--ui-success);
+  background: var(--ui-success-bg);
+  border-color: var(--ui-success);
+}
+.admin-theme-root
+  :is(.badge-warning, .badge-warn, .badge-progress, .erp-status-invited, .alert-warning) {
+  color: var(--ui-warning);
+  background: var(--ui-warning-bg);
+  border-color: var(--ui-warning);
+}
+.admin-theme-root
+  :is(
+    .badge-danger,
+    .badge-error,
+    .badge-urgent,
+    .erp-status-suspended,
+    .alert-error,
+    .alert-danger
+  ) {
+  color: var(--ui-error);
+  background: var(--ui-error-bg);
+  border-color: var(--ui-error);
+}
+.admin-theme-root :is(.badge-info, .badge-new, .alert-info) {
+  color: var(--ui-info);
+  background: var(--ui-info-bg);
+  border-color: var(--ui-info);
+}
+.admin-theme-root .toast {
+  background: var(--ui-raised);
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border-strong);
+}
+.admin-theme-root .toast button {
+  color: var(--ui-text);
+}
+.admin-theme-root .viz-avatar {
+  background: var(--ui-accent-soft);
+  color: var(--ui-accent);
+}
+.admin-theme-root .viz-doc {
+  background: var(--ui-raised);
+  color: var(--ui-gold);
+  border-color: var(--ui-border-strong);
+}
+.admin-theme-root :is(.viz-step-done, .viz-step-current) .viz-step-dot {
+  background: var(--ui-action);
+  color: var(--ui-on-action);
+}
+.admin-theme-root .wf-checklist .wf-check-icon {
+  background: var(--ui-accent-soft);
+  color: var(--ui-accent);
+}
+.admin-theme-root .project-command-header {
+  background: var(--ui-raised) !important;
+  color: var(--ui-text);
+  border: 1px solid var(--ui-border);
+  box-shadow: none;
+}
+.admin-theme-root
+  .project-command-header
+  :is(
+    h2,
+    .project-detail-kicker,
+    .project-command-lead,
+    .project-command-progress,
+    .record-progress-value,
+    dt,
+    dd,
+    .viz-donut-center strong,
+    .viz-donut-center span
+  ) {
+  color: var(--ui-text);
+}
+.admin-theme-root .project-command-metrics {
+  background: var(--ui-border);
+}
+.admin-theme-root .project-command-metrics > div {
+  background: var(--ui-raised);
+}
+.admin-theme-root .project-command-progress .viz-donut svg circle:first-child {
+  stroke: var(--viz-track);
+}
+
+/* Keep inverse text paired with its surface instead of a legacy white literal. */
+.admin-theme-root .shell-topbar .locale-switch a.current,
+.admin-theme-root .shell-account-avatar,
+.admin-theme-root .ops-flow-index {
+  background: var(--ui-action);
+  color: var(--ui-on-action);
+}
+.admin-theme-root .shell-menu-btn {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border-strong);
+}
+.admin-theme-root .record-chip-link {
+  background: var(--ui-raised);
+  color: var(--ui-gold);
+  border-color: var(--ui-border);
+}
+.admin-theme-root .wf-table tbody tr:nth-child(even) td {
+  background: var(--ui-raised);
+}
+.admin-theme-root .wf-checklist li[data-state="done"] .wf-check-icon {
+  background: var(--ui-action);
+  color: var(--ui-on-action);
+}
+.admin-theme-root .form-select {
+  appearance: auto;
+  background-image: none;
+  padding-inline-end: 12px;
+}
+.admin-theme-root .shell-sidebar :is(a, button, summary, input):focus-visible {
+  outline-color: var(--ui-sidebar-fg);
+}
+.admin-theme-root .btn-outline {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  border-color: var(--ui-border-strong);
+}
+.admin-theme-root .btn-outline:hover {
+  background: var(--ui-raised);
+}
+.admin-theme-root .shell :is(input, select, textarea):disabled {
+  background: var(--ui-muted-surface);
+  color: var(--ui-muted);
+  opacity: 1;
+}
+
+@media (max-width: 1100px) {
+  .admin-theme-root .executive-kpi-band {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 960px) {
+  .admin-theme-root .shell-content {
+    padding: 20px 16px 32px;
+  }
+  .admin-theme-root .shell-topbar {
+    gap: 12px;
+  }
+  .admin-theme-root .shell-topbar-actions {
+    gap: 8px;
+    justify-content: space-between;
+  }
+}
+@media (max-width: 640px) {
+  .admin-theme-toggle {
+    padding: 8px;
+  }
+  .admin-theme-toggle > span {
+    display: none;
+  }
+  .admin-theme-root .executive-kpi-band .stat-card {
+    padding: 14px;
+  }
+  .admin-theme-root .shell-title {
+    font-size: 1.125rem;
+  }
+  .admin-theme-root .erp-table-scroll {
+    max-width: 100%;
+  }
+}
+@media (max-width: 374px) {
+  .admin-theme-root .executive-kpi-band {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-theme-root *,
+  .admin-theme-root *::before,
+  .admin-theme-root *::after {
+    scroll-behavior: auto;
+    animation: none;
+    transition: none;
+  }
+}

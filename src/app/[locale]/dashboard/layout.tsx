@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { requireReviewAccess } from "@/auth";
 import { resolveLocale } from "@/lib/locale-params";
 import "@/styles/erp.css";
+import "@/styles/admin-theme.css";
+import { AdminThemeProvider } from "@/components/dashboard/AdminTheme";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 
 export const dynamic = "force-dynamic";
@@ -16,8 +18,10 @@ export default async function DashboardLayout({
   const locale = await resolveLocale(params);
   const session = await requireReviewAccess(locale);
   return (
-    <DashboardShell locale={locale} role={session.user?.role}>
-      {children}
-    </DashboardShell>
+    <AdminThemeProvider>
+      <DashboardShell locale={locale} role={session.user?.role}>
+        {children}
+      </DashboardShell>
+    </AdminThemeProvider>
   );
 }
