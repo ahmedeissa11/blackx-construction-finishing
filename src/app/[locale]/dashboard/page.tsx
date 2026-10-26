@@ -16,6 +16,7 @@ import {
 } from "@/lib/admin-preview";
 import { clampPercent, formatDate, formatNumber, formatPercent } from "@/lib/format";
 import { dashboardHref, dashboardModules, type DashboardModuleKey } from "@/config/navigation";
+import { GlyphIcon } from "@/components/ui/GlyphIcon";
 import { Arrow } from "@/components/ui/Pieces";
 import {
   ProgressMeter,
@@ -185,7 +186,11 @@ export default async function DashboardOverview({
         <p className="dashboard-snapshot">
           {d.snapshotAsOf} {formatDate(overview.snapshotDate, locale)}
         </p>
-        <div className="dashboard-intro-actions">
+        <div
+          className="dashboard-intro-actions"
+          role="group"
+          aria-label={locale === "ar" ? "إجراءات النظرة العامة" : "Overview actions"}
+        >
           <Link className="btn erp-workspace-entry" href={erpHref(locale)}>
             {erpText("workspace", locale)}
           </Link>
@@ -210,6 +215,7 @@ export default async function DashboardOverview({
             style={{ color: "inherit", textDecoration: "none" }}
           >
             <div className="stat-label">
+              <GlyphIcon icon={stat.icon} />
               <span>{stat.label}</span>
             </div>
             <div className="stat-value">{formatNumber(stat.value, locale)}</div>
@@ -218,58 +224,59 @@ export default async function DashboardOverview({
         ))}
       </div>
 
-      <Panel title={d.attentionTitle} className="dashboard-priority">
-        <div className="panel-body" style={{ paddingBlockEnd: 0 }}>
-          <p style={{ color: "var(--color-muted)" }}>{d.operations.actionQueue.intro}</p>
-          <p
-            style={{
-              color: "var(--color-muted)",
-              fontSize: "0.86rem",
-              marginBlockStart: 8,
-            }}
-          >
-            {formatNumber(actionQueueItems.length, locale)} {app.showingResults} ·{" "}
-            {formatNumber(overview.actionQueue.length, locale)} {d.operations.actionQueue.total}
-          </p>
-        </div>
-        {actionQueueItems.length > 0 ? (
-          <div className="list-rows priority-list">
-            {actionQueueItems.map((item) => {
-              const title = localizedQueueText(item.title, locale);
-              return (
-                <div className="list-row action-queue-row priority-item" key={item.id}>
-                  <div className="lr-main">
-                    <div className="lr-title">{title}</div>
-                    <div className="lr-sub">
-                      {actionQueueKindLabel(app, item)} · <span dir="ltr">{item.reference}</span>
-                      {item.date ? ` · ${formatDate(item.date, locale)}` : ""}
-                      {item.requestNextAction
-                        ? ` · ${d.operations.nextActions[item.requestNextAction]}`
-                        : ""}
-                    </div>
-                  </div>
-                  <StatusBadge appDict={app} status={item.status} />
-                  <Link
-                    href={dashboardHref(locale, item.dashboardSegment)}
-                    className="btn btn-ghost btn-sm"
-                    aria-label={`${d.operations.actionQueue.reviewRecord}: ${item.reference}`}
-                  >
-                    {d.operations.actionQueue.reviewRecord}
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <EmptyPanelText>{d.noAttentionItems}</EmptyPanelText>
-        )}
-      </Panel>
-
       <div className="two-col executive-columns">
         <div
           className="executive-main-column"
           style={{ display: "flex", flexDirection: "column", gap: 22 }}
         >
+          <Panel title={d.attentionTitle} className="dashboard-priority">
+            <div className="panel-body" style={{ paddingBlockEnd: 0 }}>
+              <p style={{ color: "var(--color-muted)" }}>{d.operations.actionQueue.intro}</p>
+              <p
+                style={{
+                  color: "var(--color-muted)",
+                  fontSize: "0.86rem",
+                  marginBlockStart: 8,
+                }}
+              >
+                {formatNumber(actionQueueItems.length, locale)} {app.showingResults} ·{" "}
+                {formatNumber(overview.actionQueue.length, locale)} {d.operations.actionQueue.total}
+              </p>
+            </div>
+            {actionQueueItems.length > 0 ? (
+              <div className="list-rows priority-list">
+                {actionQueueItems.map((item) => {
+                  const title = localizedQueueText(item.title, locale);
+                  return (
+                    <div className="list-row action-queue-row priority-item" key={item.id}>
+                      <div className="lr-main">
+                        <div className="lr-title">{title}</div>
+                        <div className="lr-sub">
+                          {actionQueueKindLabel(app, item)} ·{" "}
+                          <span dir="ltr">{item.reference}</span>
+                          {item.date ? ` · ${formatDate(item.date, locale)}` : ""}
+                          {item.requestNextAction
+                            ? ` · ${d.operations.nextActions[item.requestNextAction]}`
+                            : ""}
+                        </div>
+                      </div>
+                      <StatusBadge appDict={app} status={item.status} />
+                      <Link
+                        href={dashboardHref(locale, item.dashboardSegment)}
+                        className="btn btn-ghost btn-sm"
+                        aria-label={`${d.operations.actionQueue.reviewRecord}: ${item.reference}`}
+                      >
+                        {d.operations.actionQueue.reviewRecord}
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <EmptyPanelText>{d.noAttentionItems}</EmptyPanelText>
+            )}
+          </Panel>
+
           <Panel
             title={d.activeProjectsTitle}
             href={moduleHref(locale, "projects")}

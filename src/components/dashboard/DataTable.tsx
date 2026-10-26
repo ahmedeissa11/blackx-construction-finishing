@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { ErpTableRegion } from "./ErpPrimitives";
+import { useId, useMemo, useState } from "react";
 import type { Locale, LocalizedText } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import type { AppDictionary } from "@/content/app-dictionary";
@@ -140,6 +141,7 @@ export function DataTable({
   table: PreviewModuleTable;
   moduleKey: DashboardModuleKey;
 }) {
+  const inputId = useId();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedRow, setSelectedRow] = useState<PreviewModuleRow | null>(null);
@@ -201,11 +203,11 @@ export function DataTable({
             <span className="search-icon" aria-hidden="true">
               ⌕
             </span>
-            <label className="sr-only" htmlFor="dt-search">
+            <label className="sr-only" htmlFor={`${inputId}-search`}>
               {appDict.searchShort}
             </label>
             <input
-              id="dt-search"
+              id={`${inputId}-search`}
               className="form-input"
               type="search"
               placeholder={appDict.search}
@@ -215,11 +217,11 @@ export function DataTable({
           </div>
           {statuses.length > 0 ? (
             <div className="filter-field">
-              <label className="filter-label" htmlFor="dt-status">
+              <label className="filter-label" htmlFor={`${inputId}-status`}>
                 {appDict.dashboard.cols.status}
               </label>
               <select
-                id="dt-status"
+                id={`${inputId}-status`}
                 className="form-select"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -254,7 +256,7 @@ export function DataTable({
       >
         {formatNumber(filtered.length, locale)} {appDict.showingResults}
       </p>
-      <div className="table-wrap">
+      <ErpTableRegion className="table-wrap" label={appDict.dashboard.modules[moduleKey]}>
         <table className="data data-card-table">
           <caption className="sr-only">{appDict.dashboard.modules[moduleKey]}</caption>
           <thead>
@@ -275,6 +277,7 @@ export function DataTable({
                   return (
                     <td
                       key={col.id}
+                      className={cell?.kind === "money" ? "erp-numeric" : undefined}
                       data-label={cols[col.labelKey] ?? col.labelKey}
                       data-column={col.id}
                       data-mobile-priority={
@@ -329,7 +332,7 @@ export function DataTable({
             </RecordEmptyState>
           </div>
         ) : null}
-      </div>
+      </ErpTableRegion>
       <InfoDialog
         open={Boolean(selectedRow)}
         title={appDict.recordDetails}

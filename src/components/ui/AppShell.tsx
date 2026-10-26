@@ -84,6 +84,7 @@ export function AppShell({
   topbarContent,
   utilityContent,
   shellClassName,
+  pageHeadingInContent = false,
   breadcrumbs = [],
   baseSegment,
   showSignOut = false,
@@ -100,6 +101,8 @@ export function AppShell({
   topbarContent?: ReactNode;
   utilityContent?: ReactNode;
   shellClassName?: string;
+  /** Admin pages may own the single page title in their content header. */
+  pageHeadingInContent?: boolean;
   breadcrumbs?: ShellBreadcrumbItem[];
   baseSegment: "dashboard" | "portal";
   showSignOut?: boolean;
@@ -107,6 +110,8 @@ export function AppShell({
 }) {
   const pathname = usePathname() ?? "";
   const [open, setOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const contentHeading = pageHeadingInContent;
   const [urlSuffix, setUrlSuffix] = useState("");
   const [compactNav, setCompactNav] = useState(false);
   const [navQuery, setNavQuery] = useState("");
@@ -145,6 +150,22 @@ export function AppShell({
     });
 
     function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Tab" && baseSegment === "dashboard") {
+        const items = Array.from(
+          sidebarRef.current?.querySelectorAll<HTMLElement>("a[href],button,input,summary") ?? [],
+        ).filter(
+          (el) => el.getClientRects().length && !el.closest("details:not([open]) > :not(summary)"),
+        );
+        const first = items[0],
+          last = items.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
       if (event.key === "Escape") {
         event.preventDefault();
         closeDrawer(true);
@@ -162,7 +183,7 @@ export function AppShell({
       document.removeEventListener("keydown", onKeyDown);
       mobileQuery.removeEventListener("change", onViewportChange);
     };
-  }, [closeDrawer, open]);
+  }, [baseSegment, closeDrawer, open]);
 
   useEffect(() => {
     function syncUrlSuffix() {
@@ -208,7 +229,9 @@ export function AppShell({
   }
 
   return (
-    <div className={`shell${shellClassName ? ` ${shellClassName}` : ""}`}>
+    <div
+      className={`shell${shellClassName ? ` ${shellClassName}` : ""}${baseSegment === "dashboard" && sidebarCollapsed ? " shell-sidebar-collapsed" : ""}`}
+    >
       {open ? (
         <button
           type="button"
@@ -222,8 +245,8 @@ export function AppShell({
         id="app-sidebar"
         className={`shell-sidebar${open ? " open" : ""}`}
         aria-label={roleLabel}
-        inert={compactNav && !open}
-        aria-hidden={compactNav && !open}
+        inert={(compactNav && !open) || (!compactNav && sidebarCollapsed)}
+        aria-hidden={(compactNav && !open) || (!compactNav && sidebarCollapsed)}
       >
         <div className="shell-brand">
           <img src="/brand/blackx-logo.jpg" alt="BLACK X" width={46} height={46} />
@@ -352,8 +375,28 @@ export function AppShell({
           </Link>
         </div>
       </aside>
-      <div className="shell-main">
+      <div className="shell-main" inert={baseSegment === "dashboard" && compactNav && open}>
         <header className="shell-topbar">
+          {baseSegment === "dashboard" ? (
+            <button
+              type="button"
+              className="shell-collapse-btn"
+              aria-controls="app-sidebar"
+              aria-expanded={!sidebarCollapsed}
+              aria-label={
+                locale === "ar"
+                  ? sidebarCollapsed
+                    ? "إظهار التنقل الجانبي"
+                    : "طي التنقل الجانبي"
+                  : sidebarCollapsed
+                    ? "Expand navigation"
+                    : "Collapse navigation"
+              }
+              onClick={() => setSidebarCollapsed((value) => !value)}
+            >
+              <MenuIcon open={false} />
+            </button>
+          ) : null}
           <button
             ref={menuButtonRef}
             type="button"
@@ -381,7 +424,7 @@ export function AppShell({
                             /
                           </span>
                         ) : null}
-                        {item.href && !isLast ? (
+                        {item.href && (!isLast || (contentHeading && item.href !== pathname)) ? (
                           <Link href={item.href}>{item.label}</Link>
                         ) : (
                           <span aria-current={isLast ? "page" : undefined}>{item.label}</span>
@@ -394,7 +437,11 @@ export function AppShell({
             ) : (
               <p className="shell-context">{roleLabel}</p>
             )}
-            <h1 className="shell-title">{title}</h1>
+            {contentHeading ? (
+              <p className="shell-title shell-page-context">{roleLabel}</p>
+            ) : (
+              <h1 className="shell-title">{title}</h1>
+            )}
           </div>
           <span className="shell-topbar-actions">
             {utilityContent}

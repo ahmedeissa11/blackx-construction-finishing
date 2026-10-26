@@ -1,3 +1,4 @@
+import { ErpPageHeader } from "./ErpPrimitives";
 import Link from "next/link";
 import { ErpCostWorkbench } from "./ErpLocalWorkbenches";
 import { ErpPageNavigator } from "./ErpPageNavigator";
@@ -159,31 +160,26 @@ export function ErpPageContent({
   });
   return (
     <article className={`erp-workspace erp-domain-${module.id}`}>
-      <header className="erp-intro">
-        <span className="erp-eyebrow">
-          {pick(module.title, locale)} / {pick(page.section, locale)}
-        </span>
-        <h2>{pick(page.title, locale)}</h2>
-        <p>{pick(module.boundary, locale)}</p>
-        <p className="erp-boundary" data-erp-scope>
-          {pick(page.summary, locale)}
-        </p>
-        <div className="erp-actions">
-          <span className="badge badge-neutral">{erpKindLabel(page.kind, locale)}</span>
-          <Link className="btn btn-ghost btn-sm" href={erpHref(locale, module.id)}>
+      <ErpPageHeader
+        title={pick(page.title, locale)}
+        eyebrow={`${pick(module.title, locale)} / ${pick(page.section, locale)}`}
+        description={<p data-erp-scope>{pick(page.summary, locale)}</p>}
+        status={<span className="badge badge-neutral">{erpKindLabel(page.kind, locale)}</span>}
+        actions={
+          <Link className="btn btn-outline btn-sm" href={erpHref(locale, module.id)}>
             {erpText("catalogue", locale)}
           </Link>
-        </div>
-        <small>{erpText("proposed", locale)}</small>
-      </header>
-      <ErpPageNavigator module={module} pageId={page.id} locale={locale} />
-      <ErpScreenPreview
-        key={`${module.id}/${page.id}/${screenView ?? "default"}`}
-        area={module.id}
-        page={page.id}
-        locale={locale}
-        initialView={screenView}
+        }
       />
+      {!source && page.kind !== "shared" && page.kind !== "instructions" ? (
+        <ErpScreenPreview
+          key={`${module.id}/${page.id}/${screenView ?? "default"}`}
+          area={module.id}
+          page={page.id}
+          locale={locale}
+          initialView={screenView}
+        />
+      ) : null}
       {module.id === "sales" && page.id === "boq" ? (
         <ErpCostWorkbench locale={locale} mode="boq" />
       ) : null}
@@ -197,8 +193,8 @@ export function ErpPageContent({
           <p>
             {identityPreview
               ? locale === "ar"
-                ? "المصدر أدناه مرجع مشترك منفصل عن دليل المعاينة الاصطناعي أعلاه. التعيينات المحلية لا تنتقل بين المسارات ولا تغير التفويض أو المصدر المشترك."
-                : "The link below is a shared reference, separate from the synthetic directory above. Local assignments do not transfer between routes or change authorization or the shared source."
+                ? "المصدر أدناه مرجع مشترك منفصل عن دليل المعاينة الاصطناعي في هذه الصفحة. التعيينات المحلية لا تنتقل بين المسارات ولا تغير التفويض أو المصدر المشترك."
+                : "The link below is a shared reference, separate from the synthetic directory on this page. Local assignments do not transfer between routes or change authorization or the shared source."
               : locale === "ar"
                 ? "لم تُكرر الشاشة هنا. افتح المصدر أدناه؛ تبقى بياناته توضيحية أو محلية وليست عملية دائمة."
                 : "The screen is not duplicated here. Open its source below; its data remains illustrative or local, not a durable operation."}
@@ -315,6 +311,23 @@ export function ErpPageContent({
           <Dependencies locale={locale} />
         </>
       )}
+      {source || page.kind === "shared" || page.kind === "instructions" ? (
+        <ErpScreenPreview
+          key={`${module.id}/${page.id}/${screenView ?? "default"}`}
+          area={module.id}
+          page={page.id}
+          locale={locale}
+          initialView={screenView}
+        />
+      ) : null}
+      <aside
+        className="erp-page-scope"
+        aria-label={locale === "ar" ? "نطاق الوحدة والمرجع" : "Module scope and reference"}
+      >
+        <h2>{locale === "ar" ? "نطاق الوحدة والمرجع" : "Module scope and reference"}</h2>
+        <p>{pick(module.boundary, locale)}</p>
+        <small>{erpText("proposed", locale)}</small>
+      </aside>
       {related.length ? (
         <section className="panel erp-tool">
           <h3>{erpText("linked", locale)}</h3>
@@ -327,6 +340,7 @@ export function ErpPageContent({
           </div>
         </section>
       ) : null}
+      <ErpPageNavigator module={module} pageId={page.id} locale={locale} />
     </article>
   );
 }

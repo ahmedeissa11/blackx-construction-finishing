@@ -78,7 +78,6 @@ export function DashboardShell({
     ...(erpModule
       ? [{ label: pick(erpModule.title, locale), href: erpHref(locale, erpModule.id) }]
       : []),
-    ...(erpPage ? [{ label: pick(erpPage.title, locale) }] : []),
   ];
   return (
     <AppShell
@@ -95,6 +94,7 @@ export function DashboardShell({
           : appDict.dashboard.modules[currentKey]
       }
       navItems={navItems}
+      pageHeadingInContent={pathParts[0] === "erp"}
       breadcrumbs={pathParts[0] === "erp" ? erpBreadcrumbs : breadcrumbs}
       navigationContent={
         canAccessErp(role) ? <ErpNavigation locale={locale} role={role} /> : undefined

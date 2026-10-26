@@ -1,5 +1,6 @@
 "use client";
 
+import { ErpFormSection, ErpTableRegion } from "./ErpPrimitives";
 import Link from "next/link";
 import { ErpAccountHierarchy, ErpClosingRequirements } from "./ErpAccountingPreview";
 import { ErpCostWorkbench, ErpJournalWorkbench } from "./ErpLocalWorkbenches";
@@ -49,77 +50,101 @@ export function ErpScreenPreview({
     prefix: string,
     validation: Partial<Record<ScreenFieldKey, string>>,
   ) {
-    return inputs.map((input) => {
-      const key = `${id}-${prefix}-${input.key}`;
-      const label = pick(screenFields[input.key], locale);
-      const error = validation[input.key];
-      return (
-        <div className="erp-screen-field" key={input.key}>
-          <label htmlFor={key}>
-            {label}
-            {input.required ? <span aria-label={t("required", "مطلوب")}> *</span> : null}
-          </label>
-          {input.type === "lookup" ? (
-            <select
-              id={key}
-              className="form-select"
-              disabled
-              aria-describedby={error ? `${id}-scope-note ${key}-error` : `${id}-scope-note`}
-              aria-invalid={error ? true : undefined}
-              aria-required={input.required}
-            >
-              <option>{t("No authorized source connected", "لا يوجد مصدر مفوض متصل")}</option>
-            </select>
-          ) : (
-            <input
-              id={key}
-              className="form-input"
-              type={input.type}
-              value={input.type === "checkbox" ? undefined : (values[input.key] ?? "")}
-              checked={input.type === "checkbox" ? values[input.key] === "true" : undefined}
-              required={input.required}
-              aria-invalid={error ? true : undefined}
-              aria-describedby={error ? `${key}-error` : undefined}
-              min={input.type === "number" ? 0 : undefined}
-              step={input.type === "number" ? "any" : undefined}
-              maxLength={input.type === "text" || input.type === "email" ? 200 : undefined}
-              onChange={(e) => {
-                setValues({
-                  ...values,
-                  [input.key]:
-                    input.type === "checkbox" ? String(e.target.checked) : e.target.value,
-                });
-                if (prefix === "draft") setChecked(false);
-                else setFilterChecked(false);
-              }}
-            />
-          )}
-          {error ? (
-            <span id={`${key}-error`} className="erp-screen-error">
-              {error === "lookup"
-                ? t(
-                    "Required lookup is unavailable; this draft cannot be submitted.",
-                    "المصدر المطلوب غير متاح؛ لا يمكن إرسال هذه المسودة.",
-                  )
-                : error === "required"
-                  ? t(
-                      "This field is required for layout validation.",
-                      "هذا الحقل مطلوب للتحقق من نموذج الواجهة.",
-                    )
-                  : t(
-                      "Enter a valid value; dates must be in order and numbers non-negative.",
-                      "أدخل قيمة صحيحة؛ يجب ترتيب التواريخ وعدم استخدام أرقام سالبة.",
-                    )}
-            </span>
-          ) : null}
-        </div>
-      );
-    });
+    const groups = [
+      {
+        title: t("References and scope", "المراجع والنطاق"),
+        fields: inputs.filter((input) => input.type === "lookup"),
+      },
+      {
+        title: t("Dates and period", "التواريخ والفترة"),
+        fields: inputs.filter((input) => input.type === "date"),
+      },
+      {
+        title: t("Details and values", "التفاصيل والقيم"),
+        fields: inputs.filter((input) => input.type !== "lookup" && input.type !== "date"),
+      },
+    ];
+    return groups
+      .filter((group) => group.fields.length)
+      .map((group) => (
+        <ErpFormSection
+          key={group.title}
+          title={group.title}
+          className={group.fields.length > 2 ? "erp-form-section-wide" : undefined}
+        >
+          {group.fields.map((input) => {
+            const key = `${id}-${prefix}-${input.key}`;
+            const label = pick(screenFields[input.key], locale);
+            const error = validation[input.key];
+            return (
+              <div className="erp-screen-field" key={input.key}>
+                <label htmlFor={key}>
+                  {label}
+                  {input.required ? <span aria-label={t("required", "مطلوب")}> *</span> : null}
+                </label>
+                {input.type === "lookup" ? (
+                  <select
+                    id={key}
+                    className="form-select"
+                    disabled
+                    aria-describedby={error ? `${id}-scope-note ${key}-error` : `${id}-scope-note`}
+                    aria-invalid={error ? true : undefined}
+                    aria-required={input.required}
+                  >
+                    <option>{t("No authorized source connected", "لا يوجد مصدر مفوض متصل")}</option>
+                  </select>
+                ) : (
+                  <input
+                    id={key}
+                    className="form-input"
+                    type={input.type}
+                    value={input.type === "checkbox" ? undefined : (values[input.key] ?? "")}
+                    checked={input.type === "checkbox" ? values[input.key] === "true" : undefined}
+                    required={input.required}
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? `${key}-error` : undefined}
+                    min={input.type === "number" ? 0 : undefined}
+                    step={input.type === "number" ? "any" : undefined}
+                    maxLength={input.type === "text" || input.type === "email" ? 200 : undefined}
+                    onChange={(e) => {
+                      setValues({
+                        ...values,
+                        [input.key]:
+                          input.type === "checkbox" ? String(e.target.checked) : e.target.value,
+                      });
+                      if (prefix === "draft") setChecked(false);
+                      else setFilterChecked(false);
+                    }}
+                  />
+                )}
+                {error ? (
+                  <span id={`${key}-error`} className="erp-screen-error">
+                    {error === "lookup"
+                      ? t(
+                          "Required lookup is unavailable; this draft cannot be submitted.",
+                          "المصدر المطلوب غير متاح؛ لا يمكن إرسال هذه المسودة.",
+                        )
+                      : error === "required"
+                        ? t(
+                            "This field is required for layout validation.",
+                            "هذا الحقل مطلوب للتحقق من نموذج الواجهة.",
+                          )
+                        : t(
+                            "Enter a valid value; dates must be in order and numbers non-negative.",
+                            "أدخل قيمة صحيحة؛ يجب ترتيب التواريخ وعدم استخدام أرقام سالبة.",
+                          )}
+                  </span>
+                ) : null}
+              </div>
+            );
+          })}
+        </ErpFormSection>
+      ));
   }
   if (view.id === "users" || view.id === "roles") {
     return (
       <section
-        className="panel erp-tool erp-screen-preview"
+        className="erp-layout-workspace erp-screen-preview"
         data-screen-preview={`${area}/${page}`}
         dir={locale === "ar" ? "rtl" : "ltr"}
       >
@@ -129,7 +154,7 @@ export function ErpScreenPreview({
             "معاينة هيكل واجهة فقط · دليل اصطناعي",
           )}
         </span>
-        <h4>{pick(view.title, locale)}</h4>
+        <h2>{pick(view.title, locale)}</h2>
         <p data-screen-evidence={view.evidence}>
           {t(
             "Grouped permissions reference supplied by the user, not independently viewed. Synthetic directory records and labels are BLACK X frontend adaptations.",
@@ -148,88 +173,56 @@ export function ErpScreenPreview({
   }
   return (
     <section
-      className="panel erp-tool erp-screen-preview"
+      className="erp-layout-workspace erp-screen-preview"
       data-screen-preview={`${area}/${page}`}
       dir={locale === "ar" ? "rtl" : "ltr"}
     >
-      <header>
-        <span className="badge badge-neutral">
-          {t(
-            "UI-only layout preview · backend-dependent",
-            "معاينة هيكل واجهة فقط · تعتمد على الخادم",
-          )}
-        </span>
-        <h3>{t("Detailed screen structures", "هياكل الشاشات التفصيلية")}</h3>
-        <p>
-          {t(
-            "Repository-supported screen specifications and BLACK X construction adaptations; supplied recording descriptions were not independently viewed. Parameters inspect layout only, never query or save records. Explicitly labeled local exercises and existing fixtures remain separate previews.",
-            "مواصفات شاشات يدعمها المستودع وتكييفات BLACK X للبناء؛ أوصاف التسجيل المقدمة لم تُشاهد مستقلاً. المعلمات لفحص الهيكل ولا تستعلم أو تحفظ سجلات. التمارين المحلية الموسومة صراحة والعينات الحالية معاينات منفصلة.",
-          )}
-        </p>
+      <header className="erp-layout-head">
+        <div>
+          <p className="erp-layout-kicker">
+            {t(
+              "UI-only layout preview · no connected register",
+              "معاينة هيكل واجهة فقط · دون سجل متصل",
+            )}
+          </p>
+          <h2>{pick(view.title, locale)}</h2>
+          {screenPurposes[view.id] ? <p>{pick(screenPurposes[view.id]!, locale)}</p> : null}
+        </div>
+        <Link
+          className="btn btn-ghost btn-sm"
+          href={`${erpHref(locale, area, page)}?view=${view.id}`}
+        >
+          {t("Link to this layout", "رابط هذا الهيكل")}
+        </Link>
       </header>
-      <div
-        className="erp-screen-tabs"
-        role="group"
-        aria-label={t("Screen layouts within this route", "هياكل الشاشات ضمن هذا المسار")}
-      >
-        {views.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`btn btn-sm ${item.id === view.id ? "btn-primary" : "btn-outline"}`}
-            aria-pressed={item.id === view.id}
-            onClick={() => {
-              setViewId(item.id);
-              setDraft({});
-              setFilters({});
-              setChecked(false);
-              setFilterChecked(false);
-            }}
-          >
-            {pick(item.title, locale)}
-          </button>
-        ))}
-      </div>
-      <h4>{pick(view.title, locale)}</h4>
-      {screenPurposes[view.id] ? <p>{pick(screenPurposes[view.id]!, locale)}</p> : null}
-      <p data-screen-evidence={view.evidence}>
-        {view.evidence === "visible"
-          ? t(
-              "Reference: described as visible in the supplied recording extraction. BLACK X labels, grouping and local validation are adaptations.",
-              "المرجع: موصوف كعنصر ظاهر في استخلاص التسجيل المقدم. تسميات BLACK X والتجميع والتحقق المحلي تكييفات.",
-            )
-          : view.evidence === "adapted"
-            ? t(
-                "BLACK X construction-specific adaptation; not a claim of an identical legacy screen.",
-                "تكييف خاص بالبناء والتشطيب في BLACK X؛ وليس ادعاء بوجود شاشة قديمة مطابقة.",
-              )
-            : t(
-                "Unverified legacy behavior / conditional concept — no enabled BLACK X operation.",
-                "سلوك قديم غير متحقق / مفهوم مشروط — لا توجد عملية مفعلة في BLACK X.",
-              )}
-      </p>
-      <Link
-        className="btn btn-ghost btn-sm"
-        href={`${erpHref(locale, area, page)}?view=${view.id}`}
-      >
-        {t("Link to this layout", "رابط هذا الهيكل")}
-      </Link>
+      {views.length > 1 ? (
+        <div
+          className="erp-screen-tabs"
+          role="group"
+          aria-label={t("Screen layouts within this route", "هياكل الشاشات ضمن هذا المسار")}
+        >
+          {views.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`btn btn-sm ${item.id === view.id ? "btn-primary" : "btn-outline"}`}
+              aria-pressed={item.id === view.id}
+              onClick={() => {
+                setViewId(item.id);
+                setDraft({});
+                setFilters({});
+                setChecked(false);
+                setFilterChecked(false);
+              }}
+            >
+              {pick(item.title, locale)}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <p className="erp-boundary" id={`${id}-scope-note`}>
         {pick(view.dependency, locale)}
       </p>
-      {view.id === "chart-of-accounts" ? (
-        <ErpAccountHierarchy key={view.id} locale={locale} />
-      ) : null}
-      {view.id === "daily-journals" ? <ErpJournalWorkbench key={view.id} locale={locale} /> : null}
-      {(
-        ["purchase-invoices", "purchase-orders", "purchase-receipts", "purchase-returns"] as const
-      ).map((mode) =>
-        view.id === mode ? <ErpCostWorkbench key={mode} locale={locale} mode={mode} /> : null,
-      )}
-      {view.id === "financial-years" || view.id === "period-closing" ? (
-        <ErpClosingRequirements locale={locale} />
-      ) : null}
-      {view.report ? <ErpReportTemplate view={view} locale={locale} /> : null}
       {view.filters.length ? (
         <form
           noValidate
@@ -245,7 +238,7 @@ export function ErpScreenPreview({
               "معلمات البحث / التقرير — دون تنفيذ استعلام",
             )}
           </h4>
-          <div className="erp-screen-grid">
+          <div className="erp-form-sections">
             {controls(view.filters, filters, setFilters, "filter", filterErrors)}
           </div>
           <div className="erp-actions">
@@ -288,12 +281,7 @@ export function ErpScreenPreview({
           ))}
         </div>
       ) : null}
-      <div
-        className="erp-table-scroll"
-        role="region"
-        tabIndex={0}
-        aria-label={`${pick(view.title, locale)} — ${t("layout only", "هيكل فقط")}`}
-      >
+      <ErpTableRegion label={`${pick(view.title, locale)} — ${t("layout only", "هيكل فقط")}`}>
         <table>
           <caption>
             {t(
@@ -322,7 +310,7 @@ export function ErpScreenPreview({
             </tr>
           </tbody>
         </table>
-      </div>
+      </ErpTableRegion>
       {view.report ? (
         <p className="erp-boundary">
           {t(
@@ -357,6 +345,23 @@ export function ErpScreenPreview({
           </ul>
         </details>
       ) : null}
+      <div className="erp-specialist-tools">
+        {view.id === "chart-of-accounts" ? (
+          <ErpAccountHierarchy key={view.id} locale={locale} />
+        ) : null}
+        {view.id === "daily-journals" ? (
+          <ErpJournalWorkbench key={view.id} locale={locale} />
+        ) : null}
+        {(
+          ["purchase-invoices", "purchase-orders", "purchase-receipts", "purchase-returns"] as const
+        ).map((mode) =>
+          view.id === mode ? <ErpCostWorkbench key={mode} locale={locale} mode={mode} /> : null,
+        )}
+        {view.id === "financial-years" || view.id === "period-closing" ? (
+          <ErpClosingRequirements locale={locale} />
+        ) : null}
+        {view.report ? <ErpReportTemplate view={view} locale={locale} /> : null}
+      </div>
       {view.draft.length ? (
         <details className="erp-screen-draft">
           <summary>
@@ -376,7 +381,7 @@ export function ErpScreenPreview({
                 "الحقول المطلوبة بعلامة *. استخدم قيماً اختبارية فقط؛ دون كلمات مرور أو رموز أو بيانات بنكية سرية أو شخصية حقيقية. الحقول المعتمدة على مصادر غير متاحة. لا تُرفع بيانات ولا ترسل ولا تحفظ.",
               )}
             </p>
-            <div className="erp-screen-grid">
+            <div className="erp-form-sections">
               {controls(view.draft, draft, setDraft, "draft", errors)}
             </div>
             <div className="erp-actions">
@@ -440,6 +445,31 @@ export function ErpScreenPreview({
           </ul>
         </details>
       ) : null}
+      <details className="erp-layout-reference">
+        <summary>{t("Reference and preview boundaries", "المرجع وحدود المعاينة")}</summary>
+        <p>
+          {t(
+            "Repository-supported screen specifications and BLACK X construction adaptations; supplied recording descriptions were not independently viewed. Parameters inspect layout only, never query or save records. Explicitly labeled local exercises and existing fixtures remain separate previews.",
+            "مواصفات شاشات يدعمها المستودع وتكييفات BLACK X للبناء؛ أوصاف التسجيل المقدمة لم تُشاهد مستقلاً. المعلمات لفحص الهيكل ولا تستعلم أو تحفظ سجلات. التمارين المحلية الموسومة صراحة والعينات الحالية معاينات منفصلة.",
+          )}
+        </p>{" "}
+        <p data-screen-evidence={view.evidence}>
+          {view.evidence === "visible"
+            ? t(
+                "Reference: described as visible in the supplied recording extraction. BLACK X labels, grouping and local validation are adaptations.",
+                "المرجع: موصوف كعنصر ظاهر في استخلاص التسجيل المقدم. تسميات BLACK X والتجميع والتحقق المحلي تكييفات.",
+              )
+            : view.evidence === "adapted"
+              ? t(
+                  "BLACK X construction-specific adaptation; not a claim of an identical legacy screen.",
+                  "تكييف خاص بالبناء والتشطيب في BLACK X؛ وليس ادعاء بوجود شاشة قديمة مطابقة.",
+                )
+              : t(
+                  "Unverified legacy behavior / conditional concept — no enabled BLACK X operation.",
+                  "سلوك قديم غير متحقق / مفهوم مشروط — لا توجد عملية مفعلة في BLACK X.",
+                )}
+        </p>
+      </details>
       <small>
         {t(
           "Unverified: original button execution, backend results, detailed business rules and unseen screens. This preview does not establish any of them.",

@@ -23,14 +23,24 @@ export function ErpPageNavigator({
       </span>
       <div>
         {previous ? (
-          <Link href={erpHref(locale, module.id, previous.id)} rel="prev">
-            {t("Previous", "السابق")}: {pick(previous.title, locale)}
+          <Link
+            href={erpHref(locale, module.id, previous.id)}
+            rel="prev"
+            aria-label={`${t("Previous", "السابق")}: ${pick(previous.title, locale)}`}
+            title={pick(previous.title, locale)}
+          >
+            {t("Previous page", "الصفحة السابقة")}
           </Link>
         ) : null}
         <Link href={erpHref(locale, module.id)}>{t("Module directory", "دليل الوحدة")}</Link>
         {next ? (
-          <Link href={erpHref(locale, module.id, next.id)} rel="next">
-            {t("Next", "التالي")}: {pick(next.title, locale)}
+          <Link
+            href={erpHref(locale, module.id, next.id)}
+            rel="next"
+            aria-label={`${t("Next", "التالي")}: ${pick(next.title, locale)}`}
+            title={pick(next.title, locale)}
+          >
+            {t("Next page", "الصفحة التالية")}
           </Link>
         ) : null}
       </div>

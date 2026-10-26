@@ -12,6 +12,7 @@ vi.mock("@/auth", () => ({ requireReviewAccess: state.guard }));
 
 import { AdminThemeProvider } from "@/components/dashboard/AdminTheme";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { ErpPageContent } from "@/components/dashboard/ErpPageContent";
 import { ErpNavigation } from "@/components/dashboard/ErpNavigation";
 import { erpModules, erpHref } from "@/config/erp";
 import { erpNavigationGroups, getErpRouteInventory } from "@/config/erp-navigation";
@@ -145,7 +146,23 @@ describe("Unified existing Admin and ERP (DOM/source checks, not authenticated b
       for (const area of erpModules) {
         const page = area.pages[0]!;
         state.pathname = erpHref(locale, area.id, page.id);
-        await render(shell(locale));
+        const props = {
+          locale,
+          role: "owner_review",
+          children: createElement(ErpPageContent, {
+            module: area,
+            page,
+            locale,
+            diagnostics: {
+              role: "owner_review",
+              adapter: "unconfigured" as const,
+              implemented: [],
+              readOnly: [],
+              planned: [],
+            },
+          }),
+        };
+        await render(createElement(DashboardShell, props));
         const active = container.querySelectorAll('.erp-nav a[aria-current="page"]');
         expect(active).toHaveLength(1);
         expect(active[0]!.getAttribute("href")).toBe(state.pathname);
@@ -157,7 +174,8 @@ describe("Unified existing Admin and ERP (DOM/source checks, not authenticated b
           erpHref(locale),
           erpHref(locale, area.id),
         ]);
-        expect(crumbs.querySelector('[aria-current="page"]')?.textContent).toBe(page.title[locale]);
+        expect(container.querySelectorAll("h1")).toHaveLength(1);
+        expect(crumbs.querySelector('[aria-current="page"]')).toBeNull();
       }
     },
   );
@@ -210,6 +228,27 @@ describe("Unified existing Admin and ERP (DOM/source checks, not authenticated b
     expect(document.querySelector("dialog[open]")).not.toBeNull();
   });
 
+  it.each(["ar", "en"] as const)(
+    "collapses and restores desktop navigation without removing %s destinations",
+    async (locale) => {
+      await render(shell(locale));
+      const toggle = container.querySelector<HTMLButtonElement>(".shell-collapse-btn")!;
+      const sidebar = container.querySelector<HTMLElement>("#app-sidebar")!;
+      const links = sidebar.querySelectorAll("a").length;
+      expect(toggle.getAttribute("aria-controls")).toBe(sidebar.id);
+      expect(toggle.getAttribute("aria-expanded")).toBe("true");
+      await click(toggle);
+      expect(toggle.getAttribute("aria-expanded")).toBe("false");
+      expect(sidebar.hasAttribute("inert")).toBe(true);
+      expect(container.querySelector(".shell-sidebar-collapsed")).not.toBeNull();
+      expect(sidebar.querySelectorAll("a")).toHaveLength(links);
+      await click(toggle);
+      expect(toggle.getAttribute("aria-expanded")).toBe("true");
+      expect(sidebar.hasAttribute("inert")).toBe(false);
+      expect(container.querySelector(".shell-sidebar-collapsed")).toBeNull();
+    },
+  );
+
   it("uses the existing mobile drawer, closes on route link and restores focus on Escape", async () => {
     state.mobile = true;
     await render(shell());
@@ -218,6 +257,7 @@ describe("Unified existing Admin and ERP (DOM/source checks, not authenticated b
     expect(sidebar.getAttribute("aria-hidden")).toBe("true");
     await click(menu);
     expect(menu.getAttribute("aria-expanded")).toBe("true");
+    expect(container.querySelector(".shell-main")!.hasAttribute("inert")).toBe(true);
     const link = sidebar.querySelector('a[href="/ar/dashboard/erp"]')!;
     link.addEventListener("click", (e) => e.preventDefault());
     await click(link);
@@ -229,6 +269,7 @@ describe("Unified existing Admin and ERP (DOM/source checks, not authenticated b
     expect(menu.getAttribute("aria-expanded")).toBe("false");
     expect(document.activeElement).toBe(menu);
     expect(document.body.style.overflow).not.toBe("hidden");
+    expect(container.querySelector(".shell-main")!.hasAttribute("inert")).toBe(false);
   });
 
   it("keeps the portalled command dialog inside the Admin theme boundary", async () => {

@@ -1091,7 +1091,7 @@
 .workspace-directory .workspace-intro {
   padding: 0;
 }
-.erp-workspace.workspace-directory .workspace-intro h2 {
+.erp-workspace.workspace-directory .workspace-intro :is(h1, h2) {
   font-size: clamp(1.35rem, 2.2vw, 1.9rem);
   line-height: 1.8;
   margin-block: 6px 8px;
@@ -1490,7 +1490,7 @@
   border-block-start: 1px solid var(--admin-border);
 }
 @container erp-workspace (max-width: 539px) {
-  .erp-workspace.workspace-directory .workspace-intro h2 {
+  .erp-workspace.workspace-directory .workspace-intro :is(h1, h2) {
     margin-block: 2px 4px;
   }
   .workspace-directory .workspace-intro > p {

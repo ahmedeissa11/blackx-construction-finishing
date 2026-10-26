@@ -146,11 +146,11 @@ export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: 
         <span className="erp-eyebrow">
           {t("YOUR BUSINESS, ORGANIZED", "أعمالك في مساحة واحدة")}
         </span>
-        <h2>
+        <h1>
           {selectedModule
             ? pick(selectedModule.title, locale)
             : t("BLACK X ERP Workspace", "مساحة عمل BLACK X ERP")}
-        </h2>
+        </h1>
         <p>
           {selectedModule
             ? pick(selectedModule.boundary, locale)

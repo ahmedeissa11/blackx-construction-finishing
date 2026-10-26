@@ -10,6 +10,7 @@ import { erpModules, erpHref, canAccessErp, type ErpModule } from "@/config/erp"
 import { dashboardModules, dashboardHref, dashboardNavGroups } from "@/config/navigation";
 import { erpNavigationGroups } from "@/config/erp-navigation";
 import { getAppDictionary } from "@/content/app-dictionary";
+import { workspaceCount } from "@/config/erp-workspace";
 import { erpText } from "@/content/erp-dictionary";
 import { InfoDialog } from "@/components/ui/ConfirmDialog";
 
@@ -60,7 +61,7 @@ function ModuleGroup({
     pathname.startsWith(`${erpHref(locale, module.id)}/`);
   const [expanded, setExpanded] = useState(active);
   useEffect(() => {
-    if (active) setExpanded(true);
+    setExpanded(active);
   }, [active, pathname]);
   const pages = searchErpPages(query)
     .filter((item) => item.module.id === module.id)
@@ -82,8 +83,8 @@ function ModuleGroup({
         <span>
           {pick(module.title, locale)}
           <small className="erp-nav-meta">
-            <bdi>{module.id}</bdi> · {pages.length} / {module.pages.length}{" "}
-            {erpText("pages", locale)}
+            {query ? `${pages.length} / ` : ""}
+            {workspaceCount(module.pages.length, "page", locale)}
           </small>
         </span>
         <span aria-hidden="true">{Boolean(query) || expanded ? "−" : "+"}</span>
@@ -115,6 +116,43 @@ function ModuleGroup({
             })}
         </div>
       ))}
+    </details>
+  );
+}
+function NavigationCategory({
+  group,
+  locale,
+  pathname,
+  query,
+  children,
+}: {
+  group: (typeof erpNavigationGroups)[number];
+  locale: Locale;
+  pathname: string;
+  query: string;
+  children: React.ReactNode;
+}) {
+  const active = group.modules.some(
+    (id) => pathname === erpHref(locale, id) || pathname.startsWith(`${erpHref(locale, id)}/`),
+  );
+  const [expanded, setExpanded] = useState(active);
+  useEffect(() => setExpanded(active), [active, pathname]);
+  return (
+    <details className="erp-nav-category" open={Boolean(query) || expanded}>
+      <summary
+        id={`erp-nav-category-${group.id}`}
+        aria-expanded={Boolean(query) || expanded}
+        onClick={(event) => {
+          event.preventDefault();
+          setExpanded((value) => !value);
+        }}
+      >
+        <span>{pick(group.title, locale)}</span>
+        <span aria-hidden="true">{Boolean(query) || expanded ? "−" : "+"}</span>
+      </summary>
+      <div role="group" aria-labelledby={`erp-nav-category-${group.id}`}>
+        {children}
+      </div>
     </details>
   );
 }
@@ -162,6 +200,7 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           className="form-input"
+          placeholder={locale === "ar" ? "الوحدات والصفحات…" : "Modules and pages…"}
         />
         <button
           type="button"
@@ -188,15 +227,13 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
         </Link>
         {erpNavigationGroups.map((group) =>
           group.modules.some((id) => matchingModules.has(id)) ? (
-            <div
+            <NavigationCategory
               key={group.id}
-              className="erp-nav-category"
-              role="group"
-              aria-labelledby={`erp-nav-category-${group.id}`}
+              group={group}
+              locale={locale}
+              pathname={pathname}
+              query={query}
             >
-              <span id={`erp-nav-category-${group.id}`} className="erp-nav-category-title">
-                {pick(group.title, locale)}
-              </span>
               {group.modules.map((id) => {
                 const areaModule = erpModules.find((item) => item.id === id)!;
                 return (
@@ -209,7 +246,7 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
                   />
                 );
               })}
-            </div>
+            </NavigationCategory>
           ) : null,
         )}
         {query.trim() && !matchingModules.size && !searchAdminPages(query).length ? (

@@ -1,4 +1,5 @@
 "use client";
+import { ErpTableRegion, ErpTableToolbar } from "./ErpPrimitives";
 import Link from "next/link";
 import { useState } from "react";
 import type { Locale } from "@/lib/i18n";
@@ -45,106 +46,108 @@ export function ErpRegister({ source, locale }: { source: string; locale: Locale
   const field = (key: string) => erpFields[key]?.[locale] ?? key;
   return (
     <section className="panel erp-register">
-      <div className="erp-filterbar">
-        <label>
-          {erpText("search", locale)}
-          <input
-            className="form-input"
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setOffset(0);
-            }}
-          />
-        </label>
-        {types.length ? (
+      <ErpTableToolbar label={erpText("filter", locale)}>
+        <div className="erp-filterbar">
           <label>
-            {erpText("filter", locale)}
-            <select
-              className="form-select"
-              value={filter}
+            {erpText("search", locale)}
+            <input
+              className="form-input"
+              type="search"
+              value={query}
               onChange={(e) => {
-                setFilter(e.target.value);
+                setQuery(e.target.value);
                 setOffset(0);
               }}
-            >
-              <option value="">{erpText("all", locale)}</option>
-              {types.map((value) => (
-                <option key={value}>{value}</option>
-              ))}
-            </select>
+            />
           </label>
-        ) : null}
-        {entityKeys.map((key) => (
-          <label key={key}>
-            {field(key)}
-            <select
-              className="form-select"
-              value={entityFilters[key] ?? ""}
-              onChange={(e) => {
-                setEntityFilters((values) => ({ ...values, [key]: e.target.value }));
-                setOffset(0);
-              }}
-            >
-              <option value="">{erpText("all", locale)}</option>
-              {[...new Set(data.rows.map((row) => row.cells[key]).filter(Boolean))]
-                .sort()
-                .map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
+          {types.length ? (
+            <label>
+              {erpText("filter", locale)}
+              <select
+                className="form-select"
+                value={filter}
+                onChange={(e) => {
+                  setFilter(e.target.value);
+                  setOffset(0);
+                }}
+              >
+                <option value="">{erpText("all", locale)}</option>
+                {types.map((value) => (
+                  <option key={value}>{value}</option>
                 ))}
+              </select>
+            </label>
+          ) : null}
+          {entityKeys.map((key) => (
+            <label key={key}>
+              {field(key)}
+              <select
+                className="form-select"
+                value={entityFilters[key] ?? ""}
+                onChange={(e) => {
+                  setEntityFilters((values) => ({ ...values, [key]: e.target.value }));
+                  setOffset(0);
+                }}
+              >
+                <option value="">{erpText("all", locale)}</option>
+                {[...new Set(data.rows.map((row) => row.cells[key]).filter(Boolean))]
+                  .sort()
+                  .map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+              </select>
+            </label>
+          ))}
+          {dated ? (
+            <>
+              {(["from", "to"] as const).map((key) => (
+                <label key={key}>
+                  {locale === "ar"
+                    ? key === "from"
+                      ? "من تاريخ العينة"
+                      : "إلى تاريخ العينة"
+                    : key === "from"
+                      ? "Fixture start date"
+                      : "Fixture end date"}
+                  <input
+                    className="form-input"
+                    type="date"
+                    value={key === "from" ? from : to}
+                    aria-invalid={rangeInvalid || undefined}
+                    onChange={(e) => {
+                      (key === "from" ? setFrom : setTo)(e.target.value);
+                      setOffset(0);
+                    }}
+                  />
+                </label>
+              ))}
+            </>
+          ) : null}
+          <label>
+            {erpText("sort", locale)}
+            <select className="form-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+              <option value="asc">{erpText("ascending", locale)}</option>
+              <option value="desc">{erpText("descending", locale)}</option>
             </select>
           </label>
-        ))}
-        {dated ? (
-          <>
-            {(["from", "to"] as const).map((key) => (
-              <label key={key}>
-                {locale === "ar"
-                  ? key === "from"
-                    ? "من تاريخ العينة"
-                    : "إلى تاريخ العينة"
-                  : key === "from"
-                    ? "Fixture start date"
-                    : "Fixture end date"}
-                <input
-                  className="form-input"
-                  type="date"
-                  value={key === "from" ? from : to}
-                  aria-invalid={rangeInvalid || undefined}
-                  onChange={(e) => {
-                    (key === "from" ? setFrom : setTo)(e.target.value);
-                    setOffset(0);
-                  }}
-                />
-              </label>
-            ))}
-          </>
-        ) : null}
-        <label>
-          {erpText("sort", locale)}
-          <select className="form-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="asc">{erpText("ascending", locale)}</option>
-            <option value="desc">{erpText("descending", locale)}</option>
-          </select>
-        </label>
-      </div>
-      <button
-        type="button"
-        className="btn btn-ghost btn-sm"
-        onClick={() => {
-          setQuery("");
-          setFilter("");
-          setFrom("");
-          setTo("");
-          setEntityFilters({});
-          setOffset(0);
-        }}
-      >
-        {locale === "ar" ? "مسح مرشحات العينات" : "Clear fixture filters"}
-      </button>
+        </div>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          onClick={() => {
+            setQuery("");
+            setFilter("");
+            setFrom("");
+            setTo("");
+            setEntityFilters({});
+            setOffset(0);
+          }}
+        >
+          {locale === "ar" ? "مسح مرشحات العينات" : "Clear fixture filters"}
+        </button>
+      </ErpTableToolbar>
       {rangeInvalid ? (
         <p role="alert">
           {locale === "ar"
@@ -155,12 +158,7 @@ export function ErpRegister({ source, locale }: { source: string; locale: Locale
       <p className="erp-result-count" role="status">
         {rows.length} {erpText("count", locale)}
       </p>
-      <div
-        className="erp-table-scroll"
-        role="region"
-        aria-label={erpText("preview", locale)}
-        tabIndex={0}
-      >
+      <ErpTableRegion label={erpText("preview", locale)}>
         <table>
           <caption className="sr-only">{erpText("preview", locale)}</caption>
           <thead>
@@ -179,6 +177,11 @@ export function ErpRegister({ source, locale }: { source: string; locale: Locale
                 {data.columns.map((column) => (
                   <td
                     key={column}
+                    className={
+                      ["amount", "total", "debit", "credit", "balance", "quantity"].includes(column)
+                        ? "erp-numeric"
+                        : undefined
+                    }
                     dir={
                       ["ref", "project", "phase", "phone", "payment", "contract"].includes(column)
                         ? "ltr"
@@ -206,9 +209,12 @@ export function ErpRegister({ source, locale }: { source: string; locale: Locale
             ))}
           </tbody>
         </table>
-      </div>
+      </ErpTableRegion>
       {!rows.length ? <div className="empty-state">{erpText("noResults", locale)}</div> : null}
-      <div className="erp-pagination">
+      <nav
+        className="erp-pagination"
+        aria-label={locale === "ar" ? "صفحات النتائج" : "Result pages"}
+      >
         <button
           type="button"
           className="btn btn-outline btn-sm"
@@ -228,7 +234,7 @@ export function ErpRegister({ source, locale }: { source: string; locale: Locale
         >
           {erpText("next", locale)}
         </button>
-      </div>
+      </nav>
       <InfoDialog
         open={Boolean(selected)}
         title={selected?.id ?? erpText("inspect", locale)}

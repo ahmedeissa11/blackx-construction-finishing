@@ -3,6 +3,7 @@ import { requireReviewAccess } from "@/auth";
 import { resolveLocale } from "@/lib/locale-params";
 import "@/styles/erp.css";
 import "@/styles/admin-theme.css";
+import "@/styles/admin-workspace.css";
 import { AdminThemeProvider } from "@/components/dashboard/AdminTheme";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 

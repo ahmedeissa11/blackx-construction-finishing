@@ -47,6 +47,16 @@ describe("Phase 2: every retained leaf advertises only its delivered scope", () 
         // terminate a regex early or hide any business-body controls.
         const rendered = document.createElement("div");
         rendered.innerHTML = html;
+        expect(rendered.querySelectorAll("h1")).toHaveLength(1);
+        expect(rendered.querySelector("h1")?.textContent).toBe(page.title[locale]);
+        rendered.querySelectorAll("fieldset.erp-form-section").forEach((section) => {
+          expect(section.querySelector("legend")?.textContent?.trim()).toBeTruthy();
+        });
+        rendered.querySelectorAll(".erp-table-region").forEach((region) => {
+          expect(region.getAttribute("role")).toBe("region");
+          expect(region.getAttribute("aria-label")?.trim()).toBeTruthy();
+          expect(region.getAttribute("tabindex")).toBe("0");
+        });
         const panels = rendered.querySelectorAll("[data-screen-preview]");
         expect(panels.length).toBe(getScreenViews(area.id, page.id).length ? 1 : 0);
         panels.forEach((panel) => panel.remove());
@@ -178,7 +188,7 @@ describe("Phase 2: every retained leaf advertises only its delivered scope", () 
     );
     expect(html).toContain("<strong>1</strong>");
     expect(html).toContain("<strong>8</strong>");
-    expect(html).toContain("<h2>Cheque management</h2>");
+    expect(html).toContain("<h1>Cheque management</h1>");
     expect(html).not.toContain("<strong>143</strong>");
   });
 });

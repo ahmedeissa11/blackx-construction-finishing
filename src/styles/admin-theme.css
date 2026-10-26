@@ -67,6 +67,30 @@
 }
 /* Remap existing tokens at the boundary, including top-layer descendants. */
 .admin-theme-root {
+  /* Shared ERP composition tokens; the existing theme boundary remains authoritative. */
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 24px;
+  --ui-space-6: 32px;
+  --ui-space-7: 48px;
+  --ui-type-meta: 0.8125rem;
+  --ui-type-label: 0.875rem;
+  --ui-type-body: 0.9375rem;
+  --ui-type-section: 1.125rem;
+  --ui-type-page: clamp(1.35rem, 1.8vw, 1.875rem);
+  --ui-line-body: 1.75;
+  --ui-radius-control: 6px;
+  --ui-radius-surface: 10px;
+  --ui-radius-dialog: 14px;
+  --ui-control-height: 44px;
+  --ui-content-max: 1600px;
+  --ui-nav-width: 256px;
+  --ui-table-header: var(--ui-raised);
+  --ui-text-secondary: var(--ui-muted);
+  --ui-text-disabled: var(--ui-muted);
+  --ui-elevation-dialog: 0 18px 60px rgb(0 0 0 / 24%);
   --color-paper: var(--ui-canvas);
   --color-white: var(--ui-surface);
   --color-sand: var(--ui-muted-surface);

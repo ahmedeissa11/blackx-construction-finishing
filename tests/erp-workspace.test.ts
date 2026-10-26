@@ -159,7 +159,7 @@ describe("Registered ERP workspace (DOM, not authenticated browser E2E)", () => 
       expect(container.querySelector(".workspace-directory")?.getAttribute("dir")).toBe(
         locale === "ar" ? "rtl" : "ltr",
       );
-      expect(container.querySelector("h2")?.textContent).toBe(
+      expect(container.querySelector("h1")?.textContent).toBe(
         locale === "ar" ? "مساحة عمل BLACK X ERP" : "BLACK X ERP Workspace",
       );
       expect(container.querySelectorAll(".workspace-category")).toHaveLength(

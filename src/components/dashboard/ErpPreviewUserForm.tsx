@@ -1,4 +1,5 @@
 "use client";
+import { ErpFormSection } from "./ErpPrimitives";
 import { useEffect, useId, useRef, useState } from "react";
 import { pick, type Locale } from "@/lib/i18n";
 import type { PreviewRole, PreviewUser } from "@/content/erp-identity-preview";
@@ -57,66 +58,72 @@ export function ErpPreviewUserForm({
           "صف مؤقت داخل الدليل المفتوح فقط؛ دون دعوة أو كلمة مرور أو دخول أو جلسة أو تفعيل حساب أو إنشاء هوية. استخدم معرّفاً فريداً يبدأ بـ preview. وبريداً ينتهي بـ @example.invalid واسماً من 2–80 حرفاً. لا تستخدم بيانات شخصية حقيقية. تُستخدم الأسماء المنشأة باللغتين دون ترجمة آلية.",
         )}
       </p>
-      <div className="erp-screen-grid">
-        {(["name", "login", "email"] as const).map((key) => (
-          <label key={key} htmlFor={`${id}-${key}`}>
-            {key === "name"
-              ? t("Synthetic display name", "اسم ظاهر اصطناعي")
-              : key === "login"
-                ? t("Synthetic login identifier", "معرّف دخول اصطناعي")
-                : t("Synthetic email", "بريد اصطناعي")}{" "}
-            *
-            <input
-              id={`${id}-${key}`}
-              className="form-input"
-              type={key === "email" ? "email" : "text"}
-              autoComplete="off"
-              required
-              maxLength={key === "name" ? 80 : 100}
-              value={input[key]}
-              aria-invalid={errors.includes(key) || undefined}
-              aria-describedby={`${id}-scope${errors.includes(key) ? ` ${id}-errors` : ""}`}
-              onChange={(e) => {
-                setInput((current) => ({ ...current, [key]: e.target.value }));
-                setErrors([]);
-              }}
-            />
+      <ErpFormSection
+        title={t("Synthetic identity · required fields", "الهوية الاصطناعية · حقول مطلوبة")}
+      >
+        <div className="erp-screen-grid">
+          {(["name", "login", "email"] as const).map((key) => (
+            <label key={key} htmlFor={`${id}-${key}`}>
+              {key === "name"
+                ? t("Synthetic display name", "اسم ظاهر اصطناعي")
+                : key === "login"
+                  ? t("Synthetic login identifier", "معرّف دخول اصطناعي")
+                  : t("Synthetic email", "بريد اصطناعي")}{" "}
+              *
+              <input
+                id={`${id}-${key}`}
+                className="form-input"
+                type={key === "email" ? "email" : "text"}
+                autoComplete="off"
+                required
+                maxLength={key === "name" ? 80 : 100}
+                value={input[key]}
+                aria-invalid={errors.includes(key) || undefined}
+                aria-describedby={`${id}-scope${errors.includes(key) ? ` ${id}-errors` : ""}`}
+                onChange={(e) => {
+                  setInput((current) => ({ ...current, [key]: e.target.value }));
+                  setErrors([]);
+                }}
+              />
+            </label>
+          ))}
+        </div>
+      </ErpFormSection>
+      <ErpFormSection title={t("Simulation settings", "إعدادات المحاكاة")}>
+        <div className="erp-screen-grid">
+          <label>
+            {t("Initial simulated status", "حالة المحاكاة الأولية")}
+            <select
+              className="form-select"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as PreviewUser["status"])}
+            >
+              {(["active", "inactive", "suspended", "invited"] as const).map((value) => (
+                <option key={value} value={value}>
+                  {value === "active"
+                    ? t("Active preview", "نشط تجريبياً")
+                    : value === "inactive"
+                      ? t("Inactive preview", "غير نشط تجريبياً")
+                      : value === "suspended"
+                        ? t("Suspended preview", "موقوف تجريبياً")
+                        : t("Invitation example — nothing sent", "مثال دعوة — لا إرسال")}
+                </option>
+              ))}
+            </select>
           </label>
-        ))}
-      </div>
-      <div className="erp-screen-grid">
-        <label>
-          {t("Initial simulated status", "حالة المحاكاة الأولية")}
-          <select
-            className="form-select"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as PreviewUser["status"])}
-          >
-            {(["active", "inactive", "suspended", "invited"] as const).map((value) => (
-              <option key={value} value={value}>
-                {value === "active"
-                  ? t("Active preview", "نشط تجريبياً")
-                  : value === "inactive"
-                    ? t("Inactive preview", "غير نشط تجريبياً")
-                    : value === "suspended"
-                      ? t("Suspended preview", "موقوف تجريبياً")
-                      : t("Invitation example — nothing sent", "مثال دعوة — لا إرسال")}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {t("Initial synthetic role — optional", "الدور الاصطناعي الأولي — اختياري")}
-          <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="">{t("Unassigned", "غير معين")}</option>
-            {roles.map((r) => (
-              <option key={r.id} value={r.id}>
-                {pick(r.name, locale)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+          <label>
+            {t("Initial synthetic role — optional", "الدور الاصطناعي الأولي — اختياري")}
+            <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
+              <option value="">{t("Unassigned", "غير معين")}</option>
+              {roles.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {pick(r.name, locale)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </ErpFormSection>
       {errors.length ? (
         <p role="alert" id={`${id}-errors`} className="erp-screen-error">
           {t("Check these fields", "راجع هذه الحقول")}:{" "}
