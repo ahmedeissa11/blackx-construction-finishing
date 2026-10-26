@@ -23,6 +23,8 @@ import {
   StatusBadge,
   type RecordMetaItem,
 } from "@/components/dashboard/RecordUI";
+import { erpHref } from "@/config/erp";
+import { erpText } from "@/content/erp-dictionary";
 import { OverviewExpansion } from "@/components/dashboard/OverviewExpansion";
 
 export async function generateMetadata({
@@ -184,6 +186,9 @@ export default async function DashboardOverview({
           {d.snapshotAsOf} {formatDate(overview.snapshotDate, locale)}
         </p>
         <div className="dashboard-intro-actions">
+          <Link className="btn erp-workspace-entry" href={erpHref(locale)}>
+            {erpText("workspace", locale)}
+          </Link>
           <Link className="btn btn-primary" href={moduleHref(locale, "requests")}>
             {d.ownerActions.reviewRequests}
           </Link>

@@ -16,11 +16,27 @@ export async function generateMetadata({
 
 export default async function DashboardRequests({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ focus?: string | string[] }>;
 }) {
   const locale = await resolveLocale(params);
   await requireReviewAccess(locale);
   const app = getAppDictionary(locale);
-  return <RequestsBoard locale={locale} appDict={app} initialRequests={previewRequests} />;
+  const rawFocus = (await searchParams)?.focus;
+  const focused =
+    typeof rawFocus === "string"
+      ? previewRequests.find((request) => request.id === rawFocus)
+      : undefined;
+  return (
+    <RequestsBoard
+      key={focused?.id ?? (rawFocus !== undefined ? "unavailable-focus" : "requests")}
+      locale={locale}
+      appDict={app}
+      initialRequests={previewRequests}
+      initialFocusId={focused?.id}
+      focusUnavailable={rawFocus !== undefined && !focused}
+    />
+  );
 }

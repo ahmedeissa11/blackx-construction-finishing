@@ -197,6 +197,7 @@ function BoardShell({
 }
 
 function UnavailableButton({
+  availabilityLabel,
   label,
   message,
   onUnavailable,
@@ -204,6 +205,7 @@ function UnavailableButton({
   label: string;
   message: string;
   onUnavailable: (message: string) => void;
+  availabilityLabel: string;
 }) {
   return (
     <button
@@ -211,8 +213,9 @@ function UnavailableButton({
       className="btn btn-outline btn-sm"
       onClick={() => onUnavailable(message)}
       aria-haspopup="dialog"
+      title={message}
     >
-      {label}
+      {label} — {availabilityLabel}
     </button>
   );
 }
@@ -499,6 +502,7 @@ function DocumentsBoard({
               </button>
             ) : null}
             <UnavailableButton
+              availabilityLabel={appDict.previewUnavailableTitle}
               label={domain.actions.uploadDocument}
               message={domain.uploadDocumentUnavailable}
               onUnavailable={onUnavailable}
@@ -593,6 +597,7 @@ function DocumentsBoard({
                         </Link>
                       ) : null}
                       <UnavailableButton
+                        availabilityLabel={appDict.previewUnavailableTitle}
                         label={domain.actions.downloadDocument}
                         message={domain.downloadDocumentUnavailable}
                         onUnavailable={onUnavailable}
@@ -766,11 +771,13 @@ function NotificationsBoard({
             actions={
               <>
                 <UnavailableButton
+                  availabilityLabel={appDict.previewUnavailableTitle}
                   label={domain.actions.markNotificationReviewed}
                   message={domain.markNotificationReviewedUnavailable}
                   onUnavailable={onUnavailable}
                 />
                 <UnavailableButton
+                  availabilityLabel={appDict.previewUnavailableTitle}
                   label={domain.actions.resendNotification}
                   message={domain.resendNotificationUnavailable}
                   onUnavailable={onUnavailable}
@@ -873,6 +880,7 @@ function AuditBoard({
           onClear={clearFilters}
         >
           <UnavailableButton
+            availabilityLabel={appDict.previewUnavailableTitle}
             label={domain.actions.exportAuditLog}
             message={domain.exportAuditUnavailable}
             onUnavailable={onUnavailable}
@@ -953,8 +961,9 @@ export function DomainBoard({
       className="btn btn-outline btn-sm"
       onClick={() => setNotice(message)}
       aria-haspopup="dialog"
+      title={message}
     >
-      {label}
+      {label} — {appDict.previewUnavailableTitle}
     </button>
   );
 

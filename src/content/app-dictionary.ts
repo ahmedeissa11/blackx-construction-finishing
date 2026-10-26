@@ -632,29 +632,29 @@ const ar = {
         allocatedLabel: "المسدّد منها",
         remainingLabel: "المتبقي",
         allocationTo: "مخصصة للمستحق",
-        recordPayment: "تسجيل دفعة",
+        recordPayment: "محاكاة دفعة — لهذه الشاشة فقط",
         createDue: "إضافة مستحق",
         postingUnavailable:
           "إجراءات التسجيل والاعتماد المالي غير متاحة حاليًا بانتظار اعتماد السياسة المالية وربط النظام؛ لم يتم تسجيل أي قيد.",
         recordForm: {
-          title: "تسجيل دفعة واردة",
+          title: "محاكاة دفعة واردة — دون سجل دائم",
           methodLabel: "طريقة الدفع",
           selectMethod: "اختر طريقة الدفع",
           selectCustomer: "اختر العميل",
           selectProject: "اختر المشروع",
           referenceLabel: "رقم العملية / المرجع",
           notesLabel: "ملاحظات",
-          submit: "حفظ الدفعة كقيد قيد التحقق",
+          submit: "إضافة لمعاينة الشاشة — دون حفظ",
           cancel: "إلغاء",
           evidenceUnavailable:
             "إرفاق صورة الإيصال أو إثبات التحويل غير متاح حاليًا؛ اكتفِ بتدوين الرقم المرجعي.",
           sessionOnlyNote:
-            "التسجيل هنا مؤقت داخل جلسة العمل الحالية فقط ولا يُحفظ بعد تحديث الصفحة أو تسجيل الخروج، لأن الحفظ الدائم بانتظار ربط قاعدة البيانات.",
+            "حالة المحاكاة تخص هذه الشاشة المفتوحة فقط وتزول بمغادرتها أو تحديثها أو تسجيل الخروج؛ لا تنتقل لسجلات أخرى ولا يحفظ سجل دائم.",
           pendingNote:
-            "لا تُحتسب الدفعة في الأرصدة ولا تُصدر لها إيصال قبل تأكيد الاستلام من مسؤول مخوّل.",
+            "تغير المحاكاة تخصيصات المعاينة المحلية فقط؛ لا تؤكد أموالاً فعلية أو موافقة موظفين ولا تصدر إيصالاً معتمداً.",
           gatewayNote:
-            "لا توجد بوابة دفع إلكتروني مدمجة؛ فوري وInstaPay والتحويل البنكي تُسجَّل هنا يدويًا بعد إتمامها خارج النظام، واختيار الطريقة وحده لا يعني نجاح العملية.",
-          confirmReceipt: "تأكيد الاستلام",
+            "أسماء طرق الدفع تسميات محاكاة فقط؛ لا تتصل بوابة أو بنك أو مزود دفع ولا يتحقق استلام أموال هنا.",
+          confirmReceipt: "محاكاة تأكيد استلام — لهذه الشاشة فقط",
           sessionReceipt: "إيصال جلسة",
           sessionPaymentsTitle: "دفعات هذه الجلسة",
           remainingForSelection: "المتبقي الحالي للاختيار",
@@ -1671,29 +1671,29 @@ const en: AppDictionary = {
         allocatedLabel: "Settled of it",
         remainingLabel: "Remaining",
         allocationTo: "Allocated to due",
-        recordPayment: "Record a payment",
+        recordPayment: "Simulate a payment — this screen only",
         createDue: "Add a due",
         postingUnavailable:
           "Recording and approving financial entries is currently unavailable pending the approved finance policy and system integration; no entry was recorded.",
         recordForm: {
-          title: "Record an incoming payment",
+          title: "Simulate an incoming payment — no durable record",
           methodLabel: "Payment method",
           selectMethod: "Choose a payment method",
           selectCustomer: "Choose a customer",
           selectProject: "Choose a project",
           referenceLabel: "Transaction / reference number",
           notesLabel: "Notes",
-          submit: "Save payment as pending verification",
+          submit: "Add to screen preview — not saved",
           cancel: "Cancel",
           evidenceUnavailable:
             "Attaching a receipt photo or transfer proof is not available yet; record the reference number instead.",
           sessionOnlyNote:
-            "Recording here is temporary to the current work session only and is not kept after a page refresh or sign-out, because permanent storage awaits the database connection.",
+            "Simulation state belongs to this mounted screen only. Leaving it, refreshing or signing out discards it; other registers do not receive these entries. No permanent record is saved.",
           pendingNote:
-            "A payment does not count toward balances and no receipt is issued before an authorized staff member confirms receipt.",
+            "This simulation changes local preview allocations only. It does not confirm actual funds, obtain staff approval or issue an authoritative receipt.",
           gatewayNote:
-            "No online payment gateway is integrated; Fawry, InstaPay and bank transfers are recorded here manually after completion outside the system, and selecting a method alone does not mean the transaction succeeded.",
-          confirmReceipt: "Confirm receipt",
+            "Payment-method names are simulation labels only. No gateway, bank or payment provider is connected; no receipt of funds is verified here.",
+          confirmReceipt: "Simulate receipt confirmation — screen only",
           sessionReceipt: "Session receipt",
           sessionPaymentsTitle: "Payments from this session",
           remainingForSelection: "Current remaining for selection",

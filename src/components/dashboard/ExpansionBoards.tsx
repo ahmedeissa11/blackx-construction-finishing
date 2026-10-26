@@ -287,6 +287,7 @@ function NoticeDialog({
 }
 
 function UnavailableButton({
+  availabilityLabel,
   label,
   message,
   onUnavailable,
@@ -294,6 +295,7 @@ function UnavailableButton({
   label: string;
   message: string;
   onUnavailable: (message: string) => void;
+  availabilityLabel: string;
 }) {
   return (
     <button
@@ -301,8 +303,9 @@ function UnavailableButton({
       className="btn btn-outline btn-sm"
       onClick={() => onUnavailable(message)}
       aria-haspopup="dialog"
+      title={message}
     >
-      {label}
+      {label} — {availabilityLabel}
     </button>
   );
 }
@@ -1176,6 +1179,7 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
               ]}
               actions={
                 <UnavailableButton
+                  availabilityLabel={appDict.previewUnavailableTitle}
                   label={docs.download}
                   message={docs.downloadUnavailable}
                   onUnavailable={setNotice}
@@ -1223,6 +1227,7 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
               ]}
               actions={
                 <UnavailableButton
+                  availabilityLabel={appDict.previewUnavailableTitle}
                   label={docs.download}
                   message={docs.downloadUnavailable}
                   onUnavailable={setNotice}
@@ -1254,6 +1259,7 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
               ]}
               actions={
                 <UnavailableButton
+                  availabilityLabel={appDict.previewUnavailableTitle}
                   label={docs.download}
                   message={docs.downloadUnavailable}
                   onUnavailable={setNotice}
@@ -1471,6 +1477,7 @@ function FinanceBoard({ locale, appDict }: BoardProps) {
                   </button>
                 ) : (
                   <UnavailableButton
+                    availabilityLabel={appDict.previewUnavailableTitle}
                     label={x.finance.createDue}
                     message={x.finance.postingUnavailable}
                     onUnavailable={setNotice}
@@ -1610,6 +1617,7 @@ function PurchasesBoard({ locale, appDict }: BoardProps) {
               }
               actions={
                 <UnavailableButton
+                  availabilityLabel={appDict.previewUnavailableTitle}
                   label={x.purchases.paySupplier}
                   message={x.purchases.postingUnavailable}
                   onUnavailable={setNotice}
@@ -1677,6 +1685,7 @@ function PurchasesBoard({ locale, appDict }: BoardProps) {
               </select>
             </div>
             <UnavailableButton
+              availabilityLabel={appDict.previewUnavailableTitle}
               label={x.purchases.recordPurchase}
               message={x.purchases.postingUnavailable}
               onUnavailable={setNotice}
@@ -1969,16 +1978,19 @@ function ComplaintsBoard({ locale, appDict }: BoardProps) {
                 actions={
                   <>
                     <UnavailableButton
+                      availabilityLabel={appDict.previewUnavailableTitle}
                       label={x.complaints.replyAction}
                       message={x.complaints.actionUnavailable}
                       onUnavailable={setNotice}
                     />
                     <UnavailableButton
+                      availabilityLabel={appDict.previewUnavailableTitle}
                       label={x.complaints.assignAction}
                       message={x.complaints.actionUnavailable}
                       onUnavailable={setNotice}
                     />
                     <UnavailableButton
+                      availabilityLabel={appDict.previewUnavailableTitle}
                       label={x.complaints.resolveAction}
                       message={x.complaints.actionUnavailable}
                       onUnavailable={setNotice}
@@ -2084,11 +2096,13 @@ function MessagesBoard({ locale, appDict }: BoardProps) {
               actions={
                 <>
                   <UnavailableButton
+                    availabilityLabel={appDict.previewUnavailableTitle}
                     label={x.messages.contactAction}
                     message={x.messages.actionUnavailable}
                     onUnavailable={setNotice}
                   />
                   <UnavailableButton
+                    availabilityLabel={appDict.previewUnavailableTitle}
                     label={x.messages.convertAction}
                     message={x.messages.actionUnavailable}
                     onUnavailable={setNotice}

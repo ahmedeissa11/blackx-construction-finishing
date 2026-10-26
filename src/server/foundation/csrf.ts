@@ -13,7 +13,7 @@
  *
  * This module verifies on every state-changing request that `Origin`
  * (falling back to `Referer`) matches the trusted application origin
- * resolved from the `AUTH_URL` environment variable, or that Fetch
+ * resolved from server configuration, or that Fetch
  * Metadata `Sec-Fetch-Site` is `same-origin`. The raw `Host` header is
  * never trusted: it is client-controlled and can be spoofed to bypass
  * origin checks.
@@ -29,7 +29,8 @@
  * to state-changing operations.
  *
  * Configuration:
- *   AUTH_URL — required trusted origin for state-changing requests.
+ *   AUTH_URL — single canonical Auth.js URL, used as the default trusted origin.
+ *   CSRF_TRUSTED_ORIGINS — optional explicit comma-separated origin allowlist.
  *   When unset, all browser state-changing requests fail closed.
  */
 
@@ -38,23 +39,48 @@ import { logWarn } from "./logger";
 /** HTTP methods that mutate state and require origin verification. */
 const STATE_CHANGING_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 
-/** Headers that indicate the request originates from a browser context. */
-const BROWSER_HEADERS = ["origin", "referer", "sec-fetch-site"];
-
 /**
- * Resolves the trusted application origin server-side from configuration.
- * Never client-controlled: only the operator-configured `AUTH_URL` is
- * trusted. The raw `Host` header is never used because it can be spoofed.
+ * Resolves the trusted application origin(s) server-side from configuration.
+ * `CSRF_TRUSTED_ORIGINS` may contain a comma-separated list of origins.
+ * Otherwise the single canonical `AUTH_URL` is used. Never put a list in
+ * `AUTH_URL`: Auth.js parses that variable as a single URL. Only
+ * operator-configured origins are trusted. The raw `Host` header is never
+ * used because it can be spoofed.
  */
-export function getExpectedOrigin(): string | null {
-  const configured = process.env.AUTH_URL?.trim();
-  if (!configured) return null;
-  return configured.replace(/\/+$/, "");
+export function getExpectedOrigins(): string[] {
+  const explicit = process.env.CSRF_TRUSTED_ORIGINS;
+  const configured = explicit ?? process.env.AUTH_URL;
+  if (!configured?.trim()) return [];
+  const entries = explicit === undefined ? [configured] : configured.split(",");
+  const origins: string[] = [];
+  for (const entry of entries) {
+    try {
+      const url = new URL(entry.trim());
+      // Fail the entire configuration closed on malformed entries. Origins
+      // cannot contain paths, credentials, wildcards, queries or fragments.
+      if (
+        !/^https?:\/\//i.test(entry.trim()) ||
+        !["https:", "http:"].includes(url.protocol) ||
+        url.username ||
+        url.password ||
+        url.hostname.includes("*") ||
+        url.pathname !== "/" ||
+        url.search ||
+        url.hash ||
+        /[\\\s]/.test(entry.trim())
+      )
+        return [];
+      origins.push(url.origin);
+    } catch {
+      return [];
+    }
+  }
+  return [...new Set(origins)];
 }
 
-/** Returns true if the request carries any browser-origin header. */
-function hasBrowserHeader(request: Request): boolean {
-  return BROWSER_HEADERS.some((header) => request.headers.get(header) !== null);
+/** Returns the first trusted origin, or null if none configured. */
+export function getExpectedOrigin(): string | null {
+  return getExpectedOrigins()[0] ?? null;
 }
 
 /**
@@ -64,6 +90,14 @@ function hasBrowserHeader(request: Request): boolean {
 function parseRefererOrigin(referer: string): string | null {
   try {
     const url = new URL(referer.trim());
+    if (
+      !/^https?:\/\//i.test(referer) ||
+      /[\\\s]/.test(referer) ||
+      !["https:", "http:"].includes(url.protocol) ||
+      url.username ||
+      url.password
+    )
+      return null;
     return url.origin;
   } catch {
     return null;
@@ -80,14 +114,14 @@ export function verifyOrigin(request: Request): Response | null {
   // Safe methods are never CSRF-checked.
   if (!STATE_CHANGING_METHODS.has(request.method)) return null;
 
-  const trustedOrigin = getExpectedOrigin();
+  const trustedOrigins = getExpectedOrigins();
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
   const secFetchSite = request.headers.get("sec-fetch-site");
   const hasBrowserHeader = origin !== null || referer !== null || secFetchSite !== null;
 
   // No trusted origin configured: refuse all browser state changes.
-  if (trustedOrigin === null) {
+  if (trustedOrigins.length === 0) {
     if (hasBrowserHeader) {
       logWarn("csrf.origin_required_no_trusted_origin", {
         method: request.method,
@@ -103,43 +137,30 @@ export function verifyOrigin(request: Request): Response | null {
     return null;
   }
 
-  // --- Origin present: must match trusted origin -----------------------
-  if (origin !== null) {
-    if (origin !== trustedOrigin) {
-      logWarn("csrf.origin_mismatch", {
-        method: request.method,
-        trustedOrigin,
-        requestOrigin: origin,
-      });
-      return jsonError(403, "ORIGIN_MISMATCH", "errors.csrfOriginMismatch");
-    }
-    return null;
+  // Every supplied source header must validate. Fetch Metadata must not
+  // override a mismatched/malformed Referer, nor may Referer rescue Origin.
+  if (origin !== null && !trustedOrigins.includes(origin)) {
+    logWarn("csrf.origin_mismatch", { method: request.method });
+    return jsonError(403, "ORIGIN_MISMATCH", "errors.csrfOriginMismatch");
   }
 
-  // --- No Origin header: consult Fetch Metadata -----------------------
-  if (secFetchSite !== null) {
-    if (secFetchSite === "same-origin") return null;
-    // cross-site, same-site (non-origin), etc. — same-site is NOT same-origin.
-    logWarn("csrf.non_same_origin_site", {
-      method: request.method,
-      secFetchSite,
-    });
-    return jsonError(403, "ORIGIN_MISMATCH", "errors.csrfCrossSite");
-  }
-
-  // --- No Origin: fall back to Referer --------------------------------
   if (referer !== null) {
     const refererOrigin = parseRefererOrigin(referer);
-    if (refererOrigin === null || refererOrigin !== trustedOrigin) {
-      logWarn("csrf.referer_mismatch", {
-        method: request.method,
-        trustedOrigin,
-        referer,
-      });
+    if (refererOrigin === null || !trustedOrigins.includes(refererOrigin)) {
+      // Never log raw Referer URLs: their queries can contain credentials.
+      logWarn("csrf.referer_mismatch", { method: request.method });
       return jsonError(403, "ORIGIN_MISMATCH", "errors.csrfRefererMismatch");
     }
-    return null;
   }
+  if (origin !== null) return null;
+
+  if (secFetchSite !== null) {
+    if (secFetchSite === "same-origin") return null;
+    // same-site is NOT same-origin.
+    logWarn("csrf.non_same_origin_site", { method: request.method });
+    return jsonError(403, "ORIGIN_MISMATCH", "errors.csrfCrossSite");
+  }
+  if (referer !== null) return null;
 
   // --- No Origin, no Fetch Metadata, no Referer: non-browser client ---
   logWarn("csrf.non_browser_client", {
