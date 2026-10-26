@@ -82,7 +82,7 @@ describe("ERP interactive controls (DOM, not authenticated browser E2E)", () => 
     await select(container.querySelector("select")!, "deferred");
     expect(container.querySelectorAll(".erp-module-card li").length).toBeGreaterThan(0);
     for (const link of container.querySelectorAll("a"))
-      expect(link.getAttribute("href")).toMatch(/^\/en\/dashboard\/erp\//);
+      expect(link.getAttribute("href")).toMatch(/^\/en\/dashboard\/erp(?:\/|$)/);
   });
   it("opens the active hierarchy and supports collapsible groups and quick search", async () => {
     await render(createElement(ErpNavigation, { locale: "en", role: "owner_review" }));

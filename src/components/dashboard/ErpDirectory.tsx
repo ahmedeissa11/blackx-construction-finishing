@@ -1,171 +1,384 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import { getScreenViews, screenSearchText } from "@/config/erp-screen-specs";
-import { erpHref, erpModules, legacyReference } from "@/config/erp";
+import { erpHref, erpModules, legacyReference, type ErpModule, type ErpPage } from "@/config/erp";
+import { erpNavigationGroups } from "@/config/erp-navigation";
+import { erpWorkspacePresentation, normalizeWorkspaceSearch } from "@/config/erp-workspace";
 import { erpText, erpKindLabel } from "@/content/erp-dictionary";
+import { GlyphIcon } from "@/components/ui/GlyphIcon";
+
+/** One shared registered-page renderer for module hubs and on-demand search results. */
+function RegisteredPages({
+  areaModule,
+  pages,
+  locale,
+  query,
+  headingLevel: SectionHeading = "h5",
+}: {
+  areaModule: ErpModule;
+  pages: ErpPage[];
+  locale: Locale;
+  query: string;
+  headingLevel?: "h3" | "h5";
+}) {
+  return (
+    <div className="workspace-page-groups">
+      {[...new Set(pages.map((page) => pick(page.section, locale)))].map((section) => (
+        <section className="workspace-page-group" key={section}>
+          <SectionHeading>{section}</SectionHeading>
+          <ul>
+            {pages
+              .filter((page) => pick(page.section, locale) === section)
+              .map((page) => {
+                const views = getScreenViews(areaModule.id, page.id);
+                const matchingViews = query
+                  ? views.filter((view) =>
+                      normalizeWorkspaceSearch(`${view.title.ar} ${view.title.en}`).includes(query),
+                    )
+                  : [];
+                return (
+                  <li key={page.id}>
+                    <Link
+                      className="workspace-page-link"
+                      href={erpHref(locale, areaModule.id, page.id)}
+                    >
+                      <span>{pick(page.title, locale)}</span>
+                      <small>{erpKindLabel(page.kind, locale)}</small>
+                    </Link>
+                    {views.length ? (
+                      <details className="erp-layout-links" open={matchingViews.length > 0}>
+                        <summary>
+                          {locale === "ar"
+                            ? "هياكل إضافية — ليست مسارات جديدة"
+                            : "Detailed layouts — not extra routes"}
+                        </summary>
+                        {(matchingViews.length ? matchingViews : views).map((view) => (
+                          <Link
+                            key={view.id}
+                            href={`${erpHref(locale, areaModule.id, page.id)}?view=${encodeURIComponent(view.id)}`}
+                          >
+                            {pick(view.title, locale)}
+                          </Link>
+                        ))}
+                      </details>
+                    ) : null}
+                  </li>
+                );
+              })}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
 
 export function ErpDirectory({ locale, moduleId }: { locale: Locale; moduleId?: string }) {
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState("all");
-  const modules = erpModules.filter((module) => !moduleId || module.id === moduleId);
-  const q = query.trim().toLowerCase();
-  const selectedModule = modules.length === 1 && moduleId ? modules[0] : undefined;
-  const matches = (
-    page: (typeof erpModules)[number]["pages"][number],
-    area: (typeof erpModules)[number],
-  ) =>
+  const searchRef = useRef<HTMLInputElement>(null);
+  const id = useId();
+  const t = (en: string, ar: string) => (locale === "ar" ? ar : en);
+  const modules = erpModules.filter((areaModule) => !moduleId || areaModule.id === moduleId);
+  const q = normalizeWorkspaceSearch(query);
+  const selectedModule = moduleId ? modules[0] : undefined;
+  const matches = (page: ErpPage, area: ErpModule) =>
     (mode === "all" ||
       (mode === "source"
         ? ["preview", "fixture", "tool"].includes(page.kind)
         : page.kind === "deferred")) &&
-    `${area.title.ar} ${area.title.en} ${page.title.ar} ${page.title.en} ${page.subject.ar} ${page.subject.en} ${screenSearchText(area.id, page.id)}`
-      .toLowerCase()
-      .includes(q);
+    normalizeWorkspaceSearch(
+      `${area.id} ${area.title.ar} ${area.title.en} ${page.title.ar} ${page.title.en} ${page.subject.ar} ${page.subject.en} ${screenSearchText(area.id, page.id)}`,
+    ).includes(q);
+  const results = modules
+    .map((areaModule) => ({
+      areaModule,
+      pages: areaModule.pages.filter((page) => matches(page, areaModule)),
+    }))
+    .filter((result) => result.pages.length);
+  const searching = Boolean(q) || mode !== "all";
+  const totalPages = modules.reduce((sum, areaModule) => sum + areaModule.pages.length, 0);
+  const matchedPages = results.reduce((sum, result) => sum + result.pages.length, 0);
+  function resetSearch() {
+    setQuery("");
+    setMode("all");
+    searchRef.current?.focus();
+  }
+
   return (
-    <div className="erp-workspace">
-      <header className="erp-intro">
-        <span className="erp-eyebrow">BLACK X / ERP</span>
+    <div className="erp-workspace workspace-directory" dir={locale === "ar" ? "rtl" : "ltr"}>
+      <header className="erp-intro workspace-intro">
+        <span className="erp-eyebrow">
+          {t("YOUR BUSINESS, ORGANIZED", "أعمالك في مساحة واحدة")}
+        </span>
         <h2>
-          {selectedModule ? pick(selectedModule.title, locale) : erpText("catalogue", locale)}
+          {selectedModule
+            ? pick(selectedModule.title, locale)
+            : t("BLACK X ERP Workspace", "مساحة عمل BLACK X ERP")}
         </h2>
-        <p>{erpText("legacy", locale)}</p>
-        <div className="erp-counts">
+        <p>
+          {selectedModule
+            ? pick(selectedModule.boundary, locale)
+            : t(
+                "Access every business module from one workspace. Choose an area or search for the page you need.",
+                "يمكنك الوصول إلى جميع وحدات الأعمال من مساحة واحدة. اختر مجال العمل أو ابحث عن الصفحة التي تحتاجها.",
+              )}
+        </p>
+        <div className="erp-counts workspace-counts">
           <span>
             <strong>{modules.length}</strong> {erpText("modules", locale)}
           </span>
           <span>
-            <strong>{modules.reduce((sum, area) => sum + area.pages.length, 0)}</strong>{" "}
-            {erpText("pages", locale)}
+            <strong>{totalPages}</strong> {erpText("pages", locale)}
           </span>
-          <span>
-            {legacyReference.independentlyVerifiedInternalPages}{" "}
-            {locale === "ar"
-              ? "صفحات قديمة متحققة مستقلاً"
-              : "independently verified legacy internal pages"}
-          </span>
+          {!moduleId ? (
+            <span>
+              {t(
+                `${erpNavigationGroups.length} business areas`,
+                `${erpNavigationGroups.length} مجالات عمل`,
+              )}
+            </span>
+          ) : null}
         </div>
+        {selectedModule ? (
+          <Link className="workspace-back" href={erpHref(locale)}>
+            {t("All business modules", "جميع وحدات الأعمال")} <span aria-hidden="true">↗</span>
+          </Link>
+        ) : null}
       </header>
-      <details className="panel erp-tool" id="erp-system-guide">
-        <summary>
-          {locale === "ar" ? "دليل النظام وحدود المعاينة" : "System guide and preview boundaries"}
-        </summary>
-        <p>
-          {locale === "ar"
-            ? "ابحث بالعربية أو الإنجليزية وافتح الوحدات ثم الصفحة. هياكل التسجيل الثاني معاينات مستقلة بلا بيانات متصلة؛ المعلمات والمسودات مؤقتة ولا تنفذ عمليات. العينات القديمة منفصلة وليست سجلات معتمدة. تحكم المالك من الخادم باقٍ دون تغيير."
-            : "Search in Arabic or English, expand a module and open a page. Second-recording structures are disconnected previews: parameters and drafts are temporary and execute no operation. Existing fixtures remain separate, not authoritative records. Server-side owner access remains unchanged."}
-        </p>
-      </details>
-      {!moduleId ? (
-        <section className="panel erp-workflow">
-          <h3>{erpText("chain", locale)}</h3>
-          <ol>
-            {[
-              ["sales", "requests"],
-              ["sales", "inspections"],
-              ["sales", "quotations"],
-              ["sales", "decisions"],
-              ["sales", "contracts"],
-              ["projects", "phases"],
-              ["projects", "progress"],
-              ["quality", "inspections"],
-              ["projects", "weekly-reports"],
-              ["projects", "handover"],
-              ["projects", "warranty"],
-            ].map(([m, p]) => {
-              const areaModule = erpModules.find((x) => x.id === m);
-              const page = areaModule?.pages.find((x) => x.id === p);
-              return page ? (
-                <li key={`${m}/${p}`}>
-                  <Link href={erpHref(locale, m, p)}>{pick(page.title, locale)}</Link>
-                </li>
-              ) : null;
-            })}
-          </ol>
-        </section>
-      ) : null}
-      <div className="panel erp-filterbar">
-        <label>
-          {erpText("search", locale)}
-          <input
-            className="form-input"
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </label>
-        <label>
+
+      <section
+        className="erp-filterbar workspace-search"
+        aria-label={t("Workspace search and filters", "البحث والتصفية في مساحة العمل")}
+      >
+        <div className="workspace-search-main">
+          <label htmlFor={`${id}-search`}>{erpText("search", locale)}</label>
+          <div className="workspace-search-field">
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+            >
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="m16 16 5 5" />
+            </svg>
+            <input
+              ref={searchRef}
+              id={`${id}-search`}
+              className="form-input"
+              type="search"
+              value={query}
+              placeholder={t(
+                "Try: projects, quotations, Trial balance…",
+                "جرّب: المشروعات، عروض الأسعار، ميزان المراجعة…",
+              )}
+              aria-describedby={`${id}-search-help`}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && query) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setQuery("");
+                }
+              }}
+            />
+          </div>
+          <p id={`${id}-search-help`}>
+            {t(
+              "Search Arabic or English module names, page titles and detailed layouts.",
+              "ابحث بأسماء الوحدات وعناوين الصفحات والهياكل التفصيلية بالعربية أو الإنجليزية.",
+            )}
+          </p>
+        </div>
+        <label className="workspace-filter" htmlFor={`${id}-filter`}>
           {erpText("filter", locale)}
-          <select className="form-select" value={mode} onChange={(e) => setMode(e.target.value)}>
+          <select
+            id={`${id}-filter`}
+            className="form-select"
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
+          >
             <option value="all">{erpText("all", locale)}</option>
             <option value="source">
-              {locale === "ar"
-                ? "معاينات مدمجة وأدوات محلية فقط"
-                : "Embedded previews & local tools only"}
+              {t("Embedded previews & local tools only", "معاينات مدمجة وأدوات محلية فقط")}
             </option>
             <option value="deferred">{erpText("pending", locale)}</option>
           </select>
         </label>
+      </section>
+
+      <div className="workspace-results-bar">
+        <p role="status" aria-live="polite" aria-atomic="true">
+          {searching
+            ? t(
+                `${results.length} modules · ${matchedPages} matching pages`,
+                `${results.length} وحدات · ${matchedPages} صفحات مطابقة`,
+              )
+            : t("Choose a business area to get started", "اختر مجال العمل للبدء")}
+        </p>
+        {searching ? (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={resetSearch}>
+            {t("Clear search & filters", "مسح البحث والمرشحات")}
+          </button>
+        ) : (
+          <span>
+            {t("Availability is labelled on each page", "حالة الإتاحة موضّحة في كل صفحة")}
+          </span>
+        )}
       </div>
-      <div className="erp-module-grid">
-        {modules.map((module) => {
-          const pages = module.pages.filter((page) => matches(page, module));
-          if (!pages.length) return null;
-          return (
-            <section className="panel erp-module-card" key={module.id}>
-              <header>
-                <small>
-                  {erpText(module.provenance === "adapted" ? "adapted" : "category", locale)}
-                </small>
-                <h3>
-                  <Link href={erpHref(locale, module.id)}>{pick(module.title, locale)}</Link>
-                </h3>
-                <p>{pick(module.boundary, locale)}</p>
-              </header>
-              {[...new Set(pages.map((p) => pick(p.section, locale)))].map((section) => (
-                <div key={section}>
-                  <h4>{section}</h4>
-                  <ul>
-                    {pages
-                      .filter((p) => pick(p.section, locale) === section)
-                      .map((page) => (
-                        <li key={page.id}>
-                          <Link href={erpHref(locale, module.id, page.id)}>
-                            <span>{pick(page.title, locale)}</span>
-                            <small>{erpKindLabel(page.kind, locale)}</small>
-                          </Link>
-                          {getScreenViews(module.id, page.id).length ? (
-                            <details className="erp-layout-links">
-                              <summary>
-                                {locale === "ar"
-                                  ? "هياكل إضافية — ليست مسارات جديدة"
-                                  : "Detailed layouts — not extra routes"}
-                              </summary>
-                              {getScreenViews(module.id, page.id).map((view) => (
-                                <Link
-                                  key={view.id}
-                                  href={`${erpHref(locale, module.id, page.id)}?view=${view.id}`}
-                                >
-                                  {pick(view.title, locale)}
-                                </Link>
-                              ))}
-                            </details>
-                          ) : null}
-                        </li>
-                      ))}
-                  </ul>
-                </div>
-              ))}
+
+      {selectedModule
+        ? results.map(({ areaModule, pages }) => (
+            <section
+              className="erp-module-card workspace-hub"
+              key={areaModule.id}
+              aria-label={pick(areaModule.title, locale)}
+            >
+              <RegisteredPages
+                areaModule={areaModule}
+                pages={pages}
+                locale={locale}
+                query={q}
+                headingLevel="h3"
+              />
             </section>
-          );
-        })}
-      </div>
-      {!modules.some((area) => area.pages.some((page) => matches(page, area))) ? (
-        <div className="empty-state">{erpText("noResults", locale)}</div>
+          ))
+        : erpNavigationGroups.map((group) => {
+            const groupResults = group.modules.flatMap((moduleId) =>
+              results.filter((result) => result.areaModule.id === moduleId),
+            );
+            if (!groupResults.length) return null;
+            return (
+              <section
+                className="workspace-category"
+                key={group.id}
+                aria-labelledby={`${id}-${group.id}`}
+              >
+                <div className="workspace-category-heading">
+                  <h3 id={`${id}-${group.id}`}>{pick(group.title, locale)}</h3>
+                  <span>
+                    {groupResults.length} {t("modules", "وحدات")}
+                  </span>
+                </div>
+                <div className="erp-module-grid workspace-module-grid">
+                  {groupResults.map(({ areaModule, pages }) => {
+                    const presentation = erpWorkspacePresentation[areaModule.id];
+                    return (
+                      <article className="erp-module-card workspace-module" key={areaModule.id}>
+                        <div className="workspace-module-summary">
+                          <span className="workspace-module-icon">
+                            <GlyphIcon icon={presentation?.icon ?? "▤"} />
+                          </span>
+                          <h4>
+                            <Link href={erpHref(locale, areaModule.id)}>
+                              {pick(areaModule.title, locale)}
+                            </Link>
+                          </h4>
+                          <p>
+                            {presentation
+                              ? pick(presentation.description, locale)
+                              : pick(areaModule.boundary, locale)}
+                          </p>
+                        </div>
+                        <div className="workspace-module-action">
+                          <span>
+                            {areaModule.pages.length} {erpText("pages", locale)}
+                          </span>
+                          <Link
+                            href={erpHref(locale, areaModule.id)}
+                            aria-label={`${t("Open module", "فتح الوحدة")}: ${pick(areaModule.title, locale)}`}
+                          >
+                            {t("Open module", "فتح الوحدة")} <span aria-hidden="true">↗</span>
+                          </Link>
+                        </div>
+                        {searching ? (
+                          <details
+                            className="workspace-matches"
+                            open={Boolean(q) && pages.length <= 4}
+                          >
+                            <summary>
+                              {pages.length} {t("matching pages", "صفحات مطابقة")}
+                            </summary>
+                            <RegisteredPages
+                              areaModule={areaModule}
+                              pages={pages}
+                              locale={locale}
+                              query={q}
+                            />
+                          </details>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
+
+      {!results.length ? (
+        <section className="workspace-empty" aria-labelledby={`${id}-empty`}>
+          <GlyphIcon icon="◎" />
+          <h3 id={`${id}-empty`}>
+            {t("No matching modules or pages", "لا توجد وحدات أو صفحات مطابقة")}
+          </h3>
+          <p>{erpText("noResults", locale)}</p>
+          <button type="button" className="btn btn-outline" onClick={resetSearch}>
+            {t("Reset workspace search", "إعادة ضبط البحث")}
+          </button>
+        </section>
       ) : null}
-      <p className="erp-footnote">{erpText("future", locale)}</p>
+
+      <div className="workspace-resources">
+        <details className="workspace-guide" id="erp-system-guide">
+          <summary>
+            {t("System guide and preview boundaries", "دليل النظام وحدود المعاينة")}
+          </summary>
+          <p>{erpText("legacy", locale)}</p>
+          <p>
+            {legacyReference.independentlyVerifiedInternalPages}{" "}
+            {t("independently verified legacy internal pages", "صفحات قديمة متحققة مستقلاً")}
+          </p>
+          <p>
+            {t(
+              "Search in Arabic or English, open a module, then choose a registered page. Detailed layouts are disconnected previews: parameters and drafts are temporary and execute no operation. Existing fixtures are not authoritative business records. Server-side owner access remains unchanged.",
+              "ابحث بالعربية أو الإنجليزية، ثم افتح الوحدة واختر صفحة مسجلة. الهياكل التفصيلية معاينات بلا بيانات متصلة؛ المعلمات والمسودات مؤقتة ولا تنفذ عمليات. العينات ليست سجلات أعمال معتمدة. تحكم المالك من الخادم باقٍ دون تغيير.",
+            )}
+          </p>
+          <p className="erp-footnote">{erpText("future", locale)}</p>
+        </details>
+        {!moduleId ? (
+          <details className="workspace-guide erp-workflow">
+            <summary>{erpText("chain", locale)}</summary>
+            <ol>
+              {[
+                ["sales", "requests"],
+                ["sales", "inspections"],
+                ["sales", "quotations"],
+                ["sales", "decisions"],
+                ["sales", "contracts"],
+                ["projects", "phases"],
+                ["projects", "progress"],
+                ["quality", "inspections"],
+                ["projects", "weekly-reports"],
+                ["projects", "handover"],
+                ["projects", "warranty"],
+              ].map(([m, p]) => {
+                const areaModule = erpModules.find((item) => item.id === m);
+                const page = areaModule?.pages.find((item) => item.id === p);
+                return page ? (
+                  <li key={`${m}/${p}`}>
+                    <Link href={erpHref(locale, m, p)}>{pick(page.title, locale)}</Link>
+                  </li>
+                ) : null;
+              })}
+            </ol>
+          </details>
+        ) : null}
+      </div>
     </div>
   );
 }
