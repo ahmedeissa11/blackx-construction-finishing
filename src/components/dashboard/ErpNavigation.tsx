@@ -180,6 +180,7 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
           {app.dashboard.modules.overview}
         </Link>
         <Link
+          className="erp-workspace-entry"
           href={erpHref(locale)}
           aria-current={pathname === erpHref(locale) ? "page" : undefined}
         >

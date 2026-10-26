@@ -868,3 +868,210 @@
   font-weight: 700;
   overflow-wrap: anywhere;
 }
+
+/* Admin header: explicit rows, rather than squeezing tools into a utility cell.
+   Scoped overrides intentionally follow the legacy shared-shell breakpoints. */
+.erp-admin-shell .shell-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "heading actions"
+    "tools tools";
+  align-items: center;
+  gap: 12px 20px;
+  height: auto;
+}
+.erp-admin-shell .shell-heading {
+  grid-area: heading;
+  min-width: 0;
+}
+.erp-admin-shell .shell-topbar .shell-title {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.erp-admin-shell .shell-topbar .shell-context,
+.erp-admin-shell .shell-topbar .shell-breadcrumbs {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.erp-admin-shell .shell-breadcrumbs li {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+.erp-admin-shell .shell-topbar-actions {
+  grid-area: actions;
+  margin: 0;
+  min-width: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.erp-admin-shell .shell-topbar-tools {
+  grid-area: tools;
+  min-width: 0;
+  border-block-start: 1px solid var(--admin-border);
+  padding-block-start: 8px;
+}
+.erp-header-disclosure summary {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--bx-sage-deep);
+  font-size: 0.875rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.erp-header-disclosure summary:focus-visible {
+  outline: 3px solid var(--bx-brass);
+  outline-offset: 2px;
+}
+.erp-header-disclosure .erp-header-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-block: 8px;
+}
+.erp-header-disclosure .btn {
+  min-height: 44px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+  font-size: 0.875rem;
+}
+.erp-admin-shell .shell-topbar .locale-switch a,
+.erp-admin-shell .shell-topbar .shell-signout {
+  min-height: 44px;
+}
+.erp-admin-shell .shell-topbar .locale-switch a {
+  min-width: 44px;
+}
+.erp-admin-shell .erp-workspace-entry,
+.erp-admin-shell .dashboard-intro-actions .erp-workspace-entry {
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 1px solid var(--bx-brass);
+  border-inline-start-width: 4px;
+  border-radius: 10px;
+  background: var(--bx-sage-deep);
+  color: #fffdf8;
+  font-weight: 800;
+  line-height: 1.7;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+  text-decoration: none;
+}
+.erp-admin-shell .erp-workspace-entry:hover {
+  background: var(--color-charcoal);
+  color: #fffdf8;
+}
+.erp-admin-shell .erp-workspace-entry:focus-visible {
+  outline: 3px solid var(--bx-brass);
+  outline-offset: 3px;
+}
+.erp-admin-shell .dashboard-intro {
+  flex-wrap: wrap;
+}
+.erp-admin-shell .dashboard-intro-actions {
+  flex: 1 1 480px;
+  min-width: 0;
+  max-width: 100%;
+}
+.erp-admin-shell .dashboard-intro-actions .btn {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* Feedback stays in document flow, so it cannot cover records or actions. */
+.erp-admin-shell .toast-region {
+  position: static;
+  inset: auto;
+  width: 100%;
+  max-width: 100%;
+}
+.erp-admin-shell .toast {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 960px) {
+  .erp-admin-shell .shell-topbar {
+    position: static;
+    grid-template-columns: 44px minmax(0, 1fr);
+    grid-template-areas:
+      "menu heading"
+      "actions actions"
+      "tools tools";
+    padding: calc(12px + env(safe-area-inset-top))
+      max(16px, env(safe-area-inset-left), env(safe-area-inset-right)) 12px;
+    gap: 12px;
+  }
+  .erp-admin-shell .shell-menu-btn {
+    grid-area: menu;
+    align-self: start;
+  }
+  .erp-admin-shell .shell-topbar .shell-title {
+    font-size: 1.15rem;
+  }
+  .erp-admin-shell .shell-topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .erp-admin-shell .shell-account {
+    display: none; /* Decorative duplicate; role remains in the heading/sidebar. */
+  }
+  .erp-header-disclosure .btn {
+    flex: 1 1 160px;
+  }
+  .erp-admin-shell .shell-content {
+    padding: 20px 16px calc(32px + env(safe-area-inset-bottom));
+    gap: 20px;
+  }
+  .erp-admin-shell .erp-preview-note {
+    margin: 0;
+    padding: 12px 14px;
+    line-height: 1.8;
+  }
+  .erp-admin-shell .dashboard-intro {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .erp-admin-shell .dashboard-intro-actions {
+    display: grid;
+    flex: none;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 10px;
+  }
+  .erp-admin-shell .dashboard-intro-actions .btn {
+    min-width: 0;
+    min-height: 48px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.7;
+    padding: 12px;
+  }
+  .erp-admin-shell .dashboard-intro-actions .erp-workspace-entry {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+  .erp-admin-shell .executive-dashboard :is(.panel-head, .ops-flow-topline) {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .erp-admin-shell .executive-dashboard :is(.panel, .stat-card, .record-list-item) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 374px) {
+  .erp-admin-shell .dashboard-intro-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -246,6 +246,39 @@ describe("Unified existing Admin and ERP (DOM/source checks, not authenticated b
     },
   );
 
+  it.each(["ar", "en"] as const)(
+    "separates %s header tools from utility controls and keeps the prominent ERP entries",
+    async (locale) => {
+      await render(shell(locale));
+      const actions = container.querySelector(".shell-topbar-actions")!;
+      const tools = container.querySelector(".shell-topbar-tools")!;
+      expect(actions.contains(tools)).toBe(false);
+      expect(actions.querySelectorAll(".locale-switch a")).toHaveLength(2);
+      const disclosure = tools.querySelector<HTMLDetailsElement>("details")!;
+      expect(disclosure.open).toBe(false);
+      expect(disclosure.querySelector("summary")?.textContent).toBeTruthy();
+      expect(
+        disclosure.querySelector(`a[href="${erpHref(locale, "administration", "session")}"]`),
+      ).not.toBeNull();
+      expect(
+        disclosure.querySelector(`a[href="${erpHref(locale)}#erp-system-guide"]`),
+      ).not.toBeNull();
+      const density = disclosure.querySelector<HTMLButtonElement>("button[aria-pressed]")!;
+      await click(density);
+      expect(density.getAttribute("aria-pressed")).toBe("true");
+      expect(container.querySelector(".erp-density-compact")).not.toBeNull();
+      expect(disclosure.querySelector("button:disabled")).not.toBeNull();
+      expect(container.querySelector(".erp-nav .erp-workspace-entry")?.getAttribute("href")).toBe(
+        erpHref(locale),
+      );
+      const overview = await AdminOverview({ params: Promise.resolve({ locale }) });
+      await render(overview);
+      const entry = container.querySelector(".dashboard-intro .erp-workspace-entry")!;
+      expect(entry.getAttribute("href")).toBe(erpHref(locale));
+      expect(entry.textContent).toBe(erpText("workspace", locale));
+    },
+  );
+
   it("retains the inherited server guard and passes the actual role to the only Admin shell", async () => {
     const element = await DashboardLayout({
       params: Promise.resolve({ locale: "ar" }),

@@ -186,7 +186,7 @@ export default async function DashboardOverview({
           {d.snapshotAsOf} {formatDate(overview.snapshotDate, locale)}
         </p>
         <div className="dashboard-intro-actions">
-          <Link className="btn btn-outline" href={erpHref(locale)}>
+          <Link className="btn erp-workspace-entry" href={erpHref(locale)}>
             {erpText("workspace", locale)}
           </Link>
           <Link className="btn btn-primary" href={moduleHref(locale, "requests")}>

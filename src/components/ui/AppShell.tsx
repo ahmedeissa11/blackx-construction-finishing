@@ -395,7 +395,6 @@ export function AppShell({
             <h1 className="shell-title">{title}</h1>
           </div>
           <span className="shell-topbar-actions">
-            {topbarContent}
             <span className="locale-switch" role="group" aria-label="Language / اللغة">
               <Link
                 href={buildLocaleSwitchHref(pathname, "ar", urlSuffix)}
@@ -434,6 +433,7 @@ export function AppShell({
               </button>
             ) : null}
           </span>
+          {topbarContent ? <div className="shell-topbar-tools">{topbarContent}</div> : null}
         </header>
         <main className="shell-content" id="main">
           {children}
