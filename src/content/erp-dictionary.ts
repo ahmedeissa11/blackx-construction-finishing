@@ -29,7 +29,12 @@ export const erpCopy = {
   },
   pages: { ar: "صفحات", en: "Pages" },
   modules: { ar: "وحدات مسماة", en: "Named modules" },
-  current: { ar: "مساحات المراجعة الحالية", en: "Existing review workspaces" },
+  current: {
+    ar: "إدارة الموقع ومساحات المراجعة",
+    en: "Website administration & review workspaces",
+  },
+  adminNavigation: { ar: "التنقل الإداري الموحد", en: "Unified Admin navigation" },
+  websiteAdmin: { ar: "إدارة الموقع", en: "Website administration" },
   open: { ar: "فتح مساحة المراجعة الحالية", en: "Open existing review workspace" },
   linked: { ar: "موارد مراجعة (ليست خدمات حية)", en: "Review resources (not live services)" },
   pending: { ar: "مؤجل — غير منفذ", en: "Deferred — not implemented" },

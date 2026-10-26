@@ -95,7 +95,9 @@ export function DashboardShell({
       }
       navItems={navItems}
       breadcrumbs={pathParts[0] === "erp" ? erpBreadcrumbs : breadcrumbs}
-      navigationContent={<ErpNavigation locale={locale} role={role} />}
+      navigationContent={
+        canAccessErp(role) ? <ErpNavigation locale={locale} role={role} /> : undefined
+      }
       shellClassName={`erp-admin-shell${compact ? " erp-density-compact" : ""}`}
       topbarContent={
         canAccessErp(role) ? (

@@ -857,3 +857,14 @@
     min-height: 44px;
   }
 }
+
+/* Shared Admin sidebar: logical ERP groups, not a second application shell. */
+.erp-nav-category-title {
+  display: block;
+  padding-block: 16px 5px;
+  padding-inline: 10px;
+  color: #d8d4c8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}

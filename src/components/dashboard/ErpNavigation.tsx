@@ -7,7 +7,8 @@ import type { Locale } from "@/lib/i18n";
 import { pick } from "@/lib/i18n";
 import { screenSearchText, getScreenViews } from "@/config/erp-screen-specs";
 import { erpModules, erpHref, canAccessErp, type ErpModule } from "@/config/erp";
-import { dashboardModules, dashboardHref } from "@/config/navigation";
+import { dashboardModules, dashboardHref, dashboardNavGroups } from "@/config/navigation";
+import { erpNavigationGroups } from "@/config/erp-navigation";
 import { getAppDictionary } from "@/content/app-dictionary";
 import { erpText } from "@/content/erp-dictionary";
 import { InfoDialog } from "@/components/ui/ConfirmDialog";
@@ -22,6 +23,15 @@ export function searchErpPages(query: string) {
           .includes(q),
       )
       .map((page) => ({ module, page })),
+  );
+}
+/** Existing website Admin pages share the same search and command surface. */
+export function searchAdminPages(query: string) {
+  const q = query.trim().toLocaleLowerCase();
+  return dashboardModules.filter((item) =>
+    `${getAppDictionary("ar").dashboard.modules[item.key]} ${getAppDictionary("en").dashboard.modules[item.key]} ${item.key}`
+      .toLocaleLowerCase()
+      .includes(q),
   );
 }
 /** A matching layout is a query parameter on an existing guarded route. */
@@ -114,14 +124,18 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
   const [command, setCommand] = useState(false);
   const [commandQuery, setCommandQuery] = useState("");
   const oldWorkspaceActive =
-    pathname.startsWith(`/${locale}/dashboard`) && !pathname.startsWith(erpHref(locale));
+    (pathname === `/${locale}/dashboard` || pathname.startsWith(`/${locale}/dashboard/`)) &&
+    !(pathname === erpHref(locale) || pathname.startsWith(`${erpHref(locale)}/`));
   const [oldExpanded, setOldExpanded] = useState(oldWorkspaceActive);
   useEffect(() => {
     if (oldWorkspaceActive) setOldExpanded(true);
   }, [oldWorkspaceActive, pathname]);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  useEffect(() => setCommand(false), [pathname]);
+  useEffect(() => {
+    setCommand(false);
+    setQuery("");
+  }, [pathname]);
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
@@ -135,6 +149,9 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
   if (!canAccessErp(role)) return null;
   const app = getAppDictionary(locale);
   const results = searchErpPages(commandQuery);
+  const adminResults = searchAdminPages(commandQuery);
+  const matchingModules = new Set(searchErpPages(query).map(({ module }) => module.id));
+  const adminPages = searchAdminPages(query).filter((item) => item.key !== "overview");
   return (
     <>
       <div className="erp-nav-tools">
@@ -155,7 +172,7 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
           {erpText("command", locale)} <kbd>Ctrl K</kbd>
         </button>
       </div>
-      <nav className="shell-nav erp-nav" aria-label={erpText("workspace", locale)}>
+      <nav className="shell-nav erp-nav" aria-label={erpText("adminNavigation", locale)}>
         <Link
           href={dashboardHref(locale)}
           aria-current={pathname === dashboardHref(locale) ? "page" : undefined}
@@ -166,18 +183,37 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
           href={erpHref(locale)}
           aria-current={pathname === erpHref(locale) ? "page" : undefined}
         >
-          {erpText("catalogue", locale)}
+          {erpText("workspace", locale)}
         </Link>
-        {erpModules.map((module) => (
-          <ModuleGroup
-            key={module.id}
-            module={module}
-            locale={locale}
-            query={query}
-            pathname={pathname}
-          />
-        ))}
-        {query && searchErpPages(query).length === 0 ? <p>{erpText("noResults", locale)}</p> : null}
+        {erpNavigationGroups.map((group) =>
+          group.modules.some((id) => matchingModules.has(id)) ? (
+            <div
+              key={group.id}
+              className="erp-nav-category"
+              role="group"
+              aria-labelledby={`erp-nav-category-${group.id}`}
+            >
+              <span id={`erp-nav-category-${group.id}`} className="erp-nav-category-title">
+                {pick(group.title, locale)}
+              </span>
+              {group.modules.map((id) => {
+                const areaModule = erpModules.find((item) => item.id === id)!;
+                return (
+                  <ModuleGroup
+                    key={id}
+                    module={areaModule}
+                    locale={locale}
+                    query={query}
+                    pathname={pathname}
+                  />
+                );
+              })}
+            </div>
+          ) : null,
+        )}
+        {query.trim() && !matchingModules.size && !searchAdminPages(query).length ? (
+          <p>{erpText("noResults", locale)}</p>
+        ) : null}
         <details className="erp-nav-module" open={Boolean(query) || oldExpanded}>
           <summary
             aria-expanded={Boolean(query) || oldExpanded}
@@ -188,21 +224,29 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
           >
             {erpText("current", locale)}
           </summary>
-          {dashboardModules
-            .filter((item) =>
-              `${getAppDictionary("ar").dashboard.modules[item.key]} ${getAppDictionary("en").dashboard.modules[item.key]} ${item.key}`
-                .toLowerCase()
-                .includes(query.toLowerCase()),
-            )
-            .map((item) => (
-              <Link
-                key={item.key}
-                href={dashboardHref(locale, item.segment)}
-                aria-current={pathname === dashboardHref(locale, item.segment) ? "page" : undefined}
+          {dashboardNavGroups.map((group) => {
+            const items = adminPages.filter((item) => group.modules.includes(item.key));
+            if (!items.length) return null;
+            return (
+              <div
+                key={group.key}
+                className="erp-nav-submenu"
+                role="group"
+                aria-label={app.dashboard.navGroups[group.key]}
               >
-                {app.dashboard.modules[item.key]}
-              </Link>
-            ))}
+                <span className="erp-nav-section">{app.dashboard.navGroups[group.key]}</span>
+                {items.map((item) => {
+                  const href = dashboardHref(locale, item.segment);
+                  const active = pathname === href || pathname.startsWith(`${href}/`);
+                  return (
+                    <Link key={item.key} href={href} aria-current={active ? "page" : undefined}>
+                      {app.dashboard.modules[item.key]}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
         </details>
       </nav>
       {mounted
@@ -222,6 +266,17 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
                 onChange={(event) => setCommandQuery(event.target.value)}
               />
               <ul className="erp-command-results">
+                {adminResults.map((item) => (
+                  <li key={`admin/${item.key}`}>
+                    <Link
+                      href={dashboardHref(locale, item.segment)}
+                      onClick={() => setCommand(false)}
+                    >
+                      <small>{erpText("websiteAdmin", locale)}</small>
+                      <strong>{app.dashboard.modules[item.key]}</strong>
+                    </Link>
+                  </li>
+                ))}
                 {results.map(({ module, page }) => (
                   <li key={`${module.id}/${page.id}`}>
                     <Link
@@ -236,7 +291,9 @@ export function ErpNavigation({ locale, role }: { locale: Locale; role: unknown 
                   </li>
                 ))}
               </ul>
-              {!results.length ? <p>{erpText("noResults", locale)}</p> : null}
+              {!results.length && !adminResults.length ? (
+                <p>{erpText("noResults", locale)}</p>
+              ) : null}
             </InfoDialog>,
             document.body,
           )
