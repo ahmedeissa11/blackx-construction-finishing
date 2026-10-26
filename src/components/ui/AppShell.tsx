@@ -80,6 +80,9 @@ export function AppShell({
   roleLabel,
   title,
   navItems,
+  navigationContent,
+  topbarContent,
+  shellClassName,
   breadcrumbs = [],
   baseSegment,
   showSignOut = false,
@@ -90,6 +93,11 @@ export function AppShell({
   roleLabel: string;
   title: string;
   navItems: ShellNavItem[];
+  /** Optional Admin-specific hierarchy; default portal navigation is unchanged. */
+  navigationContent?: ReactNode;
+  /** Optional Admin-only controls; Portal keeps its existing header. */
+  topbarContent?: ReactNode;
+  shellClassName?: string;
   breadcrumbs?: ShellBreadcrumbItem[];
   baseSegment: "dashboard" | "portal";
   showSignOut?: boolean;
@@ -170,7 +178,7 @@ export function AppShell({
   function isActive(href: string): boolean {
     const base = `/${locale}/${baseSegment}`;
     if (href === base) return pathname === base || pathname === `${base}/`;
-    return pathname.startsWith(href);
+    return pathname === href || pathname.startsWith(`${href}/`);
   }
 
   const normalizedNavQuery = navQuery.trim().toLocaleLowerCase(locale);
@@ -198,7 +206,7 @@ export function AppShell({
   }
 
   return (
-    <div className="shell">
+    <div className={`shell${shellClassName ? ` ${shellClassName}` : ""}`}>
       {open ? (
         <button
           type="button"
@@ -230,99 +238,111 @@ export function AppShell({
             <span aria-hidden="true">×</span>
           </button>
         </div>
-        <div className="shell-nav-search">
-          <span className="shell-nav-search-icon" aria-hidden="true">
-            <SearchIcon />
-          </span>
-          <label className="sr-only" htmlFor="shell-navigation-search">
-            {appDict.navFilter}
-          </label>
-          <input
-            id="shell-navigation-search"
-            type="search"
-            value={navQuery}
-            onChange={(event) => setNavQuery(event.target.value)}
-            placeholder={appDict.navFilter}
-            autoComplete="off"
-          />
-          {navQuery ? (
-            <button
-              type="button"
-              className="shell-nav-search-clear"
-              aria-label={appDict.clearFilters}
-              onClick={() => setNavQuery("")}
-            >
-              ×
-            </button>
-          ) : null}
-        </div>
-        <nav className="shell-nav" aria-label={roleLabel}>
-          {navGroups.map((group, groupIndex) => {
-            const hasActiveItem = group.items.some((item) => isActive(item.href));
-            const expanded = group.label
-              ? normalizedNavQuery
-                ? true
-                : (groupOverrides[group.label] ?? (!compactNav || hasActiveItem))
-              : true;
-            const visibleItems = expanded
-              ? group.items
-              : group.items.filter((item) => isActive(item.href));
-            const groupPanelId = `shell-nav-group-${groupIndex}`;
+        {navigationContent ? (
+          <div
+            onClick={(event) => {
+              if ((event.target as HTMLElement).closest("a")) setOpen(false);
+            }}
+          >
+            {navigationContent}
+          </div>
+        ) : (
+          <>
+            <div className="shell-nav-search">
+              <span className="shell-nav-search-icon" aria-hidden="true">
+                <SearchIcon />
+              </span>
+              <label className="sr-only" htmlFor="shell-navigation-search">
+                {appDict.navFilter}
+              </label>
+              <input
+                id="shell-navigation-search"
+                type="search"
+                value={navQuery}
+                onChange={(event) => setNavQuery(event.target.value)}
+                placeholder={appDict.navFilter}
+                autoComplete="off"
+              />
+              {navQuery ? (
+                <button
+                  type="button"
+                  className="shell-nav-search-clear"
+                  aria-label={appDict.clearFilters}
+                  onClick={() => setNavQuery("")}
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
+            <nav className="shell-nav" aria-label={roleLabel}>
+              {navGroups.map((group, groupIndex) => {
+                const hasActiveItem = group.items.some((item) => isActive(item.href));
+                const expanded = group.label
+                  ? normalizedNavQuery
+                    ? true
+                    : (groupOverrides[group.label] ?? (!compactNav || hasActiveItem))
+                  : true;
+                const visibleItems = expanded
+                  ? group.items
+                  : group.items.filter((item) => isActive(item.href));
+                const groupPanelId = `shell-nav-group-${groupIndex}`;
 
-            return (
-              <div
-                className="shell-nav-group"
-                key={`${group.label ?? "default"}-${groupIndex}`}
-                role={group.label ? "group" : undefined}
-                aria-label={group.label}
-              >
-                {group.label ? (
-                  <button
-                    type="button"
-                    className="shell-nav-heading"
-                    aria-expanded={expanded}
-                    aria-controls={groupPanelId}
-                    onClick={() => toggleNavGroup(group.label!, expanded)}
+                return (
+                  <div
+                    className="shell-nav-group"
+                    key={`${group.label ?? "default"}-${groupIndex}`}
+                    role={group.label ? "group" : undefined}
+                    aria-label={group.label}
                   >
-                    <span>{group.label}</span>
-                    <span className="shell-nav-chevron" aria-hidden="true">
-                      {expanded ? "⌃" : "⌄"}
-                    </span>
-                  </button>
-                ) : null}
-                <div id={groupPanelId} className="shell-nav-items">
-                  {visibleItems.map((item) => (
-                    <Link
-                      key={item.href + item.label}
-                      href={item.href}
-                      className={isActive(item.href) ? "active" : undefined}
-                      aria-current={isActive(item.href) ? "page" : undefined}
-                      onClick={() => setOpen(false)}
-                    >
-                      <span className="nav-icon" aria-hidden="true">
-                        <GlyphIcon icon={item.icon} />
-                      </span>
-                      <span className="nav-label">{item.label}</span>
-                      {typeof item.count === "number" && item.count > 0 ? (
-                        <>
-                          <span className="nav-count" aria-hidden="true">
-                            {item.count}
+                    {group.label ? (
+                      <button
+                        type="button"
+                        className="shell-nav-heading"
+                        aria-expanded={expanded}
+                        aria-controls={groupPanelId}
+                        onClick={() => toggleNavGroup(group.label!, expanded)}
+                      >
+                        <span>{group.label}</span>
+                        <span className="shell-nav-chevron" aria-hidden="true">
+                          {expanded ? "⌃" : "⌄"}
+                        </span>
+                      </button>
+                    ) : null}
+                    <div id={groupPanelId} className="shell-nav-items">
+                      {visibleItems.map((item) => (
+                        <Link
+                          key={item.href + item.label}
+                          href={item.href}
+                          className={isActive(item.href) ? "active" : undefined}
+                          aria-current={isActive(item.href) ? "page" : undefined}
+                          onClick={() => setOpen(false)}
+                        >
+                          <span className="nav-icon" aria-hidden="true">
+                            <GlyphIcon icon={item.icon} />
                           </span>
-                          <span className="sr-only">
-                            ({item.count} {appDict.status.new})
-                          </span>
-                        </>
-                      ) : null}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-          {normalizedNavQuery && navGroups.length === 0 ? (
-            <p className="shell-nav-empty">{appDict.noResults}</p>
-          ) : null}
-        </nav>
+                          <span className="nav-label">{item.label}</span>
+                          {typeof item.count === "number" && item.count > 0 ? (
+                            <>
+                              <span className="nav-count" aria-hidden="true">
+                                {item.count}
+                              </span>
+                              <span className="sr-only">
+                                ({item.count} {appDict.status.new})
+                              </span>
+                            </>
+                          ) : null}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+              {normalizedNavQuery && navGroups.length === 0 ? (
+                <p className="shell-nav-empty">{appDict.noResults}</p>
+              ) : null}
+            </nav>
+          </>
+        )}
         <div className="shell-foot">
           <p style={{ marginBlockEnd: 10 }}>{appDict.authNote}</p>
           <Link href={`/${locale}`}>
@@ -375,6 +395,7 @@ export function AppShell({
             <h1 className="shell-title">{title}</h1>
           </div>
           <span className="shell-topbar-actions">
+            {topbarContent}
             <span className="locale-switch" role="group" aria-label="Language / اللغة">
               <Link
                 href={buildLocaleSwitchHref(pathname, "ar", urlSuffix)}

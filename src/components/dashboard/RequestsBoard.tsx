@@ -171,18 +171,25 @@ export function RequestsBoard({
   locale,
   appDict,
   initialRequests,
+  initialFocusId,
+  focusUnavailable = false,
 }: {
   locale: Locale;
   appDict: AppDictionary;
   initialRequests: PreviewRequest[];
+  initialFocusId?: string;
+  focusUnavailable?: boolean;
 }) {
   const [requests, setRequests] = useState<PreviewRequest[]>(initialRequests);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [serviceFilter, setServiceFilter] = useState("");
-  const [selected, setSelected] = useState<PreviewRequest | null>(null);
-  const [draftStatus, setDraftStatus] = useState("");
-  const [draftAssignee, setDraftAssignee] = useState("");
+  const focusedRequest = initialRequests.find((request) => request.id === initialFocusId);
+  const [selected, setSelected] = useState<PreviewRequest | null>(focusedRequest ?? null);
+  const [draftStatus, setDraftStatus] = useState(focusedRequest?.status ?? "");
+  const [draftAssignee, setDraftAssignee] = useState(
+    focusedRequest?.assignee ? pick(focusedRequest.assignee, locale) : "",
+  );
   const [draftErrors, setDraftErrors] = useState<AdminRequestAssignmentErrors>({});
   const [confirmStatusChange, setConfirmStatusChange] = useState(false);
   const [toast, setToast] = useState(false);
@@ -336,6 +343,13 @@ export function RequestsBoard({
 
   return (
     <section className="panel requests-board">
+      {focusUnavailable || (initialFocusId && !focusedRequest) ? (
+        <p role="status" className="erp-boundary">
+          {locale === "ar"
+            ? "الطلب المشار إليه غير موجود في بيانات المعاينة المصرح بها. اختر طلباً من القائمة؛ لم تُفتح أو تُعدل أي سجلات أخرى."
+            : "The referenced request is unavailable in the authorized preview data. Choose a request from the list; no other record was opened or changed."}
+        </p>
+      ) : null}
       <div className="requests-board-head">
         <div className="requests-board-copy">
           <p className="requests-board-eyebrow">{appDict.dashboard.modules.requests}</p>
